@@ -1,65 +1,112 @@
-import Image from "next/image";
+'use client'
 
-export default function Home() {
+import { useEffect, useState } from 'react'
+import dynamic from 'next/dynamic'
+
+const MetaTab    = dynamic(() => import('./components/MetaTab'),    { ssr: false })
+const FinanceTab = dynamic(() => import('./components/FinanceTab'), { ssr: false })
+const DocsTab    = dynamic(() => import('./components/DocsTab'),    { ssr: false })
+const AgentsTab  = dynamic(() => import('./components/AgentsTab'),  { ssr: false })
+
+const NAV_ITEMS = [
+  { id: 'meta',    label: 'Meta Ads',   icon: '◈' },
+  { id: 'finance', label: 'Finance',    icon: '◆' },
+  { id: 'docs',    label: 'Docs',       icon: '▤' },
+  { id: 'agents',  label: 'AI Agents',  icon: '⬡' },
+  { id: 'map',     label: 'Client Map', icon: '◉' },
+]
+
+export default function Dashboard() {
+  const [activeTab, setActiveTab] = useState('meta')
+
+  useEffect(() => {
+    const saved = localStorage.getItem('bouwcheck_active_tab')
+    if (saved) setActiveTab(saved)
+  }, [])
+  const [time, setTime] = useState('')
+
+  function handleTabChange(id: string) {
+    setActiveTab(id)
+    localStorage.setItem('bouwcheck_active_tab', id)
+  }
+
+  useEffect(() => {
+    const fmt = () => new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })
+    setTime(fmt())
+    const t = setInterval(() => setTime(fmt()), 30_000)
+    return () => clearInterval(t)
+  }, [])
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: '#0a0a0f' }}>
+
+      {/* ── Sidebar ── */}
+      <aside style={{
+        width: 220, flexShrink: 0, background: '#0d0d15',
+        borderRight: '1px solid #1a1a2e', display: 'flex', flexDirection: 'column',
+      }}>
+        {/* Logo */}
+        <div style={{ padding: '20px 16px', borderBottom: '1px solid #1a1a2e' }}>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 3, color: '#6366f1', marginBottom: 4 }}>
+            BOUW CHECK
+          </div>
+          <div style={{ fontSize: 11, color: '#2d3748' }}>Command Center</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 10 }}>
+            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981' }} />
+            <span style={{ fontSize: 10, color: '#10b981' }}>Alle systemen actief</span>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* Nav */}
+        <nav style={{ flex: 1, padding: 10, display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {NAV_ITEMS.map(item => (
+            <button
+              key={item.id}
+              onClick={() => handleTabChange(item.id)}
+              style={{
+                width: '100%', textAlign: 'left', padding: '9px 12px', borderRadius: 8,
+                fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10,
+                background: activeTab === item.id ? '#1a1a2e' : 'transparent',
+                color: activeTab === item.id ? '#e2e8f0' : '#4a5568',
+                border: activeTab === item.id ? '1px solid #252540' : '1px solid transparent',
+                transition: 'all 0.15s',
+              }}
+            >
+              <span style={{ fontSize: 14 }}>{item.icon}</span>
+              {item.label}
+            </button>
+          ))}
+        </nav>
+
+        {/* Footer */}
+        <div style={{ padding: '12px 16px', borderTop: '1px solid #1a1a2e' }}>
+          <div style={{ fontSize: 11, color: '#2d3748' }}>Jasper van Heyningen</div>
+          {time && <div style={{ fontSize: 10, color: '#1a1a2e', marginTop: 2 }}>{time}</div>}
         </div>
+      </aside>
+
+      {/* ── Main content ── */}
+      <main style={{ flex: 1, overflow: 'auto', padding: 28 }}>
+        {activeTab === 'meta'    && <MetaTab />}
+        {activeTab === 'finance' && <FinanceTab />}
+        {activeTab === 'docs'    && <DocsTab />}
+        {activeTab === 'agents'  && <AgentsTab />}
+        {activeTab === 'map'     && <MapTab />}
       </main>
     </div>
-  );
+  )
+}
+
+function MapTab() {
+  return (
+    <div>
+      <div style={{ marginBottom: 24 }}>
+        <h1 style={{ fontSize: 20, fontWeight: 600, color: '#e2e8f0', margin: 0 }}>Client Map</h1>
+        <p style={{ fontSize: 12, color: '#4a5568', marginTop: 4 }}>B2B aannemers overzicht</p>
+      </div>
+      <div style={{ background: '#111118', border: '1px solid #1a1a2e', borderRadius: 12, overflow: 'hidden', height: 'calc(100vh - 148px)' }}>
+        <iframe src="/client-map.html" style={{ width: '100%', height: '100%', border: 'none' }} />
+      </div>
+    </div>
+  )
 }

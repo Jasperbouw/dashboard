@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Client Map — Nederland</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      display: flex; height: 100vh; background: #f0f2f5;
+    }
+
+    /* ── Sidebar ── */
+    #sidebar {
+      width: 300px; min-width: 260px; background: #fff;
+      display: flex; flex-direction: column;
+      box-shadow: 2px 0 12px rgba(0,0,0,.1); z-index: 1000;
+    }
+    #sidebar-header { padding: 18px 18px 12px; border-bottom: 1px solid #eee; }
+    #sidebar-header h1 { font-size: 17px; font-weight: 700; color: #1a1a2e; margin-bottom: 3px; }
+    #sidebar-header p  { font-size: 12px; color: #888; }
+    #search-box {
+      margin: 12px 14px 0; padding: 8px 12px; border: 1.5px solid #ddd;
+      border-radius: 8px; font-size: 13px; outline: none;
+      width: calc(100% - 28px); transition: border-color .2s;
+    }
+    #search-box:focus { border-color: #4f7ef7; }
+    #filter-bar { padding: 10px 14px 6px; display: flex; flex-wrap: wrap; gap: 6px; }
+    .region-pill {
+      padding: 4px 10px; border-radius: 20px; font-size: 11.5px; font-weight: 600;
+      cursor: pointer; border: 2px solid transparent; transition: all .15s;
+      color: #fff; opacity: .72;
+    }
+    .region-pill:hover, .region-pill.active { opacity: 1; box-shadow: 0 2px 6px rgba(0,0,0,.2); }
+    #client-list { flex: 1; overflow-y: auto; padding: 6px 0 6px; }
+    .client-item {
+      padding: 10px 18px; cursor: pointer; border-left: 3px solid transparent;
+      transition: background .15s, border-color .15s;
+    }
+    .client-item:hover { background: #f5f7ff; }
+    .client-item.highlighted { background: #eef2ff; border-left-color: #4f7ef7; }
+    .client-name { font-size: 13.5px; font-weight: 600; color: #1a1a2e; }
+    .client-region { font-size: 11.5px; color: #888; margin-top: 2px; display: flex; align-items: center; gap: 5px; }
+    .region-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+    #client-count { padding: 8px 18px; font-size: 11.5px; color: #aaa; border-top: 1px solid #f0f0f0; }
+    .no-results { padding: 24px 18px; color: #aaa; font-size: 13px; text-align: center; }
+
+    /* ── Edit button ── */
+    #edit-btn {
+      margin: 0 14px 14px; padding: 9px; background: #f5f7ff;
+      border: 1.5px solid #dde3ff; border-radius: 8px; cursor: pointer;
+      font-size: 13px; font-weight: 600; color: #4f7ef7;
+      text-align: center; transition: background .15s;
+    }
+    #edit-btn:hover { background: #e8ecff; }
+
+    /* ── Map ── */
+    #map { flex: 1; }
+
+    /* ── Custom marker ── */
+    .custom-marker {
+      width: 28px; height: 28px; border-radius: 50% 50% 50% 0;
+      transform: rotate(-45deg); border: 2.5px solid #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,.28); cursor: pointer;
+    }
+
+    /* ── Popup ── */
+    .leaflet-popup-content-wrapper { border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,.15); padding: 0; }
+    .leaflet-popup-content { margin: 0; min-width: 170px; }
+    .popup-inner { padding: 12px 15px; }
+    .popup-name { font-size: 14px; font-weight: 700; color: #1a1a2e; margin-bottom: 6px; }
+    .popup-lbl  { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: #aaa; margin-bottom: 1px; }
+    .popup-val  { font-size: 13px; color: #444; font-weight: 500; }
+    .popup-bar  { height: 5px; border-radius: 10px 10px 0 0; }
+
+    /* ══════════════════════════════════════════════
+       EDITOR OVERLAY
+    ══════════════════════════════════════════════ */
+    #editor-overlay {
+      display: none; position: fixed; inset: 0; z-index: 9000;
+      background: rgba(0,0,0,.45); align-items: center; justify-content: center;
+    }
+    #editor-overlay.open { display: flex; }
+
+    #editor-panel {
+      background: #fff; border-radius: 14px; width: 92vw; max-width: 860px;
+      max-height: 88vh; display: flex; flex-direction: column;
+      box-shadow: 0 20px 60px rgba(0,0,0,.25); overflow: hidden;
+    }
+
+    #editor-header {
+      padding: 18px 22px 14px; border-bottom: 1px solid #eee;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    #editor-header h2 { font-size: 16px; font-weight: 700; color: #1a1a2e; }
+    #editor-header p  { font-size: 12px; color: #999; margin-top: 2px; }
+    #editor-close {
+      width: 30px; height: 30px; border-radius: 50%; border: none;
+      background: #f0f0f0; cursor: pointer; font-size: 16px; color: #666;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .15s;
+    }
+    #editor-close:hover { background: #e0e0e0; }
+
+    #editor-body { flex: 1; overflow-y: auto; padding: 16px 20px; }
+
+    /* Client rows */
+    .editor-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 28px 85px 85px auto auto;
+      gap: 8px; align-items: start;
+      padding: 10px 0; border-bottom: 1px solid #f4f4f4;
+    }
+    .editor-row:last-child { border-bottom: none; }
+
+    .editor-row input, .editor-row select {
+      padding: 7px 9px; border: 1.5px solid #e0e0e0; border-radius: 7px;
+      font-size: 13px; outline: none; width: 100%;
+      transition: border-color .15s; font-family: inherit;
+    }
+    .editor-row input:focus, .editor-row select:focus { border-color: #4f7ef7; }
+
+    .shape-fields {
+      grid-column: 1 / -1;
+      background: #fafafa; border: 1px solid #eee; border-radius: 8px;
+      padding: 10px 12px; display: flex; flex-wrap: wrap; gap: 8px;
+      align-items: center;
+    }
+    .shape-fields label { font-size: 12px; color: #888; white-space: nowrap; }
+    .shape-fields input {
+      flex: 1; min-width: 80px; padding: 6px 8px;
+      border: 1.5px solid #e0e0e0; border-radius: 6px; font-size: 12.5px;
+    }
+    .shape-fields textarea {
+      flex: 1; min-width: 100%; padding: 6px 8px;
+      border: 1.5px solid #e0e0e0; border-radius: 6px; font-size: 12px;
+      font-family: monospace; resize: vertical; min-height: 56px; outline: none;
+    }
+    .shape-fields textarea:focus, .shape-fields input:focus { border-color: #4f7ef7; }
+
+    .col-lbl {
+      font-size: 11px; font-weight: 600; color: #bbb; text-align: left;
+      padding: 0 0 4px 2px; letter-spacing: .3px;
+    }
+
+    #editor-colheads {
+      display: grid;
+      grid-template-columns: 1fr 1fr 28px 85px 85px auto auto;
+      gap: 8px; padding: 0 0 4px;
+    }
+
+    /* Colour picker swatch */
+    .f-color {
+      width: 28px; height: 34px; padding: 2px; border: 1.5px solid #e0e0e0;
+      border-radius: 7px; cursor: pointer; background: none; flex-shrink: 0;
+    }
+
+    /* Geocoder strip */
+    .geo-row {
+      grid-column: 1 / -1;
+      display: flex; gap: 6px; align-items: center;
+      background: #f7f9ff; border: 1px solid #e8edff; border-radius: 8px;
+      padding: 7px 10px;
+    }
+    .geo-row input {
+      flex: 1; padding: 6px 9px; border: 1.5px solid #dde3ff; border-radius: 6px;
+      font-size: 12.5px; outline: none; font-family: inherit;
+    }
+    .geo-row input:focus { border-color: #4f7ef7; }
+    .geo-btn {
+      padding: 6px 12px; background: #4f7ef7; color: #fff; border: none;
+      border-radius: 6px; font-size: 12.5px; font-weight: 600; cursor: pointer;
+      white-space: nowrap; transition: background .15s;
+    }
+    .geo-btn:hover { background: #3a68e0; }
+    .geo-btn:disabled { background: #aac0f8; cursor: default; }
+    .geo-hint { font-size: 11.5px; color: #aaa; white-space: nowrap; }
+
+    .del-btn {
+      width: 30px; height: 34px; border: none; background: none;
+      color: #ccc; cursor: pointer; font-size: 18px; border-radius: 6px;
+      transition: color .15s, background .15s; display: flex;
+      align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .del-btn:hover { color: #e05c5c; background: #fff0f0; }
+
+    .shape-type-select { min-width: 110px !important; }
+
+    #editor-footer {
+      padding: 14px 20px; border-top: 1px solid #eee;
+      display: flex; gap: 10px; align-items: center;
+    }
+    #add-client-btn {
+      padding: 8px 16px; background: #f5f7ff; border: 1.5px solid #dde3ff;
+      border-radius: 8px; color: #4f7ef7; font-weight: 600; font-size: 13px;
+      cursor: pointer; transition: background .15s;
+    }
+    #add-client-btn:hover { background: #e8ecff; }
+    #save-btn {
+      margin-left: auto; padding: 9px 22px; background: #4f7ef7;
+      border: none; border-radius: 8px; color: #fff; font-weight: 700;
+      font-size: 13px; cursor: pointer; transition: background .15s;
+    }
+    #save-btn:hover { background: #3a68e0; }
+    #download-btn {
+      padding: 9px 16px; background: #fff; border: 1.5px solid #ddd;
+      border-radius: 8px; color: #555; font-weight: 600; font-size: 13px;
+      cursor: pointer; transition: background .15s;
+    }
+    #download-btn:hover { background: #f5f5f5; }
+    .save-hint { font-size: 11.5px; color: #bbb; }
+  </style>
+</head>
+<body>
+
+<!-- ── Default client data (overridden by localStorage if you've saved before) ── -->
+<script>
+const DEFAULT_CLIENTS = [
+  { name: "Bouwcombinatie Amsterdam", region: "Noord-Holland", lat: 52.3676, lng: 4.9041, shapeType: "circle", radius: 24000, color: "#4f7ef7" },
+  { name: "Hollands Prefab",          region: "Noord-Holland", lat: 52.25403, lng: 4.8019, shapeType: "circle", radius: 35000, color: "#27ae60" },
+  { name: "TBouw",                    region: "Zuid-Holland",  lat: 52.15947, lng: 4.49088, shapeType: "circle", radius: 15000, color: "#e040fb" },
+  { name: "Miza Group",               region: "Flevoland",     lat: 52.33697, lng: 5.31885, shapeType: "circle", radius: 32000, color: "#00bcd4" },
+  { name: "Prefab op maat",           region: "Zeeland",       lat: 51.61692, lng: 4.16636, shapeType: "circle", radius: 35000, color: "#ff9800" },
+  { name: "Flair",                    region: "Zuid-Holland",  lat: 51.99705, lng: 4.40063, shapeType: "circle", radius: 30000, color: "#ab47bc" },
+];
+
+// Load from localStorage if available, otherwise use defaults
+let clients = [];
+try {
+  const saved = localStorage.getItem('clientMapData');
+  clients = saved ? JSON.parse(saved) : DEFAULT_CLIENTS;
+} catch(e) {
+  clients = DEFAULT_CLIENTS;
+}
+</script>
+
+<!-- ── Sidebar ── -->
+<div id="sidebar">
+  <div id="sidebar-header">
+    <h1>🗺 Clienten Overzicht</h1>
+    <p id="subtitle">Laden…</p>
+  </div>
+  <input id="search-box" type="text" placeholder="Zoek op naam of regio…" />
+  <div id="filter-bar"></div>
+  <div id="client-list"></div>
+  <div id="client-count"></div>
+  <button id="edit-btn">✎ &nbsp;Clienten bewerken</button>
+</div>
+
+<div id="map"></div>
+
+<!-- ══════════════════════════════════════════════
+     EDITOR OVERLAY
+══════════════════════════════════════════════ -->
+<div id="editor-overlay">
+  <div id="editor-panel">
+    <div id="editor-header">
+      <div>
+        <h2>Clienten bewerken</h2>
+        <p>Wijzigingen worden direct op de kaart toegepast.</p>
+      </div>
+      <button id="editor-close">✕</button>
+    </div>
+
+    <div id="editor-body">
+      <div id="editor-colheads">
+        <div class="col-lbl">Naam</div>
+        <div class="col-lbl">Regio</div>
+        <div class="col-lbl" title="Kleur">🎨</div>
+        <div class="col-lbl">Latitude</div>
+        <div class="col-lbl">Longitude</div>
+        <div class="col-lbl">Gebied</div>
+        <div></div>
+      </div>
+      <div id="editor-rows"></div>
+    </div>
+
+    <div id="editor-footer">
+      <button id="add-client-btn">+ Client toevoegen</button>
+      <span class="save-hint" id="save-hint"></span>
+      <button id="download-btn">⬇ Download</button>
+      <button id="save-btn">Opslaan & sluiten</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════
+   REGION COLOURS
+══════════════════════════════════════════════════════════ */
+const REGION_COLORS = {
+  "Noord-Holland": "#4f7ef7", "Zuid-Holland": "#e05c5c",
+  "Utrecht":       "#f5a623", "Gelderland":   "#27ae60",
+  "Noord-Brabant": "#9b59b6", "Overijssel":   "#1abc9c",
+  "Friesland":     "#e67e22", "Groningen":    "#2980b9",
+  "Limburg":       "#c0392b", "Zeeland":      "#16a085",
+  "Flevoland":     "#8e44ad", "Drenthe":      "#d35400",
+  "Overig":        "#7f8c8d",
+};
+// Auto-generate a colour for unknown regions
+function stringToColor(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  return `hsl(${Math.abs(hash) % 360},55%,48%)`;
+}
+function getColor(region) {
+  return REGION_COLORS[region] || stringToColor(region);
+}
+
+/* ══════════════════════════════════════════════════════════
+   MAP SETUP
+══════════════════════════════════════════════════════════ */
+const map = L.map('map', { zoomControl: true }).setView([52.2, 5.3], 8);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+  attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a> © <a href="https://carto.com">CARTO</a>',
+  subdomains: 'abcd', maxZoom: 19,
+}).addTo(map);
+
+/* ══════════════════════════════════════════════════════════
+   MAP RENDERING
+══════════════════════════════════════════════════════════ */
+const markers = {}, shapes = {}, leafletMarkers = [];
+
+function makeIcon(color) {
+  return L.divIcon({
+    className: '',
+    html: `<div class="custom-marker" style="background:${color}"></div>`,
+    iconSize: [28,28], iconAnchor: [14,28], popupAnchor: [0,-28],
+  });
+}
+const SHAPE_STYLE = color => ({
+  color, weight: 2, opacity: 0.7, fillColor: color, fillOpacity: 0.18, interactive: true,
+});
+function makePopup(c, color) {
+  let areaHtml = '';
+  if (c.shapeType === 'circle' && c.radius > 0) {
+    const label = c.radius >= 1000 ? `${(c.radius/1000).toFixed(0)} km radius` : `${c.radius} m radius`;
+    areaHtml = `<div class="popup-lbl" style="margin-top:8px">Werkgebied</div><div class="popup-val">${label}</div>`;
+  } else if (c.shapeType === 'rectangle') {
+    areaHtml = `<div class="popup-lbl" style="margin-top:8px">Werkgebied</div><div class="popup-val">Rechthoekig gebied</div>`;
+  } else if (c.shapeType === 'polygon') {
+    areaHtml = `<div class="popup-lbl" style="margin-top:8px">Werkgebied</div><div class="popup-val">Aangepast gebied</div>`;
+  }
+  return `<div class="popup-bar" style="background:${color}"></div>
+    <div class="popup-inner">
+      <div class="popup-name">${c.name}</div>
+      <div class="popup-lbl">Regio</div><div class="popup-val">${c.region}</div>
+      ${areaHtml}
+    </div>`;
+}
+
+function clearMap() {
+  Object.values(markers).forEach(m => m.remove());
+  Object.values(shapes).forEach(s => s.remove());
+  Object.keys(markers).forEach(k => delete markers[k]);
+  Object.keys(shapes).forEach(k => delete shapes[k]);
+  leafletMarkers.length = 0;
+}
+
+function clientColor(c) {
+  return c.color || getColor(c.region);
+}
+
+function renderMap() {
+  clearMap();
+  clients.forEach(c => {
+    const color = clientColor(c);
+    let shape = null;
+    if (c.shapeType === 'circle' && c.radius > 0) {
+      shape = L.circle([c.lat, c.lng], { radius: c.radius, ...SHAPE_STYLE(color) });
+    } else if (c.shapeType === 'rectangle' && c.bounds) {
+      shape = L.rectangle(c.bounds, SHAPE_STYLE(color));
+    } else if (c.shapeType === 'polygon' && c.polygon && c.polygon.length >= 3) {
+      shape = L.polygon(c.polygon, SHAPE_STYLE(color));
+    }
+    if (shape) {
+      shape.bindPopup(makePopup(c, color), { maxWidth: 230 });
+      shape.addTo(map);
+      shapes[c.name] = shape;
+    }
+    const marker = L.marker([c.lat, c.lng], { icon: makeIcon(color) });
+    marker.bindPopup(makePopup(c, color), { maxWidth: 230 });
+    marker.addTo(map);
+    markers[c.name] = marker;
+    leafletMarkers.push({ c, marker });
+    marker.on('popupopen', () => highlightSidebarItem(c.name));
+  });
+}
+
+/* ══════════════════════════════════════════════════════════
+   SIDEBAR
+══════════════════════════════════════════════════════════ */
+let activeRegion = null, searchTerm = '';
+
+function highlightSidebarItem(name) {
+  document.querySelectorAll('.client-item').forEach(i => {
+    i.classList.toggle('highlighted', i.dataset.name === name);
+    if (i.dataset.name === name) i.scrollIntoView({ behavior:'smooth', block:'nearest' });
+  });
+}
+
+function renderSidebar() {
+  // Pills
+  const filterBar = document.getElementById('filter-bar');
+  filterBar.innerHTML = '';
+  const regions = [...new Set(clients.map(c => c.region))].sort();
+  regions.forEach(region => {
+    const color = getColor(region);
+    const pill = document.createElement('span');
+    pill.className = 'region-pill' + (activeRegion === region ? ' active' : '');
+    pill.textContent = region; pill.style.background = color; pill.dataset.region = region;
+    pill.addEventListener('click', () => {
+      activeRegion = activeRegion === region ? null : region;
+      renderSidebar();
+    });
+    filterBar.appendChild(pill);
+  });
+
+  // List
+  const list = document.getElementById('client-list');
+  list.innerHTML = '';
+  const filtered = clients.filter(c => {
+    const mr = !activeRegion || c.region === activeRegion;
+    const ms = !searchTerm || c.name.toLowerCase().includes(searchTerm) || c.region.toLowerCase().includes(searchTerm);
+    return mr && ms;
+  });
+  if (!filtered.length) {
+    list.innerHTML = '<div class="no-results">Geen clients gevonden</div>';
+  }
+  filtered.forEach(c => {
+    const color = clientColor(c);
+    const item = document.createElement('div');
+    item.className = 'client-item'; item.dataset.name = c.name;
+    item.innerHTML = `<div class="client-name">${c.name}</div>
+      <div class="client-region"><span class="region-dot" style="background:${color}"></span>${c.region}</div>`;
+    item.addEventListener('click', () => {
+      const s = shapes[c.name], m = markers[c.name];
+      if (s) map.fitBounds(s.getBounds(), { padding:[50,50], animate:true });
+      else   map.setView([c.lat, c.lng], 11, { animate:true });
+      m.openPopup();
+    });
+    list.appendChild(item);
+  });
+
+  const total = clients.length;
+  document.getElementById('client-count').textContent =
+    filtered.length === total ? `${total} client${total !== 1 ? 'en' : ''} totaal`
+                               : `${filtered.length} van ${total} clienten`;
+  document.getElementById('subtitle').textContent =
+    `${total} clients · ${regions.length} regio's`;
+}
+
+document.getElementById('search-box').addEventListener('input', e => {
+  searchTerm = e.target.value.toLowerCase(); renderSidebar();
+});
+
+/* ══════════════════════════════════════════════════════════
+   EDITOR
+══════════════════════════════════════════════════════════ */
+function openEditor() {
+  buildEditorRows();
+  document.getElementById('editor-overlay').classList.add('open');
+}
+function closeEditor() {
+  document.getElementById('editor-overlay').classList.remove('open');
+}
+
+document.getElementById('edit-btn').addEventListener('click', openEditor);
+document.getElementById('editor-close').addEventListener('click', closeEditor);
+document.getElementById('editor-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('editor-overlay')) closeEditor();
+});
+
+function buildEditorRows() {
+  const container = document.getElementById('editor-rows');
+  container.innerHTML = '';
+  clients.forEach((c, i) => container.appendChild(makeEditorRow(c, i)));
+}
+
+function makeEditorRow(c, i) {
+  const wrap = document.createElement('div');
+  wrap.className = 'editor-row';
+  wrap.dataset.index = i;
+
+  const shapeType = c.shapeType || 'none';
+
+  const currentColor = c.color || getColor(c.region || 'Overig');
+
+  wrap.innerHTML = `
+    <input class="f-name"   value="${esc(c.name)}"   placeholder="Naam" />
+    <input class="f-region" value="${esc(c.region)}" placeholder="Regio" />
+    <input class="f-color" type="color" value="${currentColor}" title="Kleur aanpassen" />
+    <input class="f-lat"   value="${c.lat}"  placeholder="Lat" type="number" step="any" />
+    <input class="f-lng"   value="${c.lng}"  placeholder="Lng" type="number" step="any" />
+    <select class="f-shape shape-type-select">
+      <option value="none"      ${shapeType==='none'      ?'selected':''}>Geen gebied</option>
+      <option value="circle"    ${shapeType==='circle'    ?'selected':''}>⬤ Cirkel</option>
+      <option value="rectangle" ${shapeType==='rectangle' ?'selected':''}>▬ Rechthoek</option>
+      <option value="polygon"   ${shapeType==='polygon'   ?'selected':''}>⬡ Vrije vorm</option>
+    </select>
+    <button class="del-btn" title="Verwijderen">×</button>
+    <div class="geo-row">
+      <input class="f-geo" placeholder="📍 Adres of bedrijfsnaam opzoeken…" type="text" />
+      <button class="geo-btn" type="button">Zoek</button>
+      <span class="geo-hint"></span>
+    </div>
+    <div class="shape-fields" style="display:${shapeType==='none'?'none':'flex'}">
+      ${shapeFieldsHtml(c)}
+    </div>
+  `;
+
+  // Geocoder
+  wrap.querySelector('.geo-btn').addEventListener('click', async function() {
+    const query = wrap.querySelector('.f-geo').value.trim();
+    if (!query) return;
+    const hint = wrap.querySelector('.geo-hint');
+    this.disabled = true; this.textContent = '…';
+    hint.textContent = '';
+    try {
+      const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&countrycodes=nl&format=json&limit=1`;
+      const res = await fetch(url, { headers: { 'Accept-Language': 'nl' } });
+      const data = await res.json();
+      if (data.length) {
+        wrap.querySelector('.f-lat').value = parseFloat(data[0].lat).toFixed(5);
+        wrap.querySelector('.f-lng').value = parseFloat(data[0].lon).toFixed(5);
+        hint.style.color = '#27ae60';
+        hint.textContent = '✓ ' + data[0].display_name.split(',').slice(0,2).join(',');
+      } else {
+        hint.style.color = '#e05c5c';
+        hint.textContent = 'Niet gevonden — probeer een vollediger adres';
+      }
+    } catch(e) {
+      hint.style.color = '#e05c5c';
+      hint.textContent = 'Fout bij ophalen — controleer je verbinding';
+    }
+    this.disabled = false; this.textContent = 'Zoek';
+  });
+
+  // Shape type toggle
+  wrap.querySelector('.f-shape').addEventListener('change', function() {
+    const sf = wrap.querySelector('.shape-fields');
+    sf.style.display = this.value === 'none' ? 'none' : 'flex';
+    // Build a dummy client with new shape type to re-render fields
+    const dummy = readRow(wrap);
+    dummy.shapeType = this.value;
+    sf.innerHTML = shapeFieldsHtml(dummy);
+  });
+
+  // Delete
+  wrap.querySelector('.del-btn').addEventListener('click', () => wrap.remove());
+
+  return wrap;
+}
+
+function shapeFieldsHtml(c) {
+  const t = c.shapeType || 'none';
+  if (t === 'circle') {
+    const km = c.radius ? (c.radius / 1000).toFixed(1) : '';
+    return `<label>Radius (km)</label>
+            <input class="f-radius" type="number" step="0.1" min="0" value="${km}" placeholder="bv. 20" style="max-width:100px" />
+            <span style="font-size:12px;color:#aaa">Straal rondom het speldpunt</span>`;
+  }
+  if (t === 'rectangle') {
+    const b = c.bounds || [[0,0],[0,0]];
+    return `<label>Zuid-lat</label><input class="f-b0" type="number" step="any" value="${b[0][0]}" style="max-width:90px" />
+            <label>West-lng</label><input class="f-b1" type="number" step="any" value="${b[0][1]}" style="max-width:90px" />
+            <label>Noord-lat</label><input class="f-b2" type="number" step="any" value="${b[1][0]}" style="max-width:90px" />
+            <label>Oost-lng</label><input class="f-b3" type="number" step="any" value="${b[1][1]}" style="max-width:90px" />`;
+  }
+  if (t === 'polygon') {
+    const pts = c.polygon ? c.polygon.map(p => p.join(',')).join('\n') : '';
+    return `<label style="align-self:flex-start;margin-top:4px">Punten (lat,lng — één per regel)</label>
+            <textarea class="f-poly" placeholder="52.10,5.05&#10;52.30,5.40&#10;52.05,5.60">${pts}</textarea>
+            <span style="font-size:11.5px;color:#aaa;width:100%">Teken je gebied op <a href="https://geojson.io" target="_blank">geojson.io</a> en plak de coördinaten hier.</span>`;
+  }
+  return '';
+}
+
+function readRow(row) {
+  const shapeType = row.querySelector('.f-shape').value;
+  const region    = row.querySelector('.f-region').value.trim();
+  const pickedColor = row.querySelector('.f-color')?.value || '';
+  // Only store color if it differs from the auto region colour
+  const autoColor = getColor(region);
+  const color = pickedColor && pickedColor.toLowerCase() !== autoColor.toLowerCase()
+    ? pickedColor : undefined;
+  const c = {
+    name:   row.querySelector('.f-name').value.trim(),
+    region,
+    lat:    parseFloat(row.querySelector('.f-lat').value) || 0,
+    lng:    parseFloat(row.querySelector('.f-lng').value) || 0,
+    shapeType,
+    ...(color ? { color } : {}),
+  };
+  if (shapeType === 'circle') {
+    const km = parseFloat(row.querySelector('.f-radius')?.value) || 0;
+    c.radius = km * 1000;
+  } else if (shapeType === 'rectangle') {
+    c.bounds = [
+      [parseFloat(row.querySelector('.f-b0')?.value)||0, parseFloat(row.querySelector('.f-b1')?.value)||0],
+      [parseFloat(row.querySelector('.f-b2')?.value)||0, parseFloat(row.querySelector('.f-b3')?.value)||0],
+    ];
+  } else if (shapeType === 'polygon') {
+    const raw = row.querySelector('.f-poly')?.value || '';
+    c.polygon = raw.split('\n').map(l => {
+      const parts = l.trim().split(/[,\s]+/);
+      return parts.length >= 2 ? [parseFloat(parts[0]), parseFloat(parts[1])] : null;
+    }).filter(Boolean);
+  }
+  return c;
+}
+
+function collectEditorData() {
+  return [...document.querySelectorAll('.editor-row')]
+    .map(readRow)
+    .filter(c => c.name && c.lat && c.lng);
+}
+
+// Add new blank row
+document.getElementById('add-client-btn').addEventListener('click', () => {
+  const blank = { name:'', region:'', lat:52.2, lng:5.3, shapeType:'none' };
+  const idx = document.querySelectorAll('.editor-row').length;
+  document.getElementById('editor-rows').appendChild(makeEditorRow(blank, idx));
+  document.getElementById('editor-rows').lastElementChild
+    .querySelector('.f-name').focus();
+});
+
+// Save & close
+document.getElementById('save-btn').addEventListener('click', () => {
+  clients = collectEditorData();
+  try { localStorage.setItem('clientMapData', JSON.stringify(clients)); } catch(e){}
+  renderMap();
+  renderSidebar();
+  document.getElementById('save-hint').textContent = '✓ Opgeslagen';
+  setTimeout(() => { document.getElementById('save-hint').textContent = ''; }, 2000);
+  closeEditor();
+});
+
+// Download updated HTML file
+document.getElementById('download-btn').addEventListener('click', () => {
+  const data = collectEditorData();
+  const dataStr = JSON.stringify(data, null, 2);
+  // Replace the DEFAULT_CLIENTS block in the source
+  const src = document.documentElement.outerHTML;
+  const updated = src.replace(
+    /const DEFAULT_CLIENTS = \[[\s\S]*?\];/,
+    `const DEFAULT_CLIENTS = ${dataStr};`
+  );
+  const blob = new Blob([updated], { type: 'text/html' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'client-map.html';
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+function esc(s) { return (s||'').replace(/"/g,'&quot;'); }
+
+/* ══════════════════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════════════════ */
+renderMap();
+renderSidebar();
+</script>
+</body>
+</html>
