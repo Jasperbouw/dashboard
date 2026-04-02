@@ -1,3 +1,13 @@
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+}
+
+export async function OPTIONS() {
+  return new Response(null, { status: 204, headers: CORS_HEADERS })
+}
+
 export async function POST(req: Request) {
   const body = await req.json()
 
@@ -11,5 +21,5 @@ export async function POST(req: Request) {
   )
 
   const data = await res.json()
-  return Response.json(data)
+  return Response.json(data, { headers: CORS_HEADERS })
 }
