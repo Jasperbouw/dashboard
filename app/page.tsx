@@ -3,13 +3,13 @@
 import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
 
-const MetaTab    = dynamic(() => import('./components/MetaTab'),    { ssr: false })
+const CreativesTab = dynamic(() => import('./components/CreativesTab'), { ssr: false })
 const FinanceTab = dynamic(() => import('./components/FinanceTab'), { ssr: false })
 const DocsTab    = dynamic(() => import('./components/DocsTab'),    { ssr: false })
 const AgentsTab  = dynamic(() => import('./components/AgentsTab'),  { ssr: false })
 
 const NAV_ITEMS = [
-  { id: 'meta',    label: 'Meta Ads',   icon: '◈' },
+  { id: 'creatives', label: 'Creatives',  icon: '◈' },
   { id: 'finance', label: 'Finance',    icon: '◆' },
   { id: 'docs',    label: 'Docs',       icon: '▤' },
   { id: 'agents',  label: 'AI Agents',  icon: '⬡' },
@@ -17,7 +17,7 @@ const NAV_ITEMS = [
 ]
 
 export default function Dashboard() {
-  const [activeTab, setActiveTab] = useState('meta')
+  const [activeTab, setActiveTab] = useState('creatives')
 
   useEffect(() => {
     const saved = localStorage.getItem('bouwcheck_active_tab')
@@ -87,7 +87,7 @@ export default function Dashboard() {
 
       {/* ── Main content ── */}
       <main style={{ flex: 1, overflow: 'auto', padding: 28 }}>
-        {activeTab === 'meta'    && <MetaTab />}
+        {activeTab === 'creatives' && <CreativesTab />}
         {activeTab === 'finance' && <FinanceTab />}
         {activeTab === 'docs'    && <DocsTab />}
         {activeTab === 'agents'  && <AgentsTab />}
