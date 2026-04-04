@@ -62,6 +62,7 @@ export default function CreativesTab() {
   const [imagePreview, setImagePreview] = useState<string>('')
   const [uploading, setUploading] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+  const [lightbox, setLightbox] = useState<string | null>(null)
   const [newFolderMode, setNewFolderMode] = useState(false)
   const [newFolderName, setNewFolderName] = useState('')
   const [deleteFolderConfirm, setDeleteFolderConfirm] = useState<string | null>(null)
@@ -333,11 +334,16 @@ export default function CreativesTab() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
                 <label style={labelStyle}>Afbeelding</label>
-                <div onClick={() => fileRef.current?.click()} style={{ border: '2px dashed #252540', borderRadius: 10, overflow: 'hidden', cursor: 'pointer', minHeight: 140, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0d0d15' }}>
-                  {imagePreview ? (
-                    <img src={imagePreview} alt="" style={{ width: '100%', maxHeight: 240, objectFit: 'cover' }} />
-                  ) : (
-                    <div style={{ color: '#4a5568', fontSize: 13, textAlign: 'center', padding: 20 }}>Klik om afbeelding te uploaden</div>
+                <div style={{ position: 'relative' }}>
+                  <div onClick={() => fileRef.current?.click()} style={{ border: '2px dashed #252540', borderRadius: 10, overflow: 'hidden', cursor: 'pointer', minHeight: 140, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0d0d15' }}>
+                    {imagePreview ? (
+                      <img src={imagePreview} alt="" style={{ width: '100%', maxHeight: 240, objectFit: 'cover' }} />
+                    ) : (
+                      <div style={{ color: '#4a5568', fontSize: 13, textAlign: 'center', padding: 20 }}>Klik om afbeelding te uploaden</div>
+                    )}
+                  </div>
+                  {imagePreview && (
+                    <button onClick={e => { e.stopPropagation(); setLightbox(imagePreview) }} style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.6)', color: '#fff', border: 'none', borderRadius: 6, padding: '4px 8px', fontSize: 14, cursor: 'pointer' }}>⤢</button>
                   )}
                 </div>
                 <input ref={fileRef} type="file" accept="image/*" onChange={onFileChange} style={{ display: 'none' }} />
@@ -391,6 +397,14 @@ export default function CreativesTab() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ── Lightbox ── */}
+      {lightbox && (
+        <div onClick={() => setLightbox(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.95)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, cursor: 'zoom-out', padding: 20 }}>
+          <img src={lightbox} alt="" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', borderRadius: 8 }} />
+          <button onClick={() => setLightbox(null)} style={{ position: 'fixed', top: 20, right: 20, background: 'rgba(0,0,0,0.6)', color: '#fff', border: 'none', borderRadius: 8, padding: '6px 12px', fontSize: 18, cursor: 'pointer' }}>✕</button>
         </div>
       )}
     </div>
