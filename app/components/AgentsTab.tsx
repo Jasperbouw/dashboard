@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 
 /* ── Types ── */
-type AgentId = 'weekly' | 'finance' | 'meta' | 'branch' | 'prospect' | 'ads_spy'
+type AgentId = 'weekly' | 'finance' | 'ads_spy'
 
 type AgentDef = {
   id: AgentId
@@ -25,29 +25,6 @@ const AGENTS: AgentDef[] = [
     icon: '💶',
     label: 'Finance Adviseur',
     description: 'Analyseert maandcijfers, targets en contractstatus.',
-  },
-  {
-    id: 'meta',
-    icon: '◈',
-    label: 'Meta Audit Agent',
-    description: 'Auditeert campagnedata en geeft concrete optimalisaties.',
-  },
-  {
-    id: 'branch',
-    icon: '🌿',
-    label: 'Branch Adviseur',
-    description: 'Advies over uitbreiding naar nieuwe branches/markten.',
-  },
-  {
-    id: 'prospect',
-    icon: '🎯',
-    label: 'Prospect Agent',
-    description: 'Genereert aanpak voor het werven van nieuwe klanten.',
-    extraFields: [
-      { key: 'branche', label: 'Branche', placeholder: 'bijv. dakkapel, kozijnen…' },
-      { key: 'regio',   label: 'Regio',   placeholder: 'bijv. Noord-Holland, Utrecht…' },
-      { key: 'context', label: 'Extra context (optioneel)', placeholder: 'bijv. MKB aannemers, >10 man…' },
-    ],
   },
   {
     id: 'ads_spy',
