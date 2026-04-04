@@ -9,15 +9,15 @@ const DocsTab    = dynamic(() => import('./components/DocsTab'),    { ssr: false
 const AgentsTab  = dynamic(() => import('./components/AgentsTab'),  { ssr: false })
 
 const NAV_ITEMS = [
+  { id: 'finance',   label: 'Finance',    icon: '◆' },
   { id: 'creatives', label: 'Creatives',  icon: '◈' },
-  { id: 'finance', label: 'Finance',    icon: '◆' },
-  { id: 'docs',    label: 'Docs',       icon: '▤' },
-  { id: 'agents',  label: 'AI Agents',  icon: '⬡' },
-  { id: 'map',     label: 'Client Map', icon: '◉' },
+  { id: 'map',       label: 'Client Map', icon: '◉' },
+  { id: 'docs',      label: 'Docs',       icon: '▤' },
+  { id: 'agents',    label: 'AI Agents',  icon: '⬡' },
 ]
 
 export default function Dashboard() {
-  const [activeTab, setActiveTab] = useState('creatives')
+  const [activeTab, setActiveTab] = useState('finance')
 
   useEffect(() => {
     const saved = localStorage.getItem('bouwcheck_active_tab')
