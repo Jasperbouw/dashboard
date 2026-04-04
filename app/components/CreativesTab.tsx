@@ -271,7 +271,7 @@ export default function CreativesTab() {
             {filter === 'All' ? `Nog geen creatives in ${currentFolder?.name ?? 'deze map'}` : `Geen ${filter} creatives`}
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12 }}>
             {filtered.map(c => {
               const sc = STATUS_COLOR[c.status]
               return (
@@ -286,27 +286,25 @@ export default function CreativesTab() {
                       {c.status}
                     </div>
                   </div>
-                  <div style={{ padding: 14, flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: '#e2e8f0' }}>{c.name}</div>
-                    {c.description && <div style={{ fontSize: 12, color: '#6b7280' }}>{c.description}</div>}
+                  <div style={{ padding: 10, flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: '#e2e8f0' }}>{c.name}</div>
                     {c.angles.length > 0 && (
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
                         {c.angles.map(a => (
-                          <span key={a} style={{ background: '#1a1a2e', color: '#818cf8', border: '1px solid #252540', borderRadius: 4, padding: '2px 8px', fontSize: 10, fontWeight: 600 }}>{a}</span>
+                          <span key={a} style={{ background: '#1a1a2e', color: '#818cf8', border: '1px solid #252540', borderRadius: 4, padding: '1px 6px', fontSize: 9, fontWeight: 600 }}>{a}</span>
                         ))}
                       </div>
                     )}
                     {(c.ctr || c.cpl || c.spend) && (
-                      <div style={{ display: 'flex', gap: 12 }}>
-                        {c.ctr && <div><div style={{ fontSize: 10, color: '#4a5568' }}>CTR</div><div style={{ fontSize: 13, fontWeight: 700, color: '#60a5fa' }}>{c.ctr}%</div></div>}
-                        {c.cpl && <div><div style={{ fontSize: 10, color: '#4a5568' }}>CPL</div><div style={{ fontSize: 13, fontWeight: 700, color: '#34d399' }}>€{c.cpl}</div></div>}
-                        {c.spend && <div><div style={{ fontSize: 10, color: '#4a5568' }}>Spend</div><div style={{ fontSize: 13, fontWeight: 700, color: '#e2e8f0' }}>€{c.spend}</div></div>}
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        {c.ctr && <div><div style={{ fontSize: 9, color: '#4a5568' }}>CTR</div><div style={{ fontSize: 11, fontWeight: 700, color: '#60a5fa' }}>{c.ctr}%</div></div>}
+                        {c.cpl && <div><div style={{ fontSize: 9, color: '#4a5568' }}>CPL</div><div style={{ fontSize: 11, fontWeight: 700, color: '#34d399' }}>€{c.cpl}</div></div>}
+                        {c.spend && <div><div style={{ fontSize: 9, color: '#4a5568' }}>Spend</div><div style={{ fontSize: 11, fontWeight: 700, color: '#e2e8f0' }}>€{c.spend}</div></div>}
                       </div>
                     )}
-                    {c.note && <div style={{ fontSize: 11, color: '#4a5568', fontStyle: 'italic' }}>"{c.note}"</div>}
-                    <div style={{ display: 'flex', gap: 8, marginTop: 'auto', paddingTop: 8 }}>
-                      <button onClick={() => openEdit(c)} style={{ flex: 1, background: '#1a1a2e', color: '#a0aec0', border: '1px solid #252540', borderRadius: 6, padding: '6px 0', fontSize: 12, cursor: 'pointer' }}>Bewerken</button>
-                      {c.imageUrl && <a href={c.imageUrl} download target="_blank" rel="noreferrer" style={{ background: 'transparent', color: '#4a5568', border: '1px solid #1a1a2e', borderRadius: 6, padding: '6px 10px', fontSize: 12, cursor: 'pointer', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>⬇</a>}
+                    <div style={{ display: 'flex', gap: 6, marginTop: 'auto', paddingTop: 6 }}>
+                      <button onClick={() => openEdit(c)} style={{ flex: 1, background: '#1a1a2e', color: '#a0aec0', border: '1px solid #252540', borderRadius: 6, padding: '5px 0', fontSize: 11, cursor: 'pointer' }}>Bewerken</button>
+                      {c.imageUrl && <a href={c.imageUrl} download target="_blank" rel="noreferrer" style={{ background: 'transparent', color: '#4a5568', border: '1px solid #1a1a2e', borderRadius: 6, padding: '5px 8px', fontSize: 11, cursor: 'pointer', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>⬇</a>}
                       {deleteConfirm === c.id ? (
                         <>
                           <button onClick={() => handleDelete(c.id)} style={{ flex: 1, background: '#7f1d1d', color: '#fca5a5', border: '1px solid #991b1b', borderRadius: 6, padding: '6px 0', fontSize: 12, cursor: 'pointer' }}>Bevestig</button>
