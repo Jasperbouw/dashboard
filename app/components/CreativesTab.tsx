@@ -306,6 +306,7 @@ export default function CreativesTab() {
                     {c.note && <div style={{ fontSize: 11, color: '#4a5568', fontStyle: 'italic' }}>"{c.note}"</div>}
                     <div style={{ display: 'flex', gap: 8, marginTop: 'auto', paddingTop: 8 }}>
                       <button onClick={() => openEdit(c)} style={{ flex: 1, background: '#1a1a2e', color: '#a0aec0', border: '1px solid #252540', borderRadius: 6, padding: '6px 0', fontSize: 12, cursor: 'pointer' }}>Bewerken</button>
+                      {c.imageUrl && <a href={c.imageUrl} download target="_blank" rel="noreferrer" style={{ background: 'transparent', color: '#4a5568', border: '1px solid #1a1a2e', borderRadius: 6, padding: '6px 10px', fontSize: 12, cursor: 'pointer', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>⬇</a>}
                       {deleteConfirm === c.id ? (
                         <>
                           <button onClick={() => handleDelete(c.id)} style={{ flex: 1, background: '#7f1d1d', color: '#fca5a5', border: '1px solid #991b1b', borderRadius: 6, padding: '6px 0', fontSize: 12, cursor: 'pointer' }}>Bevestig</button>
