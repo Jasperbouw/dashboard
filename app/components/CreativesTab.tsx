@@ -56,6 +56,7 @@ export default function CreativesTab() {
   const [creatives, setCreatives] = useState<Creative[]>([])
   const [activeFolder, setActiveFolder] = useState<string>(DEFAULT_FOLDERS[0].id)
   const [filter, setFilter] = useState<Status | 'All'>('All')
+  const [angleFilter, setAngleFilter] = useState<string | null>(null)
   const [modal, setModal] = useState<{ open: boolean; editing: Creative | null }>({ open: false, editing: null })
   const [form, setForm] = useState({ ...EMPTY_FORM })
   const [imageFile, setImageFile] = useState<File | null>(null)
@@ -165,7 +166,9 @@ export default function CreativesTab() {
   }
 
   const folderCreatives = creatives.filter(c => c.folderId === activeFolder)
-  const filtered = filter === 'All' ? folderCreatives : folderCreatives.filter(c => c.status === filter)
+  const filtered = folderCreatives
+    .filter(c => filter === 'All' || c.status === filter)
+    .filter(c => !angleFilter || c.angles.includes(angleFilter))
   const counts = STATUSES.reduce((acc, s) => ({ ...acc, [s]: folderCreatives.filter(c => c.status === s).length }), {} as Record<Status, number>)
   const currentFolder = folders.find(f => f.id === activeFolder)
 
@@ -248,7 +251,7 @@ export default function CreativesTab() {
         </div>
 
         {/* Filter bar */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
           {(['All', ...STATUSES] as const).map(s => {
             const active = filter === s
             const col = s !== 'All' ? STATUS_COLOR[s] : null
@@ -261,6 +264,23 @@ export default function CreativesTab() {
                 borderColor: active ? (col?.border ?? '#252540') : '#1a1a2e',
               }}>
                 {s} <span style={{ opacity: 0.6 }}>({cnt})</span>
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Angle filter */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 20 }}>
+          {ANGLES.map(a => {
+            const active = angleFilter === a
+            return (
+              <button key={a} onClick={() => setAngleFilter(active ? null : a)} style={{
+                padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: 'pointer', border: '1px solid',
+                background: active ? '#312e81' : 'transparent',
+                color: active ? '#818cf8' : '#4a5568',
+                borderColor: active ? '#4338ca' : '#1a1a2e',
+              }}>
+                {a}
               </button>
             )
           })}
