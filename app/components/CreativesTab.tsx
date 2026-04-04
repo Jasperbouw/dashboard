@@ -6,7 +6,7 @@ import { dbGet, dbSet, dbSubscribe } from '../../lib/db'
 
 const DB_KEY = 'bouwcheck_creatives_v1'
 const FOLDERS_KEY = 'bouwcheck_creative_folders_v1'
-const BUCKET = 'creatives'
+const BUCKET = 'Creatives'
 
 const ANGLES = ['Prijs (m²)', 'Prijs (totaal)', 'Urgentie', 'Social proof', 'Emotie', 'Voor/Na']
 const STATUSES = ['Testing', 'Winning', 'Fatigue', 'Dead'] as const
