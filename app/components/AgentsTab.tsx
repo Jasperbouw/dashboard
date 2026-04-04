@@ -91,24 +91,6 @@ function buildContext(agentId: AgentId, extra: Record<string, string>) {
     return { month, companies: companiesWithActuals, totalOwn, totalClient, ownTarget, clientTarget }
   }
 
-  if (agentId === 'meta') {
-    const campaigns = loadCampaigns()
-    const totalSpend = campaigns.reduce((s: number, c: any) => s + (c.spend || 0), 0).toFixed(2)
-    const totalLeads = campaigns.reduce((s: number, c: any) => s + (c.leads || 0), 0)
-    const blendedCPL = totalLeads > 0 ? (Number(totalSpend) / totalLeads).toFixed(2) : '—'
-    return { campaigns, totalSpend, totalLeads, blendedCPL }
-  }
-
-  if (agentId === 'branch') {
-    const divisions = [...new Set(companies.map((c: any) => c.division))]
-    return { divisions, companies: companiesWithActuals, totalOwn }
-  }
-
-  if (agentId === 'prospect') {
-    const existingClients = companies.map((c: any) => c.name)
-    return { branche: extra.branche || '', regio: extra.regio || '', context: extra.context || '', existingClients }
-  }
-
   if (agentId === 'ads_spy') {
     return { branche: extra.branche || '', vraag: extra.vraag || '' }
   }
