@@ -99,6 +99,39 @@ type SOP = {
   updatedAt: string
 }
 
+type IcpStatus = 'niet gebeld' | 'voicemail' | 'terugbellen' | 'gesprek gehad' | 'geïnteresseerd' | 'niet geïnteresseerd'
+
+type IcpCallLog = {
+  id: string
+  date: string
+  notes: string
+  outcome: IcpStatus
+}
+
+type ICP = {
+  id: string
+  bedrijfsnaam: string
+  contactpersoon: string
+  telefoon: string
+  website: string
+  regio: string
+  type: string
+  status: IcpStatus
+  callLogs: IcpCallLog[]
+  addedAt: string
+}
+
+const ICP_STATUSES: IcpStatus[] = ['niet gebeld', 'voicemail', 'terugbellen', 'gesprek gehad', 'geïnteresseerd', 'niet geïnteresseerd']
+
+const ICP_STATUS_COLORS: Record<IcpStatus, { bg: string; color: string; border: string }> = {
+  'niet gebeld':       { bg: '#1a1a2e', color: '#4a5568', border: '#252540' },
+  'voicemail':         { bg: '#2d1f0a', color: '#f59e0b', border: '#92400e' },
+  'terugbellen':       { bg: '#0a1f2d', color: '#38bdf8', border: '#0e4763' },
+  'gesprek gehad':     { bg: '#0a2d1f', color: '#10b981', border: '#065f46' },
+  'geïnteresseerd':    { bg: '#1a0a2e', color: '#a78bfa', border: '#5b21b6' },
+  'niet geïnteresseerd': { bg: '#2d0a0a', color: '#ef4444', border: '#7f1d1d' },
+}
+
 const SOP_CATEGORIES = ['Marketing', 'Sales', 'Delivery', 'Finance', 'Decision-making']
 
 const DEFAULT_SOPS: SOP[] = [
@@ -294,12 +327,13 @@ function fmtDate(d: string) {
    MAIN
 ════════════════════════════════════════════════════════ */
 export default function DocsTab() {
-  const [sub, setSub] = useState<'intake' | 'evaluatie' | 'sops' | 'contracten'>('intake')
+  const [sub, setSub] = useState<'intake' | 'evaluatie' | 'sops' | 'contracten' | 'icps'>('intake')
   const [questions, setQuestions] = useState<Question[]>(DEFAULT_QUESTIONS)
   const [meetings, setMeetings] = useState<Meeting[]>([])
   const [intakes, setIntakes] = useState<Record<string, IntakeData>>({})
   const [documents, setDocuments] = useState<Document[]>([])
   const [companies, setCompanies] = useState<Company[]>([])
+  const [icps, setIcps] = useState<ICP[]>([])
 
   // Shared state
   const [selectedCompany, setSelectedCompany] = useState<string>('')
@@ -343,6 +377,8 @@ export default function DocsTab() {
         if (ct) setContracts(ct)
         const c = await dbGet('bouwcheck_companies_v3')
         if (c) setCompanies(c)
+        const ip = await dbGet('bouwcheck_icps')
+        if (ip) setIcps(ip)
       } catch {}
     }
     load()
@@ -350,7 +386,7 @@ export default function DocsTab() {
     // ── Realtime sync ──
     const channel = dbSubscribe(
       ['bouwcheck_questions', 'bouwcheck_meetings', 'bouwcheck_intakes',
-       'bouwcheck_documents', 'bouwcheck_sops', 'bouwcheck_contracts', 'bouwcheck_companies_v3'],
+       'bouwcheck_documents', 'bouwcheck_sops', 'bouwcheck_contracts', 'bouwcheck_companies_v3', 'bouwcheck_icps'],
       (key, value) => {
         if (key === 'bouwcheck_questions') setQuestions(value)
         if (key === 'bouwcheck_meetings') setMeetings(value)
@@ -359,6 +395,7 @@ export default function DocsTab() {
         if (key === 'bouwcheck_sops') setSops(value)
         if (key === 'bouwcheck_contracts') setContracts(value)
         if (key === 'bouwcheck_companies_v3') setCompanies(value)
+        if (key === 'bouwcheck_icps') setIcps(value)
       }
     )
     return () => { channel.unsubscribe() }
@@ -387,6 +424,10 @@ export default function DocsTab() {
   const saveContracts = useCallback((next: Record<string, ContractData>) => {
     setContracts(next)
     dbSet('bouwcheck_contracts', next)
+  }, [])
+  const saveIcps = useCallback((next: ICP[]) => {
+    setIcps(next)
+    dbSet('bouwcheck_icps', next)
   }, [])
 
   /* ── Intake ── */
@@ -484,7 +525,7 @@ export default function DocsTab() {
           <p style={{ fontSize: 12, color: '#4a5568', marginTop: 4 }}>Meeting checklists per bedrijf & belangrijke documenten</p>
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
-          {([['intake', 'Intake'], ['evaluatie', 'Evaluatie'], ['sops', "SOP's"], ['contracten', 'Contracten']] as const).map(([id, label]) => (
+          {([['intake', 'Intake'], ['evaluatie', 'Evaluatie'], ['sops', "SOP's"], ['contracten', 'Contracten'], ['icps', 'ICP\'s']] as const).map(([id, label]) => (
             <button key={id} onClick={() => setSub(id)}
               style={{
                 padding: '7px 16px', borderRadius: 8, fontSize: 12, fontWeight: 500, cursor: 'pointer',
@@ -530,6 +571,13 @@ export default function DocsTab() {
           onAdd={() => setSopModal({ category: 'Overig', steps: [] })}
           onEdit={s => setSopModal({ ...s })}
           onDelete={id => saveSops(sops.filter(s => s.id !== id))}
+        />
+      )}
+
+      {sub === 'icps' && (
+        <IcpSub
+          icps={icps}
+          onSave={saveIcps}
         />
       )}
 
@@ -1879,6 +1927,265 @@ function DocumentsSub({ documents, companies, onAdd, onEdit, onDelete }: {
           </div>
         )}
       </div>
+    </div>
+  )
+}
+
+/* ════════════════════════════════════════════════════════
+   ICP'S
+════════════════════════════════════════════════════════ */
+function IcpSub({ icps, onSave }: { icps: ICP[]; onSave: (next: ICP[]) => void }) {
+  const [filter, setFilter] = useState<'alle' | IcpStatus>('alle')
+  const [modal, setModal] = useState<ICP | null>(null)
+  const [addModal, setAddModal] = useState(false)
+  const [draft, setDraft] = useState<Partial<ICP>>({})
+  const [logDraft, setLogDraft] = useState<{ notes: string; outcome: IcpStatus }>({ notes: '', outcome: 'gesprek gehad' })
+
+  const visible = filter === 'alle' ? icps : icps.filter(i => i.status === filter)
+
+  const openAdd = () => {
+    setDraft({ status: 'niet gebeld', callLogs: [] })
+    setAddModal(true)
+  }
+
+  const submitAdd = () => {
+    if (!draft.bedrijfsnaam?.trim()) return
+    const icp: ICP = {
+      id: Date.now().toString(),
+      bedrijfsnaam: draft.bedrijfsnaam ?? '',
+      contactpersoon: draft.contactpersoon ?? '',
+      telefoon: draft.telefoon ?? '',
+      website: draft.website ?? '',
+      regio: draft.regio ?? '',
+      type: draft.type ?? '',
+      status: draft.status ?? 'niet gebeld',
+      callLogs: [],
+      addedAt: today(),
+    }
+    onSave([...icps, icp])
+    setAddModal(false)
+    setDraft({})
+  }
+
+  const submitLog = (icp: ICP) => {
+    if (!logDraft.notes.trim()) return
+    const log: IcpCallLog = {
+      id: Date.now().toString(),
+      date: today(),
+      notes: logDraft.notes.trim(),
+      outcome: logDraft.outcome,
+    }
+    const updated: ICP = { ...icp, callLogs: [...icp.callLogs, log], status: logDraft.outcome }
+    onSave(icps.map(i => i.id === icp.id ? updated : i))
+    setModal(updated)
+    setLogDraft({ notes: '', outcome: 'gesprek gehad' })
+  }
+
+  const deleteIcp = (id: string) => {
+    if (!confirm('Dit bedrijf verwijderen uit de ICP-lijst?')) return
+    onSave(icps.filter(i => i.id !== id))
+    setModal(null)
+  }
+
+  return (
+    <div>
+      {/* Toolbar */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          {(['alle', ...ICP_STATUSES] as const).map(s => (
+            <button key={s} onClick={() => setFilter(s)}
+              style={{
+                padding: '5px 12px', borderRadius: 6, fontSize: 11, cursor: 'pointer', textTransform: 'capitalize',
+                background: filter === s ? '#6366f120' : 'transparent',
+                border: `1px solid ${filter === s ? '#6366f1' : '#1a1a2e'}`,
+                color: filter === s ? '#6366f1' : '#4a5568',
+              }}>{s === 'alle' ? `Alle (${icps.length})` : s}</button>
+          ))}
+        </div>
+        <button onClick={openAdd}
+          style={{ padding: '8px 16px', background: '#6366f1', border: 'none', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+          + Nieuw bedrijf
+        </button>
+      </div>
+
+      {visible.length === 0 && (
+        <div style={{ ...CARD, textAlign: 'center', padding: 40 }}>
+          <div style={{ fontSize: 28, marginBottom: 10 }}>📞</div>
+          <div style={{ color: '#4a5568', fontSize: 13 }}>Geen bedrijven gevonden.</div>
+          <div style={{ color: '#2d3748', fontSize: 12, marginTop: 4 }}>Voeg een bedrijf toe om je cold call lijst op te bouwen.</div>
+        </div>
+      )}
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 12 }}>
+        {visible.map(icp => {
+          const sc = ICP_STATUS_COLORS[icp.status]
+          const lastLog = icp.callLogs[icp.callLogs.length - 1]
+          return (
+            <div key={icp.id} onClick={() => { setModal(icp); setLogDraft({ notes: '', outcome: 'gesprek gehad' }) }}
+              style={{ ...CARD, cursor: 'pointer', transition: 'border-color 0.15s' }}
+              onMouseEnter={e => (e.currentTarget.style.borderColor = '#252540')}
+              onMouseLeave={e => (e.currentTarget.style.borderColor = '#1a1a2e')}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                <div style={{ fontSize: 14, fontWeight: 600, color: '#e2e8f0' }}>{icp.bedrijfsnaam}</div>
+                <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 4, background: sc.bg, color: sc.color, border: `1px solid ${sc.border}`, whiteSpace: 'nowrap', marginLeft: 8 }}>
+                  {icp.status}
+                </span>
+              </div>
+              {icp.contactpersoon && <div style={{ fontSize: 12, color: '#a0aec0', marginBottom: 4 }}>{icp.contactpersoon}</div>}
+              <div style={{ display: 'flex', gap: 12, fontSize: 11, color: '#4a5568' }}>
+                {icp.telefoon && <span>{icp.telefoon}</span>}
+                {icp.regio && <span>{icp.regio}</span>}
+                {icp.type && <span>{icp.type}</span>}
+              </div>
+              {lastLog && (
+                <div style={{ marginTop: 10, padding: '8px 10px', background: '#0a0a0f', borderRadius: 6, fontSize: 11, color: '#4a5568', borderLeft: `2px solid ${ICP_STATUS_COLORS[lastLog.outcome].border}` }}>
+                  <span style={{ color: '#2d3748' }}>{fmtDate(lastLog.date)}: </span>{lastLog.notes}
+                </div>
+              )}
+              <div style={{ marginTop: 8, fontSize: 10, color: '#2d3748' }}>{icp.callLogs.length} gesprekken gelogd</div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Detail modal */}
+      {modal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}
+          onClick={e => e.target === e.currentTarget && setModal(null)}>
+          <div style={{ background: '#0d0d15', border: '1px solid #1a1a2e', borderRadius: 16, padding: 28, width: 600, maxHeight: '90vh', overflowY: 'auto' }}>
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
+              <div>
+                <h2 style={{ fontSize: 16, fontWeight: 600, color: '#e2e8f0', margin: 0 }}>{modal.bedrijfsnaam}</h2>
+                <div style={{ display: 'flex', gap: 8, marginTop: 6, flexWrap: 'wrap' }}>
+                  {modal.contactpersoon && <span style={{ fontSize: 11, color: '#a0aec0' }}>{modal.contactpersoon}</span>}
+                  {modal.telefoon && <span style={{ fontSize: 11, color: '#4a5568' }}>{modal.telefoon}</span>}
+                  {modal.regio && <span style={{ fontSize: 11, color: '#4a5568' }}>{modal.regio}</span>}
+                  {modal.type && <span style={{ fontSize: 11, color: '#4a5568' }}>{modal.type}</span>}
+                  {modal.website && <a href={modal.website.startsWith('http') ? modal.website : `https://${modal.website}`} target="_blank" rel="noreferrer" style={{ fontSize: 11, color: '#6366f1' }} onClick={e => e.stopPropagation()}>{modal.website}</a>}
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={() => deleteIcp(modal.id)}
+                  style={{ padding: '6px 10px', background: 'transparent', border: '1px solid #2d1515', borderRadius: 6, color: '#7f1d1d', fontSize: 12, cursor: 'pointer' }}>✕</button>
+                <button onClick={() => setModal(null)}
+                  style={{ background: 'none', border: 'none', color: '#4a5568', cursor: 'pointer', fontSize: 18 }}>✕</button>
+              </div>
+            </div>
+
+            {/* Call log history */}
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: '#6366f1', marginBottom: 10, letterSpacing: 1 }}>GESPREKKEN</div>
+              {modal.callLogs.length === 0 && (
+                <div style={{ fontSize: 12, color: '#2d3748', padding: '10px 0' }}>Nog geen gesprekken gelogd.</div>
+              )}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {[...modal.callLogs].reverse().map(log => {
+                  const sc = ICP_STATUS_COLORS[log.outcome]
+                  return (
+                    <div key={log.id} style={{ padding: '10px 12px', background: '#111118', borderRadius: 8, borderLeft: `3px solid ${sc.border}` }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                        <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 4, background: sc.bg, color: sc.color, border: `1px solid ${sc.border}` }}>{log.outcome}</span>
+                        <span style={{ fontSize: 10, color: '#2d3748' }}>{fmtDate(log.date)}</span>
+                      </div>
+                      <div style={{ fontSize: 12, color: '#a0aec0', lineHeight: 1.5 }}>{log.notes}</div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Add feedback */}
+            <div style={{ borderTop: '1px solid #1a1a2e', paddingTop: 16 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: '#6366f1', marginBottom: 12, letterSpacing: 1 }}>FEEDBACK TOEVOEGEN</div>
+              <div style={{ marginBottom: 10 }}>
+                <label style={LABEL}>Uitkomst</label>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {ICP_STATUSES.map(s => {
+                    const sc = ICP_STATUS_COLORS[s]
+                    const active = logDraft.outcome === s
+                    return (
+                      <button key={s} onClick={() => setLogDraft(d => ({ ...d, outcome: s }))}
+                        style={{
+                          padding: '4px 10px', borderRadius: 6, fontSize: 11, cursor: 'pointer', textTransform: 'capitalize',
+                          background: active ? sc.bg : 'transparent',
+                          border: `1px solid ${active ? sc.border : '#1a1a2e'}`,
+                          color: active ? sc.color : '#4a5568',
+                        }}>{s}</button>
+                    )
+                  })}
+                </div>
+              </div>
+              <div style={{ marginBottom: 12 }}>
+                <label style={LABEL}>Notities</label>
+                <textarea style={{ ...INPUT, minHeight: 80, resize: 'vertical' as const, fontFamily: 'inherit' }}
+                  placeholder="Wat is er besproken? Wat was de reactie?"
+                  value={logDraft.notes}
+                  onChange={e => setLogDraft(d => ({ ...d, notes: e.target.value }))} />
+              </div>
+              <button onClick={() => submitLog(modal)}
+                style={{ padding: '8px 20px', background: '#6366f1', border: 'none', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                Opslaan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add modal */}
+      {addModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}
+          onClick={e => e.target === e.currentTarget && setAddModal(false)}>
+          <div style={{ background: '#0d0d15', border: '1px solid #1a1a2e', borderRadius: 16, padding: 28, width: 500, maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h2 style={{ fontSize: 16, fontWeight: 600, color: '#e2e8f0', margin: 0 }}>Nieuw bedrijf toevoegen</h2>
+              <button onClick={() => setAddModal(false)} style={{ background: 'none', border: 'none', color: '#4a5568', cursor: 'pointer', fontSize: 18 }}>✕</button>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div>
+                <label style={LABEL}>Bedrijfsnaam *</label>
+                <input style={INPUT} placeholder="Dakdekker BV" value={draft.bedrijfsnaam ?? ''}
+                  onChange={e => setDraft(d => ({ ...d, bedrijfsnaam: e.target.value }))} />
+              </div>
+              <div>
+                <label style={LABEL}>Contactpersoon</label>
+                <input style={INPUT} placeholder="Jan de Vries" value={draft.contactpersoon ?? ''}
+                  onChange={e => setDraft(d => ({ ...d, contactpersoon: e.target.value }))} />
+              </div>
+              <div>
+                <label style={LABEL}>Telefoonnummer</label>
+                <input style={INPUT} placeholder="+31 6 12345678" value={draft.telefoon ?? ''}
+                  onChange={e => setDraft(d => ({ ...d, telefoon: e.target.value }))} />
+              </div>
+              <div>
+                <label style={LABEL}>Website</label>
+                <input style={INPUT} placeholder="www.bedrijf.nl" value={draft.website ?? ''}
+                  onChange={e => setDraft(d => ({ ...d, website: e.target.value }))} />
+              </div>
+              <div>
+                <label style={LABEL}>Regio</label>
+                <input style={INPUT} placeholder="Noord-Holland" value={draft.regio ?? ''}
+                  onChange={e => setDraft(d => ({ ...d, regio: e.target.value }))} />
+              </div>
+              <div>
+                <label style={LABEL}>Type bedrijf</label>
+                <input style={INPUT} placeholder="Dakdekker, Aannemer, Loodgieter..." value={draft.type ?? ''}
+                  onChange={e => setDraft(d => ({ ...d, type: e.target.value }))} />
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
+              <button onClick={submitAdd}
+                style={{ flex: 1, padding: '10px 0', background: '#6366f1', border: 'none', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                Toevoegen
+              </button>
+              <button onClick={() => setAddModal(false)}
+                style={{ padding: '10px 16px', background: 'transparent', border: '1px solid #1a1a2e', borderRadius: 8, color: '#4a5568', fontSize: 13, cursor: 'pointer' }}>
+                Annuleren
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
