@@ -315,6 +315,23 @@ export default function FinanceTab() {
     return total / c.leadsTarget >= 0.8
   })
 
+  /* ── Ad budget payment reminders (companies without lead target) ── */
+  const adBudgetReminders = companies.filter(c => {
+    if (c.leadsTarget > 0) return false       // alleen bedrijven zonder lead target
+    if (!c.adBudgetPaidDate || !c.adBudget) return false
+    const lastPaid = new Date(c.adBudgetPaidDate)
+    const nextDue = new Date(lastPaid)
+    nextDue.setMonth(nextDue.getMonth() + 1)
+    const daysUntil = Math.ceil((nextDue.getTime() - Date.now()) / 86400000)
+    return daysUntil <= 7 && daysUntil >= -3   // binnen 7 dagen of max 3 dagen te laat
+  }).map(c => {
+    const lastPaid = new Date(c.adBudgetPaidDate!)
+    const nextDue = new Date(lastPaid)
+    nextDue.setMonth(nextDue.getMonth() + 1)
+    const daysUntil = Math.ceil((nextDue.getTime() - Date.now()) / 86400000)
+    return { company: c, nextDue, daysUntil }
+  })
+
   /* ── Chart data: per bedrijf voor actieve maand ── */
   const chartData = activeCompanies.map(c => {
     const e = getEntry(c.id, activeMonth)
@@ -336,6 +353,38 @@ export default function FinanceTab() {
 
   return (
     <div>
+      {/* ── Ad budget reminders ── */}
+      {adBudgetReminders.length > 0 && (
+        <div style={{ marginBottom: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {adBudgetReminders.map(({ company: c, nextDue, daysUntil }) => (
+            <div key={c.id} style={{
+              padding: '10px 16px', borderRadius: 10, display: 'flex', alignItems: 'center', gap: 12,
+              background: daysUntil < 0 ? '#2d0a0a' : '#2d1f0a',
+              border: `1px solid ${daysUntil < 0 ? '#7f1d1d' : '#92400e'}`,
+            }}>
+              <span style={{ fontSize: 16 }}>{daysUntil < 0 ? '🔴' : '⚠️'}</span>
+              <div style={{ flex: 1 }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: daysUntil < 0 ? '#ef4444' : '#f59e0b' }}>
+                  {c.name}
+                </span>
+                <span style={{ fontSize: 12, color: '#a0aec0', marginLeft: 8 }}>
+                  {daysUntil < 0
+                    ? `Ad budget ${Math.abs(daysUntil)} dag${Math.abs(daysUntil) !== 1 ? 'en' : ''} te laat — verwacht op ${nextDue.toLocaleDateString('nl-NL')}`
+                    : daysUntil === 0
+                    ? `Ad budget vandaag verwacht (${eur(c.adBudget)})`
+                    : `Ad budget over ${daysUntil} dag${daysUntil !== 1 ? 'en' : ''} verwacht — ${nextDue.toLocaleDateString('nl-NL')} (${eur(c.adBudget)})`
+                  }
+                </span>
+              </div>
+              <button onClick={() => setCompanyModal({ mode: 'edit', data: { ...c } })}
+                style={{ padding: '4px 10px', background: 'transparent', border: `1px solid ${daysUntil < 0 ? '#7f1d1d' : '#92400e'}`, borderRadius: 6, color: daysUntil < 0 ? '#ef4444' : '#f59e0b', fontSize: 11, cursor: 'pointer' }}>
+                Betaaldatum bijwerken
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* ── Header ── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <div>
