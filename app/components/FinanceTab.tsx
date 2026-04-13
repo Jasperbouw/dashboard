@@ -23,6 +23,7 @@ type Company = {
   division: Division
   startMonth: string           // "YYYY-MM"
   adBudget: number             // advertentiebudget dat klant bij ons betaalt / maand
+  adBudgetPaidDate?: string    // datum waarop advertentiebudget is betaald (YYYY-MM-DD)
   ownRevenueTarget: number     // gewenste eigen commissie / maand
   clientRevenueTarget: number  // gewenste gegenereerde omzet voor klant / maand
   leadsTarget: number          // contract totaal leads
@@ -64,7 +65,7 @@ const INCOME_CATEGORIES = ['Consultancy', 'Eenmalige klus', 'Doorverwijzing', 'O
 const COMPANY_EMPTY: Omit<Company, 'id'> = {
   name: '', division: 'daken',
   startMonth: new Date().toISOString().slice(0, 7),
-  adBudget: 0, ownRevenueTarget: 0, clientRevenueTarget: 0, leadsTarget: 0, notes: '',
+  adBudget: 0, adBudgetPaidDate: '', ownRevenueTarget: 0, clientRevenueTarget: 0, leadsTarget: 0, notes: '',
 }
 const ENTRY_EMPTY: MonthEntry = { monthlyFee: 0, revenueGenerated: 0, leadsReceived: 0 }
 
@@ -542,6 +543,11 @@ export default function FinanceTab() {
               <input type="number" style={INPUT} value={companyModal.data.adBudget || ''}
                 placeholder="0"
                 onChange={e => setCompanyModal(m => m && { ...m, data: { ...m.data, adBudget: +e.target.value } })} />
+            </div>
+            <div>
+              <label style={LABEL}>Advertentiebudget betaald op</label>
+              <input type="date" style={INPUT} value={companyModal.data.adBudgetPaidDate ?? ''}
+                onChange={e => setCompanyModal(m => m && { ...m, data: { ...m.data, adBudgetPaidDate: e.target.value } })} />
             </div>
             <div>
               <label style={LABEL}>Commissie target / maand (€) <span style={{ color: '#2d3748', fontWeight: 400 }}>→ omzet target automatisch (×20)</span></label>
@@ -1082,6 +1088,18 @@ function CompanyCard({ company: c, entry, month, monthly, onEditEntry, onClickDe
         <Metric label="Gegenereerd" value={eur(entry.revenueGenerated)} target={c.clientRevenueTarget > 0 ? eur(c.clientRevenueTarget) : null} pct={clientPct} color="#6366f1" />
         <Metric label="Ad budget" value={c.adBudget > 0 ? eur(c.adBudget) : '—'} target={null} pct={0} color="#38bdf8" />
       </div>
+      {c.adBudgetPaidDate && (
+        <div style={{ fontSize: 11, color: '#10b981', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+          <span>✓</span>
+          <span>Ad budget betaald op {c.adBudgetPaidDate.split('-').reverse().join('-')}</span>
+        </div>
+      )}
+      {!c.adBudgetPaidDate && c.adBudget > 0 && (
+        <div style={{ fontSize: 11, color: '#f59e0b', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+          <span>⚠</span>
+          <span>Ad budget nog niet betaald</span>
+        </div>
+      )}
 
       {/* Leads progress — cumulative across all months */}
       {(() => {
