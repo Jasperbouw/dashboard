@@ -353,38 +353,6 @@ export default function FinanceTab() {
 
   return (
     <div>
-      {/* ── Ad budget reminders ── */}
-      {adBudgetReminders.length > 0 && (
-        <div style={{ marginBottom: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {adBudgetReminders.map(({ company: c, nextDue, daysUntil }) => (
-            <div key={c.id} style={{
-              padding: '10px 16px', borderRadius: 10, display: 'flex', alignItems: 'center', gap: 12,
-              background: daysUntil < 0 ? '#2d0a0a' : '#2d1f0a',
-              border: `1px solid ${daysUntil < 0 ? '#7f1d1d' : '#92400e'}`,
-            }}>
-              <span style={{ fontSize: 16 }}>{daysUntil < 0 ? '🔴' : '⚠️'}</span>
-              <div style={{ flex: 1 }}>
-                <span style={{ fontSize: 13, fontWeight: 600, color: daysUntil < 0 ? '#ef4444' : '#f59e0b' }}>
-                  {c.name}
-                </span>
-                <span style={{ fontSize: 12, color: '#a0aec0', marginLeft: 8 }}>
-                  {daysUntil < 0
-                    ? `Ad budget ${Math.abs(daysUntil)} dag${Math.abs(daysUntil) !== 1 ? 'en' : ''} te laat — verwacht op ${nextDue.toLocaleDateString('nl-NL')}`
-                    : daysUntil === 0
-                    ? `Ad budget vandaag verwacht (${eur(c.adBudget)})`
-                    : `Ad budget over ${daysUntil} dag${daysUntil !== 1 ? 'en' : ''} verwacht — ${nextDue.toLocaleDateString('nl-NL')} (${eur(c.adBudget)})`
-                  }
-                </span>
-              </div>
-              <button onClick={() => setCompanyModal({ mode: 'edit', data: { ...c } })}
-                style={{ padding: '4px 10px', background: 'transparent', border: `1px solid ${daysUntil < 0 ? '#7f1d1d' : '#92400e'}`, borderRadius: 6, color: daysUntil < 0 ? '#ef4444' : '#f59e0b', fontSize: 11, cursor: 'pointer' }}>
-                Betaaldatum bijwerken
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-
       {/* ── Header ── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <div>
@@ -1137,18 +1105,38 @@ function CompanyCard({ company: c, entry, month, monthly, onEditEntry, onClickDe
         <Metric label="Gegenereerd" value={eur(entry.revenueGenerated)} target={c.clientRevenueTarget > 0 ? eur(c.clientRevenueTarget) : null} pct={clientPct} color="#6366f1" />
         <Metric label="Ad budget" value={c.adBudget > 0 ? eur(c.adBudget) : '—'} target={null} pct={0} color="#38bdf8" />
       </div>
-      {c.adBudgetPaidDate && (
-        <div style={{ fontSize: 11, color: '#10b981', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
-          <span>✓</span>
-          <span>Ad budget betaald op {c.adBudgetPaidDate.split('-').reverse().join('-')}</span>
-        </div>
-      )}
-      {!c.adBudgetPaidDate && c.adBudget > 0 && (
-        <div style={{ fontSize: 11, color: '#f59e0b', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
-          <span>⚠</span>
-          <span>Ad budget nog niet betaald</span>
-        </div>
-      )}
+      {(() => {
+        if (!c.adBudget) return null
+        if (!c.adBudgetPaidDate) return (
+          <div style={{ fontSize: 11, color: '#f59e0b', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span>⚠</span><span>Ad budget nog niet betaald</span>
+          </div>
+        )
+        const lastPaid = new Date(c.adBudgetPaidDate)
+        const nextDue = new Date(lastPaid)
+        nextDue.setMonth(nextDue.getMonth() + 1)
+        const daysUntil = Math.ceil((nextDue.getTime() - Date.now()) / 86400000)
+        if (c.leadsTarget > 0) return (
+          <div style={{ fontSize: 11, color: '#10b981', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span>✓</span><span>Ad budget betaald op {c.adBudgetPaidDate.split('-').reverse().join('-')}</span>
+          </div>
+        )
+        if (daysUntil < 0) return (
+          <div style={{ fontSize: 11, color: '#ef4444', marginBottom: 8, padding: '5px 8px', background: '#2d0a0a', borderRadius: 6, border: '1px solid #7f1d1d', display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span>🔴</span><span>Ad budget {Math.abs(daysUntil)} dag{Math.abs(daysUntil) !== 1 ? 'en' : ''} te laat — verwacht {nextDue.toLocaleDateString('nl-NL')}</span>
+          </div>
+        )
+        if (daysUntil <= 7) return (
+          <div style={{ fontSize: 11, color: '#f59e0b', marginBottom: 8, padding: '5px 8px', background: '#2d1f0a', borderRadius: 6, border: '1px solid #92400e', display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span>⚠</span><span>{daysUntil === 0 ? 'Ad budget vandaag verwacht' : `Ad budget over ${daysUntil} dag${daysUntil !== 1 ? 'en' : ''} verwacht`} — {nextDue.toLocaleDateString('nl-NL')}</span>
+          </div>
+        )
+        return (
+          <div style={{ fontSize: 11, color: '#10b981', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span>✓</span><span>Ad budget betaald op {c.adBudgetPaidDate.split('-').reverse().join('-')} — volgende {nextDue.toLocaleDateString('nl-NL')}</span>
+          </div>
+        )
+      })()}
 
       {/* Leads progress — cumulative across all months */}
       {(() => {
