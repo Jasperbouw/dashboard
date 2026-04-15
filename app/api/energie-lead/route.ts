@@ -1,5 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+const CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 204, headers: CORS })
+}
+
 export async function POST(req: NextRequest) {
   const body = await req.json()
 
@@ -14,5 +24,5 @@ export async function POST(req: NextRequest) {
     body: params.toString(),
   })
 
-  return NextResponse.json({ ok: true })
+  return NextResponse.json({ ok: true }, { headers: CORS })
 }
