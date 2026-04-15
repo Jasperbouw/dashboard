@@ -51,6 +51,28 @@ type CostEntry = {
 
 const COST_CATEGORIES = ['Tools', 'Advertentie', 'Personeel', 'Kantoor', 'Overig']
 
+/* ── Pipeline / Cashflow ── */
+type DealStatus = 'gesprek' | 'offerte' | 'akkoord' | 'betaald'
+
+type Deal = {
+  id: string
+  clientName: string
+  description: string
+  amount: number
+  status: DealStatus
+  expectedPaymentDate: string  // YYYY-MM-DD
+  division: Division
+  notes?: string
+  createdAt: string
+}
+
+const DEAL_STATUSES: { id: DealStatus; label: string; color: string; bg: string; border: string }[] = [
+  { id: 'gesprek',  label: 'Gesprek',  color: '#a0aec0', bg: '#1a1a2e', border: '#252540' },
+  { id: 'offerte',  label: 'Offerte',  color: '#38bdf8', bg: '#0a1f2d', border: '#0e4763' },
+  { id: 'akkoord',  label: 'Akkoord',  color: '#f59e0b', bg: '#2d1f0a', border: '#92400e' },
+  { id: 'betaald',  label: 'Betaald',  color: '#10b981', bg: '#0a2d1f', border: '#065f46' },
+]
+
 /** Losse inkomstenpost — buiten vaste klantcommissies om */
 type IncomeEntry = {
   id: string
@@ -104,7 +126,9 @@ const INPUT = { width: '100%', padding: '8px 10px', borderRadius: 8, fontSize: 1
 const LABEL = { fontSize: 11, color: '#4a5568', marginBottom: 4, display: 'block' as const }
 
 export default function FinanceTab() {
-  const [sub, setSub] = useState<'overzicht' | 'kosten' | 'rapport'>('overzicht')
+  const [sub, setSub] = useState<'overzicht' | 'kosten' | 'rapport' | 'pipeline'>('overzicht')
+  const [deals, setDeals] = useState<Deal[]>([])
+  const [dealModal, setDealModal] = useState<Partial<Deal> | null>(null)
   const [companies, setCompanies] = useState<Company[]>([])
   const [monthly, setMonthly] = useState<MonthlyStore>({})
   const [costs, setCosts] = useState<CostEntry[]>([])
@@ -131,6 +155,8 @@ export default function FinanceTab() {
         if (co) setCosts(co)
         const inc = await dbGet('bouwcheck_incomes_v1')
         if (inc) setIncomes(inc)
+        const dl = await dbGet('bouwcheck_deals_v1')
+        if (dl) setDeals(dl)
 
         const v3raw = await dbGet('bouwcheck_companies_v3')
         if (v3raw) {
@@ -187,13 +213,14 @@ export default function FinanceTab() {
 
     // ── Realtime sync ──
     const channel = dbSubscribe(
-      ['bouwcheck_companies_v3', 'bouwcheck_monthly_v1', 'bouwcheck_finance_targets', 'bouwcheck_costs_v1', 'bouwcheck_incomes_v1'],
+      ['bouwcheck_companies_v3', 'bouwcheck_monthly_v1', 'bouwcheck_finance_targets', 'bouwcheck_costs_v1', 'bouwcheck_incomes_v1', 'bouwcheck_deals_v1'],
       (key, value) => {
         if (key === 'bouwcheck_companies_v3') setCompanies(value)
         if (key === 'bouwcheck_monthly_v1') setMonthly(value)
         if (key === 'bouwcheck_finance_targets') setTopTargets(value)
         if (key === 'bouwcheck_costs_v1') setCosts(value)
         if (key === 'bouwcheck_incomes_v1') setIncomes(value)
+        if (key === 'bouwcheck_deals_v1') setDeals(value)
       }
     )
     return () => { channel.unsubscribe() }
@@ -219,6 +246,10 @@ export default function FinanceTab() {
   const saveIncomes = useCallback((next: IncomeEntry[]) => {
     setIncomes(next)
     dbSet('bouwcheck_incomes_v1', next)
+  }, [])
+  const saveDeals = useCallback((next: Deal[]) => {
+    setDeals(next)
+    dbSet('bouwcheck_deals_v1', next)
   }, [])
 
   const submitIncome = () => {
@@ -361,7 +392,7 @@ export default function FinanceTab() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           {/* Sub-tab */}
-          {(['overzicht', 'kosten', 'rapport'] as const).map(t => (
+          {(['overzicht', 'kosten', 'rapport', 'pipeline'] as const).map(t => (
             <button key={t} onClick={() => setSub(t)}
               style={{
                 padding: '7px 16px', borderRadius: 8, fontSize: 12, fontWeight: 500, cursor: 'pointer',
@@ -369,7 +400,7 @@ export default function FinanceTab() {
                 border: `1px solid ${sub === t ? '#6366f1' : '#1a1a2e'}`,
                 color: sub === t ? '#6366f1' : '#4a5568',
               }}>
-              {t === 'overzicht' ? 'Overzicht' : t === 'kosten' ? 'Kosten & Winst' : 'Maandrapport'}
+              {t === 'overzicht' ? 'Overzicht' : t === 'kosten' ? 'Kosten & Winst' : t === 'rapport' ? 'Maandrapport' : 'Pipeline'}
             </button>
           ))}
           {/* Month navigator */}
@@ -388,6 +419,13 @@ export default function FinanceTab() {
               onClick={() => setCompanyModal({ mode: 'add', data: { ...COMPANY_EMPTY } })}
               style={{ padding: '9px 16px', background: '#6366f1', border: 'none', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
               + Bedrijf
+            </button>
+          )}
+          {sub === 'pipeline' && (
+            <button
+              onClick={() => setDealModal({ status: 'gesprek', division: 'bouw', expectedPaymentDate: '', createdAt: new Date().toISOString() })}
+              style={{ padding: '9px 16px', background: '#f59e0b', border: 'none', borderRadius: 8, color: '#000', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+              + Deal
             </button>
           )}
           {sub === 'kosten' && (<>
@@ -694,6 +732,113 @@ export default function FinanceTab() {
         <MaandrapportTab activeMonth={activeMonth} />
       )}
 
+      {sub === 'pipeline' && (
+        <PipelineSub
+          deals={deals}
+          onEdit={d => setDealModal({ ...d })}
+          onDelete={id => saveDeals(deals.filter(d => d.id !== id))}
+          onStatusChange={(id, status) => saveDeals(deals.map(d => d.id === id ? { ...d, status } : d))}
+        />
+      )}
+
+      {/* ── Deal modal ── */}
+      {dealModal !== null && (
+        <Modal onClose={() => setDealModal(null)}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+            <h2 style={{ fontSize: 16, fontWeight: 600, color: '#e2e8f0', margin: 0 }}>
+              {dealModal.id ? 'Deal bewerken' : 'Deal toevoegen'}
+            </h2>
+            <button onClick={() => setDealModal(null)} style={{ background: 'none', border: 'none', color: '#4a5568', cursor: 'pointer', fontSize: 18 }}>✕</button>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div>
+              <label style={LABEL}>Klantnaam</label>
+              <input style={INPUT} placeholder="Naam van de klant of prospect…"
+                value={dealModal.clientName ?? ''}
+                onChange={e => setDealModal(m => m && { ...m, clientName: e.target.value })} />
+            </div>
+            <div>
+              <label style={LABEL}>Omschrijving</label>
+              <input style={INPUT} placeholder="bijv. aanbouw Rotterdam, dakkapel Den Haag…"
+                value={dealModal.description ?? ''}
+                onChange={e => setDealModal(m => m && { ...m, description: e.target.value })} />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div>
+                <label style={LABEL}>Bedrag (€)</label>
+                <input style={INPUT} type="number" placeholder="0"
+                  value={dealModal.amount ?? ''}
+                  onChange={e => setDealModal(m => m && { ...m, amount: parseFloat(e.target.value) || 0 })} />
+              </div>
+              <div>
+                <label style={LABEL}>Divisie</label>
+                <select style={INPUT} value={dealModal.division ?? 'bouw'}
+                  onChange={e => setDealModal(m => m && { ...m, division: e.target.value as Division })}>
+                  {DIVISIONS.map(d => <option key={d.id} value={d.id}>{d.label}</option>)}
+                </select>
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div>
+                <label style={LABEL}>Status</label>
+                <select style={INPUT} value={dealModal.status ?? 'gesprek'}
+                  onChange={e => setDealModal(m => m && { ...m, status: e.target.value as DealStatus })}>
+                  {DEAL_STATUSES.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={LABEL}>Verwachte betaaldatum</label>
+                <input style={INPUT} type="date"
+                  value={dealModal.expectedPaymentDate ?? ''}
+                  onChange={e => setDealModal(m => m && { ...m, expectedPaymentDate: e.target.value })} />
+              </div>
+            </div>
+            <div>
+              <label style={LABEL}>Notities</label>
+              <textarea style={{ ...INPUT, height: 60, resize: 'vertical' }}
+                value={dealModal.notes ?? ''}
+                onChange={e => setDealModal(m => m && { ...m, notes: e.target.value })} />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 4 }}>
+              {dealModal.id && (
+                <button onClick={() => { if (confirm('Deal verwijderen?')) { saveDeals(deals.filter(d => d.id !== dealModal.id)); setDealModal(null) } }}
+                  style={{ padding: '9px 14px', background: 'transparent', border: '1px solid #ef444440', borderRadius: 8, color: '#ef4444', fontSize: 13, cursor: 'pointer' }}>
+                  Verwijderen
+                </button>
+              )}
+              <button onClick={() => setDealModal(null)}
+                style={{ padding: '9px 20px', background: 'transparent', border: '1px solid #252540', borderRadius: 8, color: '#718096', fontSize: 13, cursor: 'pointer' }}>
+                Annuleren
+              </button>
+              <button
+                disabled={!dealModal.clientName?.trim()}
+                onClick={() => {
+                  const deal: Deal = {
+                    id: dealModal.id ?? Date.now().toString(),
+                    clientName: dealModal.clientName!,
+                    description: dealModal.description ?? '',
+                    amount: dealModal.amount ?? 0,
+                    status: dealModal.status ?? 'gesprek',
+                    expectedPaymentDate: dealModal.expectedPaymentDate ?? '',
+                    division: dealModal.division ?? 'bouw',
+                    notes: dealModal.notes,
+                    createdAt: dealModal.createdAt ?? new Date().toISOString(),
+                  }
+                  if (dealModal.id) {
+                    saveDeals(deals.map(d => d.id === dealModal.id ? deal : d))
+                  } else {
+                    saveDeals([...deals, deal])
+                  }
+                  setDealModal(null)
+                }}
+                style={{ padding: '9px 20px', background: dealModal.clientName?.trim() ? '#f59e0b' : '#252540', border: 'none', borderRadius: 8, color: dealModal.clientName?.trim() ? '#000' : '#4a5568', fontSize: 13, fontWeight: 600, cursor: dealModal.clientName?.trim() ? 'pointer' : 'default' }}>
+                {dealModal.id ? 'Opslaan' : 'Toevoegen'}
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
       {/* ── Income modal ── */}
       {incomeModal !== null && (
         <Modal onClose={() => setIncomeModal(null)}>
@@ -810,6 +955,168 @@ export default function FinanceTab() {
           </div>
         </Modal>
       )}
+    </div>
+  )
+}
+
+/* ════════════════════════════════════════════════════════
+   PIPELINE TAB
+════════════════════════════════════════════════════════ */
+function PipelineSub({ deals, onEdit, onDelete, onStatusChange }: {
+  deals: Deal[]
+  onEdit: (d: Deal) => void
+  onDelete: (id: string) => void
+  onStatusChange: (id: string, status: DealStatus) => void
+}) {
+  // Cashflow per month (akkoord + betaald deals with expectedPaymentDate)
+  const upcomingPayments = deals
+    .filter(d => (d.status === 'akkoord' || d.status === 'betaald') && d.expectedPaymentDate)
+    .sort((a, b) => a.expectedPaymentDate.localeCompare(b.expectedPaymentDate))
+
+  // Group by month
+  const byMonth: Record<string, Deal[]> = {}
+  upcomingPayments.forEach(d => {
+    const m = d.expectedPaymentDate.slice(0, 7)
+    if (!byMonth[m]) byMonth[m] = []
+    byMonth[m].push(d)
+  })
+
+  const pipelineTotal = deals.filter(d => d.status !== 'betaald').reduce((s, d) => s + d.amount, 0)
+  const akkoordTotal = deals.filter(d => d.status === 'akkoord').reduce((s, d) => s + d.amount, 0)
+  const betaaldTotal = deals.filter(d => d.status === 'betaald').reduce((s, d) => s + d.amount, 0)
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* KPI row */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14 }}>
+        {DEAL_STATUSES.map(s => {
+          const count = deals.filter(d => d.status === s.id).length
+          const total = deals.filter(d => d.status === s.id).reduce((sum, d) => sum + d.amount, 0)
+          return (
+            <div key={s.id} style={{ ...CARD, borderColor: s.border, background: s.bg }}>
+              <div style={{ fontSize: 11, color: s.color, marginBottom: 6, fontWeight: 500 }}>{s.label.toUpperCase()}</div>
+              <div style={{ fontSize: 22, fontWeight: 700, color: s.color }}>{eur(total)}</div>
+              <div style={{ fontSize: 11, color: '#4a5568', marginTop: 4 }}>{count} deal{count !== 1 ? 's' : ''}</div>
+            </div>
+          )
+        })}
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 16 }}>
+        {/* Kanban columns */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+          {DEAL_STATUSES.map(s => {
+            const colDeals = deals.filter(d => d.status === s.id)
+            return (
+              <div key={s.id} style={{ background: s.bg, border: `1px solid ${s.border}`, borderRadius: 10, padding: '12px 10px', minHeight: 200 }}>
+                <div style={{ fontSize: 11, fontWeight: 600, color: s.color, letterSpacing: 0.5, marginBottom: 10 }}>
+                  {s.label} <span style={{ opacity: 0.5, fontWeight: 400 }}>({colDeals.length})</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {colDeals.map(d => {
+                    const div = DIVISIONS.find(x => x.id === d.division)!
+                    const daysUntil = d.expectedPaymentDate
+                      ? Math.ceil((new Date(d.expectedPaymentDate).getTime() - Date.now()) / 86400000)
+                      : null
+                    return (
+                      <div key={d.id}
+                        onClick={() => onEdit(d)}
+                        style={{ background: '#111118', border: '1px solid #1a1a2e', borderRadius: 8, padding: '10px 12px', cursor: 'pointer' }}>
+                        <div style={{ fontSize: 12, fontWeight: 600, color: '#e2e8f0', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {d.clientName}
+                        </div>
+                        {d.description && (
+                          <div style={{ fontSize: 10, color: '#4a5568', marginBottom: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {d.description}
+                          </div>
+                        )}
+                        <div style={{ fontSize: 13, fontWeight: 700, color: s.color }}>{eur(d.amount)}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 6 }}>
+                          <span style={{ fontSize: 10, color: div.color }}>{div.label}</span>
+                          {daysUntil !== null && (
+                            <span style={{ fontSize: 10, color: daysUntil < 0 ? '#ef4444' : daysUntil <= 7 ? '#f59e0b' : '#4a5568' }}>
+                              {daysUntil < 0 ? `${Math.abs(daysUntil)}d te laat` : daysUntil === 0 ? 'vandaag' : `${daysUntil}d`}
+                            </span>
+                          )}
+                        </div>
+                        {/* Move forward/back buttons */}
+                        <div style={{ display: 'flex', gap: 4, marginTop: 8, borderTop: '1px solid #1a1a2e', paddingTop: 8 }}>
+                          {DEAL_STATUSES.filter(x => x.id !== s.id).map(x => (
+                            <button key={x.id}
+                              onClick={ev => { ev.stopPropagation(); onStatusChange(d.id, x.id) }}
+                              style={{ flex: 1, fontSize: 9, padding: '3px 0', background: x.bg, border: `1px solid ${x.border}`, borderRadius: 4, color: x.color, cursor: 'pointer' }}>
+                              {x.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Cashflow sidebar */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={CARD}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: '#4a5568', letterSpacing: 1, marginBottom: 12 }}>VERWACHTE CASHFLOW</div>
+            {Object.keys(byMonth).length === 0 ? (
+              <div style={{ fontSize: 12, color: '#374151' }}>Geen deals met betaaldatum.</div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {Object.entries(byMonth).sort(([a], [b]) => a.localeCompare(b)).map(([month, monthDeals]) => {
+                  const total = monthDeals.reduce((s, d) => s + d.amount, 0)
+                  return (
+                    <div key={month}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: '#8896a8' }}>{monthLabel(month)}</span>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: '#f59e0b' }}>{eur(total)}</span>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        {monthDeals.map(d => {
+                          const st = DEAL_STATUSES.find(x => x.id === d.status)!
+                          return (
+                            <div key={d.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 8px', background: '#0a0a0f', borderRadius: 6 }}>
+                              <div style={{ minWidth: 0, flex: 1 }}>
+                                <div style={{ fontSize: 11, color: '#e2e8f0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.clientName}</div>
+                                <div style={{ fontSize: 10, color: '#4a5568' }}>{d.expectedPaymentDate}</div>
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 8 }}>
+                                <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 4, background: st.bg, border: `1px solid ${st.border}`, color: st.color }}>{st.label}</span>
+                                <span style={{ fontSize: 12, fontWeight: 600, color: '#f59e0b' }}>{eur(d.amount)}</span>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          <div style={CARD}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: '#4a5568', letterSpacing: 1, marginBottom: 12 }}>SAMENVATTING</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: 12, color: '#4a5568' }}>Actieve pipeline</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#38bdf8' }}>{eur(pipelineTotal)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: 12, color: '#4a5568' }}>Akkoord (verwacht)</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#f59e0b' }}>{eur(akkoordTotal)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 8, borderTop: '1px solid #1a1a2e' }}>
+                <span style={{ fontSize: 12, color: '#4a5568' }}>Betaald (totaal)</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#10b981' }}>{eur(betaaldTotal)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
