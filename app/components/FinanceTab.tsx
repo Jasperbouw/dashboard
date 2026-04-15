@@ -126,7 +126,7 @@ const INPUT = { width: '100%', padding: '8px 10px', borderRadius: 8, fontSize: 1
 const LABEL = { fontSize: 11, color: '#4a5568', marginBottom: 4, display: 'block' as const }
 
 export default function FinanceTab() {
-  const [sub, setSub] = useState<'overzicht' | 'kosten' | 'rapport' | 'pipeline'>('overzicht')
+  const [sub, setSub] = useState<'overzicht' | 'kosten' | 'pipeline'>('overzicht')
   const [deals, setDeals] = useState<Deal[]>([])
   const [dealModal, setDealModal] = useState<Partial<Deal> | null>(null)
   const [companies, setCompanies] = useState<Company[]>([])
@@ -392,7 +392,7 @@ export default function FinanceTab() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           {/* Sub-tab */}
-          {(['overzicht', 'kosten', 'rapport', 'pipeline'] as const).map(t => (
+          {(['overzicht', 'kosten', 'pipeline'] as const).map(t => (
             <button key={t} onClick={() => setSub(t)}
               style={{
                 padding: '7px 16px', borderRadius: 8, fontSize: 12, fontWeight: 500, cursor: 'pointer',
@@ -400,7 +400,7 @@ export default function FinanceTab() {
                 border: `1px solid ${sub === t ? '#6366f1' : '#1a1a2e'}`,
                 color: sub === t ? '#6366f1' : '#4a5568',
               }}>
-              {t === 'overzicht' ? 'Overzicht' : t === 'kosten' ? 'Kosten & Winst' : t === 'rapport' ? 'Maandrapport' : 'Pipeline'}
+              {t === 'overzicht' ? 'Overzicht' : t === 'kosten' ? 'Kosten & Winst' : 'Pipeline'}
             </button>
           ))}
           {/* Month navigator */}
@@ -726,10 +726,6 @@ export default function FinanceTab() {
           onEditIncome={i => setIncomeModal({ ...i })}
           onDeleteIncome={id => saveIncomes(incomes.filter(i => i.id !== id))}
         />
-      )}
-
-      {sub === 'rapport' && (
-        <MaandrapportTab activeMonth={activeMonth} />
       )}
 
       {sub === 'pipeline' && (
@@ -1122,6 +1118,38 @@ function PipelineSub({ deals, onEdit, onDelete, onStatusChange }: {
 }
 
 /* ════════════════════════════════════════════════════════
+   MAAND NOTITIE
+════════════════════════════════════════════════════════ */
+function MaandNotitie({ activeMonth }: { activeMonth: string }) {
+  const [note, setNote] = useState('')
+  const key = `bouwcheck_note_${activeMonth}`
+
+  useEffect(() => {
+    dbGet(key).then(val => setNote(val ?? ''))
+  }, [activeMonth, key])
+
+  const save = (val: string) => {
+    setNote(val)
+    dbSet(key, val)
+  }
+
+  return (
+    <div style={CARD}>
+      <div style={{ fontSize: 11, fontWeight: 600, color: '#4a5568', letterSpacing: 1, marginBottom: 12 }}>
+        NOTITIES — {monthLabel(activeMonth)}
+      </div>
+      <textarea
+        rows={5}
+        placeholder="Vrije notitie over deze maand — wat ging goed, wat niet, wat wil je onthouden…"
+        value={note}
+        onChange={e => save(e.target.value)}
+        style={{ ...INPUT, resize: 'vertical', fontSize: 13, lineHeight: 1.7 }}
+      />
+    </div>
+  )
+}
+
+/* ════════════════════════════════════════════════════════
    KOSTEN TAB
 ════════════════════════════════════════════════════════ */
 function KostenTab({ costs, incomes, activeMonth, totalCommission, costsForMonth, totalCostsForMonth, incomesForMonth, totalExtraIncomeForMonth, onEditCost, onDeleteCost, onEditIncome, onDeleteIncome }: {
@@ -1253,6 +1281,9 @@ function KostenTab({ costs, incomes, activeMonth, totalCommission, costsForMonth
           )}
         </div>
       </div>
+
+      {/* Maandnotitie */}
+      <MaandNotitie activeMonth={activeMonth} />
     </div>
   )
 }
