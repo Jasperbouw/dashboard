@@ -124,7 +124,7 @@ type ICP = {
 const ICP_STATUSES: IcpStatus[] = ['niet gebeld', 'voicemail', 'terugbellen', 'gesprek gehad', 'geïnteresseerd', 'niet geïnteresseerd']
 
 const ICP_STATUS_COLORS: Record<IcpStatus, { bg: string; color: string; border: string }> = {
-  'niet gebeld':       { bg: '#e8ecf0', color: '#64748b', border: '#e2e8f0' },
+  'niet gebeld':       { bg: '#e8ecf0', color: '#374151', border: '#e2e8f0' },
   'voicemail':         { bg: '#2d1f0a', color: '#f59e0b', border: '#92400e' },
   'terugbellen':       { bg: '#0a1f2d', color: '#38bdf8', border: '#0e4763' },
   'gesprek gehad':     { bg: '#0a2d1f', color: '#10b981', border: '#065f46' },
@@ -313,7 +313,7 @@ const DOC_CATEGORIES = ['Contract', 'Offerte', 'Strategie', 'Rapportage', 'Overi
 ════════════════════════════════════════════════════════ */
 const CARD = { background: '#ffffff', border: '1px solid #1a1a2e', borderRadius: 12, padding: '16px 20px' } as const
 const INPUT = { width: '100%', padding: '8px 10px', borderRadius: 8, fontSize: 13, background: '#f8fafc', border: '1px solid #252540', color: '#0f172a', outline: 'none' } as const
-const LABEL = { fontSize: 11, color: '#64748b', marginBottom: 4, display: 'block' as const }
+const LABEL = { fontSize: 11, color: '#374151', marginBottom: 4, display: 'block' as const }
 
 function today() {
   return new Date().toISOString().slice(0, 10)
@@ -522,7 +522,7 @@ export default function DocsTab() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
         <div>
           <h1 style={{ fontSize: 20, fontWeight: 600, color: '#0f172a', margin: 0 }}>Docs & Checklist</h1>
-          <p style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>Meeting checklists per bedrijf & belangrijke documenten</p>
+          <p style={{ fontSize: 12, color: '#374151', marginTop: 4 }}>Meeting checklists per bedrijf & belangrijke documenten</p>
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
           {([['intake', 'Intake'], ['evaluatie', 'Evaluatie'], ['sops', "SOP's"], ['contracten', 'Contracten'], ['icps', 'ICP\'s']] as const).map(([id, label]) => (
@@ -628,23 +628,23 @@ export default function DocsTab() {
               <h2 style={{ fontSize: 16, fontWeight: 600, color: '#0f172a', margin: 0 }}>
                 Intake — {companies.find(c => c.id === intakeModal.companyId)?.name}
               </h2>
-              <div style={{ fontSize: 11, color: '#64748b', marginTop: 3 }}>Intakegesprek checklist</div>
+              <div style={{ fontSize: 11, color: '#374151', marginTop: 3 }}>Intakegesprek checklist</div>
             </div>
-            <button onClick={() => setIntakeModal(null)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: 18 }}>✕</button>
+            <button onClick={() => setIntakeModal(null)} style={{ background: 'none', border: 'none', color: '#374151', cursor: 'pointer', fontSize: 18 }}>✕</button>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
 
             {/* 1. Regio */}
             <div style={{ gridColumn: '1/-1' }}>
-              <label style={{ ...LABEL, fontSize: 12, color: '#64748b' }}>1. Regio / werkgebied</label>
+              <label style={{ ...LABEL, fontSize: 12, color: '#374151' }}>1. Regio / werkgebied</label>
               <input style={INPUT} placeholder="bijv. Noord-Holland, Utrecht, landelijk..." value={intakeModal.regio}
                 onChange={e => setIntakeModal(m => m && { ...m, regio: e.target.value })} />
             </div>
 
             {/* 2. Werkzaamheden */}
             <div style={{ gridColumn: '1/-1' }}>
-              <label style={{ ...LABEL, fontSize: 12, color: '#64748b' }}>2. Werkzaamheden (meerdere mogelijk)</label>
+              <label style={{ ...LABEL, fontSize: 12, color: '#374151' }}>2. Werkzaamheden (meerdere mogelijk)</label>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 {WERKZAAMHEDEN_OPTIES.map(opt => {
                   const checked = intakeModal.werkzaamheden.includes(opt)
@@ -670,7 +670,7 @@ export default function DocsTab() {
 
             {/* 3. Ervaring externe leads */}
             <div>
-              <label style={{ ...LABEL, fontSize: 12, color: '#64748b' }}>3. Ervaring met externe leads?</label>
+              <label style={{ ...LABEL, fontSize: 12, color: '#374151' }}>3. Ervaring met externe leads?</label>
               <div style={{ display: 'flex', gap: 8 }}>
                 {(['ja', 'nee'] as const).map(v => (
                   <button key={v} onClick={() => setIntakeModal(m => m && { ...m, ervaringExterneLeads: v })}
@@ -686,7 +686,7 @@ export default function DocsTab() {
 
             {/* Welke platforms */}
             <div>
-              <label style={{ ...LABEL, fontSize: 12, color: '#64748b' }}>Zo ja, welke platforms?</label>
+              <label style={{ ...LABEL, fontSize: 12, color: '#374151' }}>Zo ja, welke platforms?</label>
               <input style={INPUT} placeholder="bijv. Werkspot, Offertes.nl..." value={intakeModal.ervaringWelke}
                 disabled={intakeModal.ervaringExterneLeads !== 'ja'}
                 onChange={e => setIntakeModal(m => m && { ...m, ervaringWelke: e.target.value })} />
@@ -694,47 +694,47 @@ export default function DocsTab() {
 
             {/* 4. Hoeveel aanvragen */}
             <div>
-              <label style={{ ...LABEL, fontSize: 12, color: '#64748b' }}>4. Hoeveel aanvragen willen ze ontvangen?</label>
+              <label style={{ ...LABEL, fontSize: 12, color: '#374151' }}>4. Hoeveel aanvragen willen ze ontvangen?</label>
               <input style={INPUT} placeholder="bijv. 10-15 per maand" value={intakeModal.aantalAanvragen}
                 onChange={e => setIntakeModal(m => m && { ...m, aantalAanvragen: e.target.value })} />
             </div>
 
             {/* 5. Snelheid offerte */}
             <div>
-              <label style={{ ...LABEL, fontSize: 12, color: '#64748b' }}>5. Hoe snel offerte na inspectie?</label>
+              <label style={{ ...LABEL, fontSize: 12, color: '#374151' }}>5. Hoe snel offerte na inspectie?</label>
               <input style={INPUT} placeholder="bijv. binnen 24 uur, zelfde dag..." value={intakeModal.offerteSnel}
                 onChange={e => setIntakeModal(m => m && { ...m, offerteSnel: e.target.value })} />
             </div>
 
             {/* 6. Verantwoordelijk bellen */}
             <div>
-              <label style={{ ...LABEL, fontSize: 12, color: '#64748b' }}>6. Wie belt de leads? (divisie / naam)</label>
+              <label style={{ ...LABEL, fontSize: 12, color: '#374151' }}>6. Wie belt de leads? (divisie / naam)</label>
               <input style={INPUT} placeholder="bijv. Binnendienst, Jan de Vries..." value={intakeModal.bellendivisie}
                 onChange={e => setIntakeModal(m => m && { ...m, bellendivisie: e.target.value })} />
             </div>
 
             {/* 7. Doorlooptijd */}
             <div>
-              <label style={{ ...LABEL, fontSize: 12, color: '#64748b' }}>7. Doorlooptijd akkoord → uitvoering</label>
+              <label style={{ ...LABEL, fontSize: 12, color: '#374151' }}>7. Doorlooptijd akkoord → uitvoering</label>
               <input style={INPUT} placeholder="bijv. 2-4 weken, direct..." value={intakeModal.doorlooptijd}
                 onChange={e => setIntakeModal(m => m && { ...m, doorlooptijd: e.target.value })} />
             </div>
 
             <div>
-              <label style={{ ...LABEL, fontSize: 12, color: '#64748b' }}>8. Hoe snel factureren na akkoord?</label>
+              <label style={{ ...LABEL, fontSize: 12, color: '#374151' }}>8. Hoe snel factureren na akkoord?</label>
               <input style={INPUT} placeholder="bijv. dezelfde dag, binnen 48 uur..." value={intakeModal.factureringSnelheid}
                 onChange={e => setIntakeModal(m => m && { ...m, factureringSnelheid: e.target.value })} />
             </div>
 
             <div>
-              <label style={{ ...LABEL, fontSize: 12, color: '#64748b' }}>9. Betaaltermijn</label>
+              <label style={{ ...LABEL, fontSize: 12, color: '#374151' }}>9. Betaaltermijn</label>
               <input style={INPUT} placeholder="bijv. 14 dagen, 30 dagen..." value={intakeModal.betaaltermijn}
                 onChange={e => setIntakeModal(m => m && { ...m, betaaltermijn: e.target.value })} />
             </div>
 
             {/* 8. CAR verzekering */}
             <div>
-              <label style={{ ...LABEL, fontSize: 12, color: '#64748b' }}>8. CAR verzekering?</label>
+              <label style={{ ...LABEL, fontSize: 12, color: '#374151' }}>8. CAR verzekering?</label>
               <div style={{ display: 'flex', gap: 8 }}>
                 {(['ja', 'nee', 'onbekend'] as const).map(v => (
                   <button key={v} onClick={() => setIntakeModal(m => m && { ...m, carVerzekering: v })}
@@ -750,7 +750,7 @@ export default function DocsTab() {
 
             {/* 9. Sales ondersteuning */}
             <div>
-              <label style={{ ...LABEL, fontSize: 12, color: '#64748b' }}>9. Ondersteuning in sales gewenst?</label>
+              <label style={{ ...LABEL, fontSize: 12, color: '#374151' }}>9. Ondersteuning in sales gewenst?</label>
               <div style={{ display: 'flex', gap: 8 }}>
                 {(['ja', 'nee', 'misschien'] as const).map(v => (
                   <button key={v} onClick={() => setIntakeModal(m => m && { ...m, salesOndersteuning: v })}
@@ -766,7 +766,7 @@ export default function DocsTab() {
 
             {/* 10. CRM ervaring */}
             <div>
-              <label style={{ ...LABEL, fontSize: 12, color: '#64748b' }}>10. Ervaring met CRM systeem?</label>
+              <label style={{ ...LABEL, fontSize: 12, color: '#374151' }}>10. Ervaring met CRM systeem?</label>
               <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
                 {(['ja', 'nee'] as const).map(v => (
                   <button key={v} onClick={() => setIntakeModal(m => m && { ...m, crmErvaring: v })}
@@ -785,7 +785,7 @@ export default function DocsTab() {
 
             {/* 11. Klantprofiel */}
             <div style={{ gridColumn: '1/-1' }}>
-              <label style={{ ...LABEL, fontSize: 12, color: '#64748b' }}>11. Voorkeur klantprofiel</label>
+              <label style={{ ...LABEL, fontSize: 12, color: '#374151' }}>11. Voorkeur klantprofiel</label>
               <textarea rows={2} style={{ ...INPUT, resize: 'vertical', fontSize: 12 }}
                 placeholder="bijv. particulieren met woning 10+ jaar oud, regio Amsterdam, budget €50k+..."
                 value={intakeModal.klantprofiel}
@@ -794,7 +794,7 @@ export default function DocsTab() {
 
             {/* Extra notities */}
             <div style={{ gridColumn: '1/-1' }}>
-              <label style={{ ...LABEL, fontSize: 12, color: '#64748b' }}>Overige notities / afspraken</label>
+              <label style={{ ...LABEL, fontSize: 12, color: '#374151' }}>Overige notities / afspraken</label>
               <textarea rows={2} style={{ ...INPUT, resize: 'vertical', fontSize: 12 }}
                 placeholder="Aanvullende opmerkingen, afspraken, aandachtspunten..."
                 value={intakeModal.extraNotities}
@@ -804,7 +804,7 @@ export default function DocsTab() {
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 24 }}>
             <button onClick={() => setIntakeModal(null)}
-              style={{ padding: '9px 14px', background: 'transparent', border: '1px solid #252540', borderRadius: 8, color: '#64748b', fontSize: 13, cursor: 'pointer' }}>
+              style={{ padding: '9px 14px', background: 'transparent', border: '1px solid #252540', borderRadius: 8, color: '#374151', fontSize: 13, cursor: 'pointer' }}>
               Annuleren
             </button>
             <button onClick={submitIntake}
@@ -823,14 +823,14 @@ export default function DocsTab() {
               <h2 style={{ fontSize: 16, fontWeight: 600, color: '#0f172a', margin: 0 }}>
                 Meeting — {companies.find(c => c.id === meetingModal.companyId)?.name}
               </h2>
-              <div style={{ fontSize: 11, color: '#64748b', marginTop: 3 }}>Vul de antwoorden in tijdens of na de meeting</div>
+              <div style={{ fontSize: 11, color: '#374151', marginTop: 3 }}>Vul de antwoorden in tijdens of na de meeting</div>
             </div>
-            <button onClick={() => setMeetingModal(null)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: 18 }}>✕</button>
+            <button onClick={() => setMeetingModal(null)} style={{ background: 'none', border: 'none', color: '#374151', cursor: 'pointer', fontSize: 18 }}>✕</button>
           </div>
 
           {/* Date */}
           <div style={{ display: 'flex', gap: 12, marginBottom: 20, alignItems: 'center' }}>
-            <label style={{ fontSize: 12, color: '#64748b', whiteSpace: 'nowrap' }}>Datum meeting:</label>
+            <label style={{ fontSize: 12, color: '#374151', whiteSpace: 'nowrap' }}>Datum meeting:</label>
             <input type="date" value={meetingModal.date}
               onChange={e => setMeetingModal(m => m && { ...m, date: e.target.value })}
               style={{ ...INPUT, width: 160 }} />
@@ -842,8 +842,8 @@ export default function DocsTab() {
               const ans = meetingModal.answers.find(a => a.questionId === q.id)?.answer ?? ''
               return (
                 <div key={q.id}>
-                  <label style={{ ...LABEL, fontSize: 12, color: '#64748b' }}>
-                    <span style={{ color: '#94a3b8', marginRight: 6 }}>{i + 1}.</span>{q.text}
+                  <label style={{ ...LABEL, fontSize: 12, color: '#374151' }}>
+                    <span style={{ color: '#374151', marginRight: 6 }}>{i + 1}.</span>{q.text}
                   </label>
                   <textarea
                     value={ans}
@@ -868,7 +868,7 @@ export default function DocsTab() {
 
           {/* Notes */}
           <div style={{ marginBottom: 20 }}>
-            <label style={{ ...LABEL, fontSize: 12, color: '#64748b' }}>Algemene notities / actiepunten</label>
+            <label style={{ ...LABEL, fontSize: 12, color: '#374151' }}>Algemene notities / actiepunten</label>
             <textarea value={meetingModal.notes} rows={3} placeholder="Actiepunten, afspraken, follow-up..."
               onChange={e => setMeetingModal(m => m && { ...m, notes: e.target.value })}
               style={{ ...INPUT, resize: 'vertical', fontSize: 12 }} />
@@ -876,7 +876,7 @@ export default function DocsTab() {
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
             <button onClick={() => setMeetingModal(null)}
-              style={{ padding: '9px 14px', background: 'transparent', border: '1px solid #252540', borderRadius: 8, color: '#64748b', fontSize: 13, cursor: 'pointer' }}>
+              style={{ padding: '9px 14px', background: 'transparent', border: '1px solid #252540', borderRadius: 8, color: '#374151', fontSize: 13, cursor: 'pointer' }}>
               Annuleren
             </button>
             <button onClick={submitMeeting}
@@ -894,7 +894,7 @@ export default function DocsTab() {
             <h2 style={{ fontSize: 16, fontWeight: 600, color: '#0f172a', margin: 0 }}>
               {docModal.id ? 'Document bewerken' : 'Document toevoegen'}
             </h2>
-            <button onClick={() => setDocModal(null)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: 18 }}>✕</button>
+            <button onClick={() => setDocModal(null)} style={{ background: 'none', border: 'none', color: '#374151', cursor: 'pointer', fontSize: 18 }}>✕</button>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div>
@@ -930,7 +930,7 @@ export default function DocsTab() {
           </div>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 20 }}>
             <button onClick={() => setDocModal(null)}
-              style={{ padding: '9px 14px', background: 'transparent', border: '1px solid #252540', borderRadius: 8, color: '#64748b', fontSize: 13, cursor: 'pointer' }}>
+              style={{ padding: '9px 14px', background: 'transparent', border: '1px solid #252540', borderRadius: 8, color: '#374151', fontSize: 13, cursor: 'pointer' }}>
               Annuleren
             </button>
             <button onClick={submitDoc} disabled={!docModal.title?.trim()}
@@ -948,7 +948,7 @@ export default function DocsTab() {
             <h2 style={{ fontSize: 16, fontWeight: 600, color: '#0f172a', margin: 0 }}>
               {sopModal.id ? 'SOP bewerken' : 'Nieuwe SOP'}
             </h2>
-            <button onClick={() => setSopModal(null)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: 18 }}>✕</button>
+            <button onClick={() => setSopModal(null)} style={{ background: 'none', border: 'none', color: '#374151', cursor: 'pointer', fontSize: 18 }}>✕</button>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {/* Title + category */}
@@ -972,19 +972,19 @@ export default function DocsTab() {
               <div style={{ fontSize: 10, fontWeight: 700, color: '#6366f1', letterSpacing: 2 }}>DE 5 CRITERIA</div>
 
               <div>
-                <label style={{ ...LABEL, color: '#64748b' }}>1. Trigger — wat start het proces objectief?</label>
+                <label style={{ ...LABEL, color: '#374151' }}>1. Trigger — wat start het proces objectief?</label>
                 <input style={INPUT} placeholder="bijv. Contract ondertekend én betaling ontvangen"
                   value={sopModal.trigger ?? ''}
                   onChange={e => setSopModal(m => m && { ...m, trigger: e.target.value })} />
               </div>
               <div>
-                <label style={{ ...LABEL, color: '#64748b' }}>2. Outcome — welk concreet, observeerbaar resultaat?</label>
+                <label style={{ ...LABEL, color: '#374151' }}>2. Outcome — welk concreet, observeerbaar resultaat?</label>
                 <input style={INPUT} placeholder="bijv. Klant ontvangt eerste leads binnen 7 werkdagen"
                   value={sopModal.outcome ?? ''}
                   onChange={e => setSopModal(m => m && { ...m, outcome: e.target.value })} />
               </div>
               <div>
-                <label style={{ ...LABEL, color: '#64748b' }}>3. Owner — één persoon verantwoordelijk</label>
+                <label style={{ ...LABEL, color: '#374151' }}>3. Owner — één persoon verantwoordelijk</label>
                 <input style={INPUT} placeholder="bijv. Jasper van Heyningen"
                   value={sopModal.owner ?? ''}
                   onChange={e => setSopModal(m => m && { ...m, owner: e.target.value })} />
@@ -996,7 +996,7 @@ export default function DocsTab() {
               <label style={LABEL}>4. Stappen — herhaalbare volgorde</label>
               {(sopModal.steps ?? []).map((step, i) => (
                 <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'center' }}>
-                  <span style={{ fontSize: 11, color: '#64748b', minWidth: 20 }}>{i + 1}.</span>
+                  <span style={{ fontSize: 11, color: '#374151', minWidth: 20 }}>{i + 1}.</span>
                   <input style={{ ...INPUT, flex: 1 }} value={step}
                     onChange={e => setSopModal(m => {
                       if (!m) return m
@@ -1005,7 +1005,7 @@ export default function DocsTab() {
                       return { ...m, steps }
                     })} />
                   <button onClick={() => setSopModal(m => m && { ...m, steps: (m.steps ?? []).filter((_, j) => j !== i) })}
-                    style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: 16, padding: '0 4px' }}>✕</button>
+                    style={{ background: 'none', border: 'none', color: '#374151', cursor: 'pointer', fontSize: 16, padding: '0 4px' }}>✕</button>
                 </div>
               ))}
               <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
@@ -1086,8 +1086,8 @@ function SopsSub({ sops, onAdd, onEdit, onDelete }: {
       {visible.length === 0 && (
         <div style={{ ...CARD, textAlign: 'center', padding: 40 }}>
           <div style={{ fontSize: 28, marginBottom: 10 }}>📋</div>
-          <div style={{ color: '#64748b', fontSize: 13 }}>Nog geen SOP's aangemaakt.</div>
-          <div style={{ color: '#94a3b8', fontSize: 12, marginTop: 4 }}>Klik op "+ Nieuwe SOP" om te beginnen.</div>
+          <div style={{ color: '#374151', fontSize: 13 }}>Nog geen SOP's aangemaakt.</div>
+          <div style={{ color: '#374151', fontSize: 12, marginTop: 4 }}>Klik op "+ Nieuwe SOP" om te beginnen.</div>
         </div>
       )}
 
@@ -1100,8 +1100,8 @@ function SopsSub({ sops, onAdd, onEdit, onDelete }: {
                 <div style={{ fontSize: 15, fontWeight: 600, color: '#0f172a' }}>{sop.title}</div>
                 <div style={{ display: 'flex', gap: 8, marginTop: 5 }}>
                   <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 4, background: '#6366f115', color: '#6366f1', border: '1px solid #6366f130' }}>{sop.category}</span>
-                  {sop.owner && <span style={{ fontSize: 10, color: '#64748b' }}>Owner: {sop.owner}</span>}
-                  <span style={{ fontSize: 10, color: '#94a3b8' }}>bijgewerkt {fmtDate(sop.updatedAt)}</span>
+                  {sop.owner && <span style={{ fontSize: 10, color: '#374151' }}>Owner: {sop.owner}</span>}
+                  <span style={{ fontSize: 10, color: '#374151' }}>bijgewerkt {fmtDate(sop.updatedAt)}</span>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
@@ -1138,7 +1138,7 @@ function SopsSub({ sops, onAdd, onEdit, onDelete }: {
                 <div style={{ fontSize: 9, fontWeight: 700, color: '#6366f1', letterSpacing: 1.5, marginBottom: 8 }}>STAPPEN</div>
                 <ol style={{ margin: 0, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 7 }}>
                   {sop.steps.map((step, i) => (
-                    <li key={i} style={{ fontSize: 13, color: '#64748b', lineHeight: 1.5 }}>{step}</li>
+                    <li key={i} style={{ fontSize: 13, color: '#374151', lineHeight: 1.5 }}>{step}</li>
                   ))}
                 </ol>
               </div>
@@ -1176,7 +1176,7 @@ function ContractenSub({ companies, contracts, onOpen, onUpdateStatus }: {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       {companies.length === 0 && (
-        <div style={{ ...CARD, textAlign: 'center', padding: 40, color: '#64748b', fontSize: 13 }}>
+        <div style={{ ...CARD, textAlign: 'center', padding: 40, color: '#374151', fontSize: 13 }}>
           Geen bedrijven — voeg ze toe in Finance.
         </div>
       )}
@@ -1191,9 +1191,9 @@ function ContractenSub({ companies, contracts, onOpen, onUpdateStatus }: {
                 {st ? (
                   <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 4, background: st.color + '15', color: st.color, border: `1px solid ${st.color}30` }}>{st.label}</span>
                 ) : (
-                  <span style={{ fontSize: 10, color: '#94a3b8' }}>Nog geen contract aangemaakt</span>
+                  <span style={{ fontSize: 10, color: '#374151' }}>Nog geen contract aangemaakt</span>
                 )}
-                {ct?.conceptDate && <span style={{ fontSize: 10, color: '#94a3b8' }}>Aangemaakt: {fmtDate(ct.conceptDate)}</span>}
+                {ct?.conceptDate && <span style={{ fontSize: 10, color: '#374151' }}>Aangemaakt: {fmtDate(ct.conceptDate)}</span>}
                 {ct?.signedDate && <span style={{ fontSize: 10, color: '#10b981' }}>Ondertekend: {fmtDate(ct.signedDate)}</span>}
                 {ct?.signedFileName && <span style={{ fontSize: 10, color: '#10b981' }}>📎 {ct.signedFileName}</span>}
               </div>
@@ -1257,9 +1257,9 @@ function ContractModal({ contract: ct, companyName, onChange, onSave, onClose }:
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <div>
           <h2 style={{ fontSize: 16, fontWeight: 600, color: '#0f172a', margin: 0 }}>Contract — {companyName}</h2>
-          <div style={{ fontSize: 11, color: '#64748b', marginTop: 3 }}>Samenwerkingsovereenkomst Bouw Check</div>
+          <div style={{ fontSize: 11, color: '#374151', marginTop: 3 }}>Samenwerkingsovereenkomst Bouw Check</div>
         </div>
-        <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: 18 }}>✕</button>
+        <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#374151', cursor: 'pointer', fontSize: 18 }}>✕</button>
       </div>
 
       {/* Sub-tabs */}
@@ -1348,7 +1348,7 @@ function ContractModal({ contract: ct, companyName, onChange, onSave, onClose }:
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                   <div style={{ fontSize: 12, color: '#10b981' }}>📎 {ct.signedFileName}</div>
-                  <div style={{ fontSize: 10, color: '#64748b', marginTop: 2 }}>Ondertekend op {ct.signedDate ? fmtDate(ct.signedDate) : '—'}</div>
+                  <div style={{ fontSize: 10, color: '#374151', marginTop: 2 }}>Ondertekend op {ct.signedDate ? fmtDate(ct.signedDate) : '—'}</div>
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <a href={ct.signedFileData} download={ct.signedFileName}
@@ -1363,7 +1363,7 @@ function ContractModal({ contract: ct, companyName, onChange, onSave, onClose }:
               </div>
             ) : (
               <label style={{ display: 'block', cursor: 'pointer' }}>
-                <div style={{ border: '1px dashed #252540', borderRadius: 8, padding: '16px', textAlign: 'center', color: '#64748b', fontSize: 12 }}>
+                <div style={{ border: '1px dashed #252540', borderRadius: 8, padding: '16px', textAlign: 'center', color: '#374151', fontSize: 12 }}>
                   Klik om getekend document te uploaden (PDF)
                 </div>
                 <input type="file" accept=".pdf,.png,.jpg" style={{ display: 'none' }}
@@ -1559,8 +1559,8 @@ function IntakeSub({ companies, intakes, selectedCompany, setSelectedCompany, on
     <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: 16, alignItems: 'start' }}>
       {/* Company list */}
       <div style={{ ...CARD, padding: '12px 16px' }}>
-        <div style={{ fontSize: 11, fontWeight: 600, color: '#64748b', letterSpacing: 1, marginBottom: 12 }}>BEDRIJVEN</div>
-        {companies.length === 0 && <div style={{ fontSize: 12, color: '#94a3b8' }}>Geen bedrijven — voeg ze toe in Finance.</div>}
+        <div style={{ fontSize: 11, fontWeight: 600, color: '#374151', letterSpacing: 1, marginBottom: 12 }}>BEDRIJVEN</div>
+        {companies.length === 0 && <div style={{ fontSize: 12, color: '#374151' }}>Geen bedrijven — voeg ze toe in Finance.</div>}
         {companies.map((c: Company) => {
           const done = !!intakes[c.id]?.completedAt
           return (
@@ -1574,7 +1574,7 @@ function IntakeSub({ companies, intakes, selectedCompany, setSelectedCompany, on
               <span style={{ fontSize: 13, color: selectedCompany === c.id ? '#e2e8f0' : '#8896a8' }}>{c.name}</span>
               {done
                 ? <span style={{ fontSize: 10, color: '#10b981' }}>✓</span>
-                : <span style={{ fontSize: 10, color: '#94a3b8' }}>—</span>
+                : <span style={{ fontSize: 10, color: '#374151' }}>—</span>
               }
             </button>
           )
@@ -1584,7 +1584,7 @@ function IntakeSub({ companies, intakes, selectedCompany, setSelectedCompany, on
       {/* Detail */}
       <div>
         {!selectedCompany ? (
-          <div style={{ ...CARD, textAlign: 'center', padding: 48, color: '#94a3b8', fontSize: 13 }}>
+          <div style={{ ...CARD, textAlign: 'center', padding: 48, color: '#374151', fontSize: 13 }}>
             Selecteer een bedrijf om de intake in te zien of in te vullen
           </div>
         ) : (
@@ -1603,7 +1603,7 @@ function IntakeSub({ companies, intakes, selectedCompany, setSelectedCompany, on
             </div>
 
             {!intake?.completedAt ? (
-              <div style={{ ...CARD, textAlign: 'center', padding: 40, color: '#94a3b8', fontSize: 13 }}>
+              <div style={{ ...CARD, textAlign: 'center', padding: 40, color: '#374151', fontSize: 13 }}>
                 Nog geen intake — klik "+ Intake invullen"
               </div>
             ) : (
@@ -1622,14 +1622,14 @@ function IntakeSub({ companies, intakes, selectedCompany, setSelectedCompany, on
                 <IntakeField label="CRM ervaring" value={intake.crmErvaring || '—'} tag={intake.crmWelk || undefined} />
                 {intake.klantprofiel && (
                   <div style={{ gridColumn: '1/-1', background: '#ffffff', border: '1px solid #1a1a2e', borderRadius: 8, padding: '12px 14px' }}>
-                    <div style={{ fontSize: 10, color: '#64748b', marginBottom: 4 }}>Klantprofiel voorkeur</div>
+                    <div style={{ fontSize: 10, color: '#374151', marginBottom: 4 }}>Klantprofiel voorkeur</div>
                     <div style={{ fontSize: 13, color: '#0f172a', lineHeight: 1.5 }}>{intake.klantprofiel}</div>
                   </div>
                 )}
                 {intake.extraNotities && (
                   <div style={{ gridColumn: '1/-1', background: '#6366f110', border: '1px solid #6366f130', borderRadius: 8, padding: '12px 14px' }}>
                     <div style={{ fontSize: 10, color: '#6366f1', fontWeight: 600, marginBottom: 4, letterSpacing: 1 }}>NOTITIES</div>
-                    <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.6 }}>{intake.extraNotities}</div>
+                    <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.6 }}>{intake.extraNotities}</div>
                   </div>
                 )}
               </div>
@@ -1644,7 +1644,7 @@ function IntakeSub({ companies, intakes, selectedCompany, setSelectedCompany, on
 function IntakeField({ label, value, tag }: { label: string; value: string; tag?: string }) {
   return (
     <div style={{ background: '#ffffff', border: '1px solid #1a1a2e', borderRadius: 8, padding: '10px 14px' }}>
-      <div style={{ fontSize: 10, color: '#64748b', marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 10, color: '#374151', marginBottom: 4 }}>{label}</div>
       <div style={{ fontSize: 13, color: value === '—' ? '#374151' : '#e2e8f0', fontStyle: value === '—' ? 'italic' : 'normal' }}>{value}</div>
       {tag && <div style={{ fontSize: 11, color: '#6366f1', marginTop: 3 }}>{tag}</div>}
     </div>
@@ -1660,9 +1660,9 @@ function EvaluatieSub({ companies, questions, meetings, selectedCompany, setSele
       {/* Left: company list */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         <div style={{ ...CARD, padding: '12px 16px' }}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: '#64748b', letterSpacing: 1, marginBottom: 12 }}>BEDRIJVEN</div>
+          <div style={{ fontSize: 11, fontWeight: 600, color: '#374151', letterSpacing: 1, marginBottom: 12 }}>BEDRIJVEN</div>
           {companies.length === 0 && (
-            <div style={{ fontSize: 12, color: '#94a3b8' }}>Geen bedrijven — voeg ze toe in Finance.</div>
+            <div style={{ fontSize: 12, color: '#374151' }}>Geen bedrijven — voeg ze toe in Finance.</div>
           )}
           {companies.map((c: Company) => {
             const count = meetings.filter((m: Meeting) => m.companyId === c.id).length
@@ -1677,7 +1677,7 @@ function EvaluatieSub({ companies, questions, meetings, selectedCompany, setSele
                   cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                 }}>
                 <span style={{ fontSize: 13, color: isSelected ? '#e2e8f0' : '#8896a8', fontWeight: isSelected ? 600 : 400 }}>{c.name}</span>
-                {count > 0 && <span style={{ fontSize: 10, color: '#64748b', background: '#e8ecf0', padding: '2px 7px', borderRadius: 10 }}>{count}</span>}
+                {count > 0 && <span style={{ fontSize: 10, color: '#374151', background: '#e8ecf0', padding: '2px 7px', borderRadius: 10 }}>{count}</span>}
               </button>
             )
           })}
@@ -1687,14 +1687,14 @@ function EvaluatieSub({ companies, questions, meetings, selectedCompany, setSele
         <div style={CARD}>
           <button onClick={() => setShowQEditor(!showQEditor)}
             style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-            <span style={{ fontSize: 11, fontWeight: 600, color: '#64748b', letterSpacing: 1 }}>VRAGENLIJST ({questions.length})</span>
-            <span style={{ fontSize: 11, color: '#64748b' }}>{showQEditor ? '▲' : '▼'}</span>
+            <span style={{ fontSize: 11, fontWeight: 600, color: '#374151', letterSpacing: 1 }}>VRAGENLIJST ({questions.length})</span>
+            <span style={{ fontSize: 11, color: '#374151' }}>{showQEditor ? '▲' : '▼'}</span>
           </button>
           {showQEditor && (
             <div style={{ marginTop: 12 }}>
               {questions.map((q: Question, i: number) => (
                 <div key={q.id} style={{ display: 'flex', gap: 6, alignItems: 'flex-start', marginBottom: 8 }}>
-                  <span style={{ fontSize: 10, color: '#94a3b8', marginTop: 9, width: 14, flexShrink: 0 }}>{i + 1}.</span>
+                  <span style={{ fontSize: 10, color: '#374151', marginTop: 9, width: 14, flexShrink: 0 }}>{i + 1}.</span>
                   {editingQ === q.id ? (
                     <input autoFocus value={editQText}
                       onChange={e => setEditQText(e.target.value)}
@@ -1702,11 +1702,11 @@ function EvaluatieSub({ companies, questions, meetings, selectedCompany, setSele
                       onKeyDown={(e: any) => { if (e.key === 'Enter') onSaveQEdit(q.id) }}
                       style={{ ...INPUT, fontSize: 11, padding: '4px 7px', flex: 1 }} />
                   ) : (
-                    <span style={{ fontSize: 11, color: '#64748b', flex: 1, lineHeight: 1.4, cursor: 'pointer', paddingTop: 6 }}
+                    <span style={{ fontSize: 11, color: '#374151', flex: 1, lineHeight: 1.4, cursor: 'pointer', paddingTop: 6 }}
                       onClick={() => { setEditingQ(q.id); setEditQText(q.text) }}>{q.text}</span>
                   )}
                   <button onClick={() => onRemoveQuestion(q.id)}
-                    style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: 14, padding: '4px 2px', flexShrink: 0 }}>×</button>
+                    style={{ background: 'none', border: 'none', color: '#374151', cursor: 'pointer', fontSize: 14, padding: '4px 2px', flexShrink: 0 }}>×</button>
                 </div>
               ))}
               <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
@@ -1725,7 +1725,7 @@ function EvaluatieSub({ companies, questions, meetings, selectedCompany, setSele
       {/* Right: selected company detail */}
       <div>
         {!selectedCompany ? (
-          <div style={{ ...CARD, textAlign: 'center', padding: 48, color: '#94a3b8', fontSize: 13 }}>
+          <div style={{ ...CARD, textAlign: 'center', padding: 48, color: '#374151', fontSize: 13 }}>
             Selecteer een bedrijf om meetings te starten of te bekijken
           </div>
         ) : (
@@ -1751,7 +1751,7 @@ function CompanyChecklistView({ company, questions, meetings, onNewMeeting }: {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <div>
           <div style={{ fontSize: 16, fontWeight: 600, color: '#0f172a' }}>{company.name}</div>
-          <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>{meetings.length} meetings opgeslagen</div>
+          <div style={{ fontSize: 11, color: '#374151', marginTop: 2 }}>{meetings.length} meetings opgeslagen</div>
         </div>
         <button onClick={onNewMeeting}
           style={{ padding: '8px 16px', background: '#6366f1', border: 'none', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
@@ -1760,7 +1760,7 @@ function CompanyChecklistView({ company, questions, meetings, onNewMeeting }: {
       </div>
 
       {meetings.length === 0 ? (
-        <div style={{ ...CARD, textAlign: 'center', padding: 40, color: '#94a3b8', fontSize: 13 }}>
+        <div style={{ ...CARD, textAlign: 'center', padding: 40, color: '#374151', fontSize: 13 }}>
           Nog geen meetings — klik "+ Nieuwe meeting" om te starten
         </div>
       ) : (
@@ -1779,7 +1779,7 @@ function CompanyChecklistView({ company, questions, meetings, onNewMeeting }: {
                       {filled}/{questions.length} vragen beantwoord
                     </span>
                   </div>
-                  <span style={{ fontSize: 11, color: '#64748b' }}>{isOpen ? '▲' : '▼'}</span>
+                  <span style={{ fontSize: 11, color: '#374151' }}>{isOpen ? '▲' : '▼'}</span>
                 </button>
 
                 {/* Meeting answers */}
@@ -1790,8 +1790,8 @@ function CompanyChecklistView({ company, questions, meetings, onNewMeeting }: {
                         const ans = m.answers.find(a => a.questionId === q.id)?.answer ?? ''
                         return (
                           <div key={q.id}>
-                            <div style={{ fontSize: 11, color: '#64748b', marginBottom: 3 }}>
-                              <span style={{ color: '#94a3b8', marginRight: 6 }}>{i + 1}.</span>{q.text}
+                            <div style={{ fontSize: 11, color: '#374151', marginBottom: 3 }}>
+                              <span style={{ color: '#374151', marginRight: 6 }}>{i + 1}.</span>{q.text}
                             </div>
                             <div style={{
                               fontSize: 12, color: ans ? '#e2e8f0' : '#374151',
@@ -1807,7 +1807,7 @@ function CompanyChecklistView({ company, questions, meetings, onNewMeeting }: {
                     {m.notes && (
                       <div style={{ marginTop: 14, padding: '10px 12px', background: '#6366f110', border: '1px solid #6366f130', borderRadius: 8 }}>
                         <div style={{ fontSize: 10, color: '#6366f1', fontWeight: 600, marginBottom: 4, letterSpacing: 1 }}>NOTITIES</div>
-                        <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.6 }}>{m.notes}</div>
+                        <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.6 }}>{m.notes}</div>
                       </div>
                     )}
                   </div>
@@ -1848,7 +1848,7 @@ function DocumentsSub({ documents, companies, onAdd, onEdit, onDelete }: {
     <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: 16, alignItems: 'start' }}>
       {/* Company list */}
       <div style={{ ...CARD, padding: '12px 16px' }}>
-        <div style={{ fontSize: 11, fontWeight: 600, color: '#64748b', letterSpacing: 1, marginBottom: 12 }}>FILTER</div>
+        <div style={{ fontSize: 11, fontWeight: 600, color: '#374151', letterSpacing: 1, marginBottom: 12 }}>FILTER</div>
 
         {[
           { id: '__all__', name: 'Alle documenten' },
@@ -1869,7 +1869,7 @@ function DocumentsSub({ documents, companies, onAdd, onEdit, onDelete }: {
                 cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
               }}>
               <span style={{ fontSize: 13, color: selectedCompany === c.id ? '#e2e8f0' : '#8896a8' }}>{c.name}</span>
-              {count > 0 && <span style={{ fontSize: 10, color: '#64748b', background: '#e8ecf0', padding: '2px 7px', borderRadius: 10 }}>{count}</span>}
+              {count > 0 && <span style={{ fontSize: 10, color: '#374151', background: '#e8ecf0', padding: '2px 7px', borderRadius: 10 }}>{count}</span>}
             </button>
           )
         })}
@@ -1885,7 +1885,7 @@ function DocumentsSub({ documents, companies, onAdd, onEdit, onDelete }: {
         </div>
 
         {filtered.length === 0 ? (
-          <div style={{ ...CARD, textAlign: 'center', padding: 48, color: '#94a3b8', fontSize: 13 }}>
+          <div style={{ ...CARD, textAlign: 'center', padding: 48, color: '#374151', fontSize: 13 }}>
             Geen documenten — klik "+ Document toevoegen"
           </div>
         ) : (
@@ -1895,7 +1895,7 @@ function DocumentsSub({ documents, companies, onAdd, onEdit, onDelete }: {
               if (docs.length === 0) return null
               return (
                 <div key={cat}>
-                  <div style={{ fontSize: 11, fontWeight: 600, color: '#64748b', letterSpacing: 1, marginBottom: 10 }}>{cat.toUpperCase()}</div>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: '#374151', letterSpacing: 1, marginBottom: 10 }}>{cat.toUpperCase()}</div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
                     {docs.map(d => {
                       const co = companies.find(c => c.id === d.companyId)
@@ -1904,12 +1904,12 @@ function DocumentsSub({ documents, companies, onAdd, onEdit, onDelete }: {
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
                             <div style={{ fontSize: 13, fontWeight: 600, color: '#0f172a', flex: 1, paddingRight: 8 }}>{d.title}</div>
                             <div style={{ display: 'flex', gap: 4 }}>
-                              <button onClick={() => onEdit(d)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: 13 }}>✎</button>
-                              <button onClick={() => window.confirm('Verwijderen?') && onDelete(d.id)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: 14 }}>×</button>
+                              <button onClick={() => onEdit(d)} style={{ background: 'none', border: 'none', color: '#374151', cursor: 'pointer', fontSize: 13 }}>✎</button>
+                              <button onClick={() => window.confirm('Verwijderen?') && onDelete(d.id)} style={{ background: 'none', border: 'none', color: '#374151', cursor: 'pointer', fontSize: 14 }}>×</button>
                             </div>
                           </div>
                           {co && <div style={{ fontSize: 11, color: '#6366f1', marginBottom: 6 }}>{co.name}</div>}
-                          {d.description && <div style={{ fontSize: 11, color: '#64748b', marginBottom: 8, lineHeight: 1.5 }}>{d.description}</div>}
+                          {d.description && <div style={{ fontSize: 11, color: '#374151', marginBottom: 8, lineHeight: 1.5 }}>{d.description}</div>}
                           {d.url && (
                             <a href={d.url} target="_blank" rel="noreferrer"
                               style={{ fontSize: 11, color: '#6366f1', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -2011,8 +2011,8 @@ function IcpSub({ icps, onSave }: { icps: ICP[]; onSave: (next: ICP[]) => void }
       {visible.length === 0 && (
         <div style={{ ...CARD, textAlign: 'center', padding: 40 }}>
           <div style={{ fontSize: 28, marginBottom: 10 }}>📞</div>
-          <div style={{ color: '#64748b', fontSize: 13 }}>Geen bedrijven gevonden.</div>
-          <div style={{ color: '#94a3b8', fontSize: 12, marginTop: 4 }}>Voeg een bedrijf toe om je cold call lijst op te bouwen.</div>
+          <div style={{ color: '#374151', fontSize: 13 }}>Geen bedrijven gevonden.</div>
+          <div style={{ color: '#374151', fontSize: 12, marginTop: 4 }}>Voeg een bedrijf toe om je cold call lijst op te bouwen.</div>
         </div>
       )}
 
@@ -2032,17 +2032,17 @@ function IcpSub({ icps, onSave }: { icps: ICP[]; onSave: (next: ICP[]) => void }
                 </span>
               </div>
               {icp.contactpersoon && <div style={{ fontSize: 12, color: '#a0aec0', marginBottom: 4 }}>{icp.contactpersoon}</div>}
-              <div style={{ display: 'flex', gap: 12, fontSize: 11, color: '#64748b' }}>
+              <div style={{ display: 'flex', gap: 12, fontSize: 11, color: '#374151' }}>
                 {icp.telefoon && <span>{icp.telefoon}</span>}
                 {icp.regio && <span>{icp.regio}</span>}
                 {icp.type && <span>{icp.type}</span>}
               </div>
               {lastLog && (
-                <div style={{ marginTop: 10, padding: '8px 10px', background: '#f8fafc', borderRadius: 6, fontSize: 11, color: '#64748b', borderLeft: `2px solid ${ICP_STATUS_COLORS[lastLog.outcome].border}` }}>
-                  <span style={{ color: '#94a3b8' }}>{fmtDate(lastLog.date)}: </span>{lastLog.notes}
+                <div style={{ marginTop: 10, padding: '8px 10px', background: '#f8fafc', borderRadius: 6, fontSize: 11, color: '#374151', borderLeft: `2px solid ${ICP_STATUS_COLORS[lastLog.outcome].border}` }}>
+                  <span style={{ color: '#374151' }}>{fmtDate(lastLog.date)}: </span>{lastLog.notes}
                 </div>
               )}
-              <div style={{ marginTop: 8, fontSize: 10, color: '#94a3b8' }}>{icp.callLogs.length} gesprekken gelogd</div>
+              <div style={{ marginTop: 8, fontSize: 10, color: '#374151' }}>{icp.callLogs.length} gesprekken gelogd</div>
             </div>
           )
         })}
@@ -2059,9 +2059,9 @@ function IcpSub({ icps, onSave }: { icps: ICP[]; onSave: (next: ICP[]) => void }
                 <h2 style={{ fontSize: 16, fontWeight: 600, color: '#0f172a', margin: 0 }}>{modal.bedrijfsnaam}</h2>
                 <div style={{ display: 'flex', gap: 8, marginTop: 6, flexWrap: 'wrap' }}>
                   {modal.contactpersoon && <span style={{ fontSize: 11, color: '#a0aec0' }}>{modal.contactpersoon}</span>}
-                  {modal.telefoon && <span style={{ fontSize: 11, color: '#64748b' }}>{modal.telefoon}</span>}
-                  {modal.regio && <span style={{ fontSize: 11, color: '#64748b' }}>{modal.regio}</span>}
-                  {modal.type && <span style={{ fontSize: 11, color: '#64748b' }}>{modal.type}</span>}
+                  {modal.telefoon && <span style={{ fontSize: 11, color: '#374151' }}>{modal.telefoon}</span>}
+                  {modal.regio && <span style={{ fontSize: 11, color: '#374151' }}>{modal.regio}</span>}
+                  {modal.type && <span style={{ fontSize: 11, color: '#374151' }}>{modal.type}</span>}
                   {modal.website && <a href={modal.website.startsWith('http') ? modal.website : `https://${modal.website}`} target="_blank" rel="noreferrer" style={{ fontSize: 11, color: '#6366f1' }} onClick={e => e.stopPropagation()}>{modal.website}</a>}
                 </div>
               </div>
@@ -2069,7 +2069,7 @@ function IcpSub({ icps, onSave }: { icps: ICP[]; onSave: (next: ICP[]) => void }
                 <button onClick={() => deleteIcp(modal.id)}
                   style={{ padding: '6px 10px', background: 'transparent', border: '1px solid #2d1515', borderRadius: 6, color: '#7f1d1d', fontSize: 12, cursor: 'pointer' }}>✕</button>
                 <button onClick={() => setModal(null)}
-                  style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: 18 }}>✕</button>
+                  style={{ background: 'none', border: 'none', color: '#374151', cursor: 'pointer', fontSize: 18 }}>✕</button>
               </div>
             </div>
 
@@ -2077,7 +2077,7 @@ function IcpSub({ icps, onSave }: { icps: ICP[]; onSave: (next: ICP[]) => void }
             <div style={{ marginBottom: 20 }}>
               <div style={{ fontSize: 12, fontWeight: 600, color: '#6366f1', marginBottom: 10, letterSpacing: 1 }}>GESPREKKEN</div>
               {modal.callLogs.length === 0 && (
-                <div style={{ fontSize: 12, color: '#94a3b8', padding: '10px 0' }}>Nog geen gesprekken gelogd.</div>
+                <div style={{ fontSize: 12, color: '#374151', padding: '10px 0' }}>Nog geen gesprekken gelogd.</div>
               )}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {[...modal.callLogs].reverse().map(log => {
@@ -2086,7 +2086,7 @@ function IcpSub({ icps, onSave }: { icps: ICP[]; onSave: (next: ICP[]) => void }
                     <div key={log.id} style={{ padding: '10px 12px', background: '#ffffff', borderRadius: 8, borderLeft: `3px solid ${sc.border}` }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                         <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 4, background: sc.bg, color: sc.color, border: `1px solid ${sc.border}` }}>{log.outcome}</span>
-                        <span style={{ fontSize: 10, color: '#94a3b8' }}>{fmtDate(log.date)}</span>
+                        <span style={{ fontSize: 10, color: '#374151' }}>{fmtDate(log.date)}</span>
                       </div>
                       <div style={{ fontSize: 12, color: '#a0aec0', lineHeight: 1.5 }}>{log.notes}</div>
                     </div>
@@ -2139,7 +2139,7 @@ function IcpSub({ icps, onSave }: { icps: ICP[]; onSave: (next: ICP[]) => void }
           <div style={{ background: '#f8fafc', border: '1px solid #1a1a2e', borderRadius: 16, padding: 28, width: 500, maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
               <h2 style={{ fontSize: 16, fontWeight: 600, color: '#0f172a', margin: 0 }}>Nieuw bedrijf toevoegen</h2>
-              <button onClick={() => setAddModal(false)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: 18 }}>✕</button>
+              <button onClick={() => setAddModal(false)} style={{ background: 'none', border: 'none', color: '#374151', cursor: 'pointer', fontSize: 18 }}>✕</button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div>
@@ -2179,7 +2179,7 @@ function IcpSub({ icps, onSave }: { icps: ICP[]; onSave: (next: ICP[]) => void }
                 Toevoegen
               </button>
               <button onClick={() => setAddModal(false)}
-                style={{ padding: '10px 16px', background: 'transparent', border: '1px solid #1a1a2e', borderRadius: 8, color: '#64748b', fontSize: 13, cursor: 'pointer' }}>
+                style={{ padding: '10px 16px', background: 'transparent', border: '1px solid #1a1a2e', borderRadius: 8, color: '#374151', fontSize: 13, cursor: 'pointer' }}>
                 Annuleren
               </button>
             </div>

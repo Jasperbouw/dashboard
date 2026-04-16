@@ -177,7 +177,7 @@ export default function CreativesTab() {
 
       {/* ── Folder sidebar ── */}
       <div style={{ width: 200, flexShrink: 0, borderRight: '1px solid #e8ecf0', paddingRight: 0, display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: '0 0 12px 0', fontSize: 10, fontWeight: 700, letterSpacing: 2, color: '#94a3b8', textTransform: 'uppercase' }}>Mappen</div>
+        <div style={{ padding: '0 0 12px 0', fontSize: 10, fontWeight: 700, letterSpacing: 2, color: '#374151', textTransform: 'uppercase' }}>Mappen</div>
 
         <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 2 }}>
           {folders.map(f => {
@@ -205,7 +205,7 @@ export default function CreativesTab() {
                     <button onClick={() => setDeleteFolderConfirm(null)} style={{ background: 'transparent', color: '#4a5568', border: 'none', padding: '2px 4px', fontSize: 10, cursor: 'pointer' }}>✕</button>
                   </div>
                 ) : active ? (
-                  <button onClick={() => setDeleteFolderConfirm(f.id)} style={{ background: 'transparent', border: 'none', color: '#94a3b8', fontSize: 12, cursor: 'pointer', padding: '4px' }}>🗑</button>
+                  <button onClick={() => setDeleteFolderConfirm(f.id)} style={{ background: 'transparent', border: 'none', color: '#374151', fontSize: 12, cursor: 'pointer', padding: '4px' }}>🗑</button>
                 ) : null}
               </div>
             )
@@ -226,11 +226,11 @@ export default function CreativesTab() {
               />
               <div style={{ display: 'flex', gap: 4 }}>
                 <button onClick={addFolder} style={{ flex: 1, background: '#6366f1', color: '#fff', border: 'none', borderRadius: 6, padding: '5px 0', fontSize: 11, cursor: 'pointer' }}>Aanmaken</button>
-                <button onClick={() => setNewFolderMode(false)} style={{ background: 'transparent', color: '#64748b', border: '1px solid #e2e8f0', borderRadius: 6, padding: '5px 8px', fontSize: 11, cursor: 'pointer' }}>✕</button>
+                <button onClick={() => setNewFolderMode(false)} style={{ background: 'transparent', color: '#374151', border: '1px solid #e2e8f0', borderRadius: 6, padding: '5px 8px', fontSize: 11, cursor: 'pointer' }}>✕</button>
               </div>
             </div>
           ) : (
-            <button onClick={() => setNewFolderMode(true)} style={{ width: '100%', background: 'transparent', color: '#64748b', border: '1px dashed #e2e8f0', borderRadius: 8, padding: '7px 0', fontSize: 12, cursor: 'pointer' }}>
+            <button onClick={() => setNewFolderMode(true)} style={{ width: '100%', background: 'transparent', color: '#374151', border: '1px dashed #e2e8f0', borderRadius: 8, padding: '7px 0', fontSize: 12, cursor: 'pointer' }}>
               + Nieuwe map
             </button>
           )}
@@ -244,7 +244,7 @@ export default function CreativesTab() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
           <div>
             <h1 style={{ fontSize: 20, fontWeight: 600, color: '#0f172a', margin: 0 }}>{currentFolder?.name ?? 'Creatives'}</h1>
-            <p style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>{folderCreatives.length} creatives</p>
+            <p style={{ fontSize: 12, color: '#374151', marginTop: 4 }}>{folderCreatives.length} creatives</p>
           </div>
           <button onClick={openAdd} style={{ background: '#6366f1', color: '#fff', border: 'none', borderRadius: 8, padding: '9px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
             + Nieuwe creative
@@ -289,7 +289,7 @@ export default function CreativesTab() {
 
         {/* Gallery */}
         {filtered.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '80px 0', color: '#94a3b8', fontSize: 14 }}>
+          <div style={{ textAlign: 'center', padding: '80px 0', color: '#374151', fontSize: 14 }}>
             {filter === 'All' ? `Nog geen creatives in ${currentFolder?.name ?? 'deze map'}` : `Geen ${filter} creatives`}
           </div>
         ) : (
@@ -302,7 +302,7 @@ export default function CreativesTab() {
                     {c.imageUrl ? (
                       <img src={c.imageUrl} alt={c.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
-                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: 12 }}>Geen afbeelding</div>
+                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#374151', fontSize: 12 }}>Geen afbeelding</div>
                     )}
                     <div style={{ position: 'absolute', top: 10, right: 10, background: sc.bg, color: sc.color, border: `1px solid ${sc.border}`, borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 700 }}>
                       {c.status}
@@ -319,21 +319,21 @@ export default function CreativesTab() {
                     )}
                     {(c.ctr || c.cpl || c.spend) && (
                       <div style={{ display: 'flex', gap: 8 }}>
-                        {c.ctr && <div><div style={{ fontSize: 9, color: '#94a3b8' }}>CTR</div><div style={{ fontSize: 11, fontWeight: 700, color: '#2563eb' }}>{c.ctr}%</div></div>}
-                        {c.cpl && <div><div style={{ fontSize: 9, color: '#94a3b8' }}>CPL</div><div style={{ fontSize: 11, fontWeight: 700, color: '#16a34a' }}>€{c.cpl}</div></div>}
-                        {c.spend && <div><div style={{ fontSize: 9, color: '#94a3b8' }}>Spend</div><div style={{ fontSize: 11, fontWeight: 700, color: '#0f172a' }}>€{c.spend}</div></div>}
+                        {c.ctr && <div><div style={{ fontSize: 9, color: '#374151' }}>CTR</div><div style={{ fontSize: 11, fontWeight: 700, color: '#2563eb' }}>{c.ctr}%</div></div>}
+                        {c.cpl && <div><div style={{ fontSize: 9, color: '#374151' }}>CPL</div><div style={{ fontSize: 11, fontWeight: 700, color: '#16a34a' }}>€{c.cpl}</div></div>}
+                        {c.spend && <div><div style={{ fontSize: 9, color: '#374151' }}>Spend</div><div style={{ fontSize: 11, fontWeight: 700, color: '#0f172a' }}>€{c.spend}</div></div>}
                       </div>
                     )}
                     <div style={{ display: 'flex', gap: 6, marginTop: 'auto', paddingTop: 6 }}>
-                      <button onClick={() => openEdit(c)} style={{ flex: 1, background: '#f8fafc', color: '#64748b', border: '1px solid #e2e8f0', borderRadius: 6, padding: '5px 0', fontSize: 11, cursor: 'pointer' }}>Bewerken</button>
-                      {c.imageUrl && <a href={c.imageUrl} download target="_blank" rel="noreferrer" style={{ background: 'transparent', color: '#94a3b8', border: '1px solid #e2e8f0', borderRadius: 6, padding: '5px 8px', fontSize: 11, cursor: 'pointer', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>⬇</a>}
+                      <button onClick={() => openEdit(c)} style={{ flex: 1, background: '#f8fafc', color: '#374151', border: '1px solid #e2e8f0', borderRadius: 6, padding: '5px 0', fontSize: 11, cursor: 'pointer' }}>Bewerken</button>
+                      {c.imageUrl && <a href={c.imageUrl} download target="_blank" rel="noreferrer" style={{ background: 'transparent', color: '#374151', border: '1px solid #e2e8f0', borderRadius: 6, padding: '5px 8px', fontSize: 11, cursor: 'pointer', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>⬇</a>}
                       {deleteConfirm === c.id ? (
                         <>
                           <button onClick={() => handleDelete(c.id)} style={{ flex: 1, background: '#fee2e2', color: '#dc2626', border: '1px solid #fca5a5', borderRadius: 6, padding: '6px 0', fontSize: 12, cursor: 'pointer' }}>Bevestig</button>
-                          <button onClick={() => setDeleteConfirm(null)} style={{ background: 'transparent', color: '#94a3b8', border: 'none', padding: '6px 8px', fontSize: 12, cursor: 'pointer' }}>✕</button>
+                          <button onClick={() => setDeleteConfirm(null)} style={{ background: 'transparent', color: '#374151', border: 'none', padding: '6px 8px', fontSize: 12, cursor: 'pointer' }}>✕</button>
                         </>
                       ) : (
-                        <button onClick={() => setDeleteConfirm(c.id)} style={{ background: 'transparent', color: '#94a3b8', border: '1px solid #e2e8f0', borderRadius: 6, padding: '6px 10px', fontSize: 12, cursor: 'pointer' }}>🗑</button>
+                        <button onClick={() => setDeleteConfirm(c.id)} style={{ background: 'transparent', color: '#374151', border: '1px solid #e2e8f0', borderRadius: 6, padding: '6px 10px', fontSize: 12, cursor: 'pointer' }}>🗑</button>
                       )}
                     </div>
                   </div>
@@ -350,7 +350,7 @@ export default function CreativesTab() {
           <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 16, width: '100%', maxWidth: 560, maxHeight: '90vh', overflowY: 'auto', padding: 28, boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
               <h2 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: '#0f172a' }}>{modal.editing ? 'Bewerken' : `Nieuwe creative — ${currentFolder?.name}`}</h2>
-              <button onClick={() => setModal({ open: false, editing: null })} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: 20, cursor: 'pointer' }}>✕</button>
+              <button onClick={() => setModal({ open: false, editing: null })} style={{ background: 'none', border: 'none', color: '#374151', fontSize: 20, cursor: 'pointer' }}>✕</button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
@@ -360,7 +360,7 @@ export default function CreativesTab() {
                     {imagePreview ? (
                       <img src={imagePreview} alt="" style={{ width: '100%', maxHeight: 240, objectFit: 'cover' }} />
                     ) : (
-                      <div style={{ color: '#94a3b8', fontSize: 13, textAlign: 'center', padding: 20 }}>Klik om afbeelding te uploaden</div>
+                      <div style={{ color: '#374151', fontSize: 13, textAlign: 'center', padding: 20 }}>Klik om afbeelding te uploaden</div>
                     )}
                   </div>
                   {imagePreview && (
