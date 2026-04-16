@@ -13,10 +13,10 @@ const STATUSES = ['Testing', 'Winning', 'Fatigue', 'Dead'] as const
 type Status = typeof STATUSES[number]
 
 const STATUS_COLOR: Record<Status, { bg: string; color: string; border: string }> = {
-  Testing:  { bg: '#1a2744', color: '#60a5fa', border: '#1e3a5f' },
-  Winning:  { bg: '#0d2d1f', color: '#34d399', border: '#134e34' },
-  Fatigue:  { bg: '#2d1f0d', color: '#fb923c', border: '#5a3010' },
-  Dead:     { bg: '#1a1a1a', color: '#6b7280', border: '#2d2d2d' },
+  Testing:  { bg: '#eff6ff', color: '#2563eb', border: '#bfdbfe' },
+  Winning:  { bg: '#f0fdf4', color: '#16a34a', border: '#bbf7d0' },
+  Fatigue:  { bg: '#fff7ed', color: '#ea580c', border: '#fed7aa' },
+  Dead:     { bg: '#f9fafb', color: '#6b7280', border: '#e5e7eb' },
 }
 
 interface Folder {
@@ -176,8 +176,8 @@ export default function CreativesTab() {
     <div style={{ display: 'flex', gap: 0, height: 'calc(100vh - 56px)', fontFamily: 'system-ui, sans-serif' }}>
 
       {/* ── Folder sidebar ── */}
-      <div style={{ width: 200, flexShrink: 0, borderRight: '1px solid #1a1a2e', paddingRight: 0, display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: '0 0 12px 0', fontSize: 10, fontWeight: 700, letterSpacing: 2, color: '#4a5568', textTransform: 'uppercase' }}>Mappen</div>
+      <div style={{ width: 200, flexShrink: 0, borderRight: '1px solid #e8ecf0', paddingRight: 0, display: 'flex', flexDirection: 'column' }}>
+        <div style={{ padding: '0 0 12px 0', fontSize: 10, fontWeight: 700, letterSpacing: 2, color: '#94a3b8', textTransform: 'uppercase' }}>Mappen</div>
 
         <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 2 }}>
           {folders.map(f => {
@@ -189,9 +189,10 @@ export default function CreativesTab() {
                   onClick={() => { setActiveFolder(f.id); setFilter('All'); setDeleteFolderConfirm(null) }}
                   style={{
                     flex: 1, textAlign: 'left', padding: '8px 10px', borderRadius: 8, fontSize: 13, cursor: 'pointer',
-                    background: active ? '#1a1a2e' : 'transparent',
-                    color: active ? '#e2e8f0' : '#4a5568',
-                    border: active ? '1px solid #252540' : '1px solid transparent',
+                    background: active ? '#eef2ff' : 'transparent',
+                    color: active ? '#4f46e5' : '#64748b',
+                    border: active ? '1px solid #c7d2fe' : '1px solid transparent',
+                    fontWeight: active ? 600 : 400,
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6,
                   }}
                 >
@@ -204,7 +205,7 @@ export default function CreativesTab() {
                     <button onClick={() => setDeleteFolderConfirm(null)} style={{ background: 'transparent', color: '#4a5568', border: 'none', padding: '2px 4px', fontSize: 10, cursor: 'pointer' }}>✕</button>
                   </div>
                 ) : active ? (
-                  <button onClick={() => setDeleteFolderConfirm(f.id)} style={{ background: 'transparent', border: 'none', color: '#2d3748', fontSize: 12, cursor: 'pointer', padding: '4px' }}>🗑</button>
+                  <button onClick={() => setDeleteFolderConfirm(f.id)} style={{ background: 'transparent', border: 'none', color: '#94a3b8', fontSize: 12, cursor: 'pointer', padding: '4px' }}>🗑</button>
                 ) : null}
               </div>
             )
@@ -212,7 +213,7 @@ export default function CreativesTab() {
         </div>
 
         {/* New folder */}
-        <div style={{ marginTop: 12, borderTop: '1px solid #1a1a2e', paddingTop: 12 }}>
+        <div style={{ marginTop: 12, borderTop: '1px solid #e8ecf0', paddingTop: 12 }}>
           {newFolderMode ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <input
@@ -221,15 +222,15 @@ export default function CreativesTab() {
                 onChange={e => setNewFolderName(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') addFolder(); if (e.key === 'Escape') setNewFolderMode(false) }}
                 placeholder="Mapnaam..."
-                style={{ background: '#0d0d15', border: '1px solid #252540', borderRadius: 6, padding: '6px 8px', color: '#e2e8f0', fontSize: 12, outline: 'none', width: '100%', boxSizing: 'border-box' }}
+                style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 6, padding: '6px 8px', color: '#0f172a', fontSize: 12, outline: 'none', width: '100%', boxSizing: 'border-box' }}
               />
               <div style={{ display: 'flex', gap: 4 }}>
                 <button onClick={addFolder} style={{ flex: 1, background: '#6366f1', color: '#fff', border: 'none', borderRadius: 6, padding: '5px 0', fontSize: 11, cursor: 'pointer' }}>Aanmaken</button>
-                <button onClick={() => setNewFolderMode(false)} style={{ background: 'transparent', color: '#4a5568', border: '1px solid #1a1a2e', borderRadius: 6, padding: '5px 8px', fontSize: 11, cursor: 'pointer' }}>✕</button>
+                <button onClick={() => setNewFolderMode(false)} style={{ background: 'transparent', color: '#64748b', border: '1px solid #e2e8f0', borderRadius: 6, padding: '5px 8px', fontSize: 11, cursor: 'pointer' }}>✕</button>
               </div>
             </div>
           ) : (
-            <button onClick={() => setNewFolderMode(true)} style={{ width: '100%', background: 'transparent', color: '#4a5568', border: '1px dashed #1a1a2e', borderRadius: 8, padding: '7px 0', fontSize: 12, cursor: 'pointer' }}>
+            <button onClick={() => setNewFolderMode(true)} style={{ width: '100%', background: 'transparent', color: '#64748b', border: '1px dashed #e2e8f0', borderRadius: 8, padding: '7px 0', fontSize: 12, cursor: 'pointer' }}>
               + Nieuwe map
             </button>
           )}
@@ -242,8 +243,8 @@ export default function CreativesTab() {
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
           <div>
-            <h1 style={{ fontSize: 20, fontWeight: 600, color: '#e2e8f0', margin: 0 }}>{currentFolder?.name ?? 'Creatives'}</h1>
-            <p style={{ fontSize: 12, color: '#4a5568', marginTop: 4 }}>{folderCreatives.length} creatives</p>
+            <h1 style={{ fontSize: 20, fontWeight: 600, color: '#0f172a', margin: 0 }}>{currentFolder?.name ?? 'Creatives'}</h1>
+            <p style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>{folderCreatives.length} creatives</p>
           </div>
           <button onClick={openAdd} style={{ background: '#6366f1', color: '#fff', border: 'none', borderRadius: 8, padding: '9px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
             + Nieuwe creative
@@ -259,9 +260,9 @@ export default function CreativesTab() {
             return (
               <button key={s} onClick={() => setFilter(s)} style={{
                 padding: '5px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer', border: '1px solid',
-                background: active ? (col?.bg ?? '#1a1a2e') : 'transparent',
-                color: active ? (col?.color ?? '#e2e8f0') : '#4a5568',
-                borderColor: active ? (col?.border ?? '#252540') : '#1a1a2e',
+                background: active ? (col?.bg ?? '#eef2ff') : '#ffffff',
+                color: active ? (col?.color ?? '#4f46e5') : '#64748b',
+                borderColor: active ? (col?.border ?? '#c7d2fe') : '#e2e8f0',
               }}>
                 {s} <span style={{ opacity: 0.6 }}>({cnt})</span>
               </button>
@@ -276,9 +277,9 @@ export default function CreativesTab() {
             return (
               <button key={a} onClick={() => setAngleFilter(active ? null : a)} style={{
                 padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: 'pointer', border: '1px solid',
-                background: active ? '#312e81' : 'transparent',
-                color: active ? '#818cf8' : '#4a5568',
-                borderColor: active ? '#4338ca' : '#1a1a2e',
+                background: active ? '#eef2ff' : '#ffffff',
+                color: active ? '#4f46e5' : '#64748b',
+                borderColor: active ? '#c7d2fe' : '#e2e8f0',
               }}>
                 {a}
               </button>
@@ -288,7 +289,7 @@ export default function CreativesTab() {
 
         {/* Gallery */}
         {filtered.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '80px 0', color: '#2d3748', fontSize: 14 }}>
+          <div style={{ textAlign: 'center', padding: '80px 0', color: '#94a3b8', fontSize: 14 }}>
             {filter === 'All' ? `Nog geen creatives in ${currentFolder?.name ?? 'deze map'}` : `Geen ${filter} creatives`}
           </div>
         ) : (
@@ -296,43 +297,43 @@ export default function CreativesTab() {
             {filtered.map(c => {
               const sc = STATUS_COLOR[c.status]
               return (
-                <div key={c.id} style={{ background: '#111118', border: '1px solid #1a1a2e', borderRadius: 12, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ position: 'relative', aspectRatio: '1/1', background: '#0d0d15', cursor: 'pointer' }} onClick={() => openEdit(c)}>
+                <div key={c.id} style={{ background: '#ffffff', border: '1px solid #e8ecf0', borderRadius: 12, overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+                  <div style={{ position: 'relative', aspectRatio: '1/1', background: '#f8fafc', cursor: 'pointer' }} onClick={() => openEdit(c)}>
                     {c.imageUrl ? (
                       <img src={c.imageUrl} alt={c.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
-                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2d3748', fontSize: 12 }}>Geen afbeelding</div>
+                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: 12 }}>Geen afbeelding</div>
                     )}
                     <div style={{ position: 'absolute', top: 10, right: 10, background: sc.bg, color: sc.color, border: `1px solid ${sc.border}`, borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 700 }}>
                       {c.status}
                     </div>
                   </div>
                   <div style={{ padding: 10, flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: '#e2e8f0' }}>{c.name}</div>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: '#0f172a' }}>{c.name}</div>
                     {c.angles.length > 0 && (
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
                         {c.angles.map(a => (
-                          <span key={a} style={{ background: '#1a1a2e', color: '#818cf8', border: '1px solid #252540', borderRadius: 4, padding: '1px 6px', fontSize: 9, fontWeight: 600 }}>{a}</span>
+                          <span key={a} style={{ background: '#eef2ff', color: '#4f46e5', border: '1px solid #c7d2fe', borderRadius: 4, padding: '1px 6px', fontSize: 9, fontWeight: 600 }}>{a}</span>
                         ))}
                       </div>
                     )}
                     {(c.ctr || c.cpl || c.spend) && (
                       <div style={{ display: 'flex', gap: 8 }}>
-                        {c.ctr && <div><div style={{ fontSize: 9, color: '#4a5568' }}>CTR</div><div style={{ fontSize: 11, fontWeight: 700, color: '#60a5fa' }}>{c.ctr}%</div></div>}
-                        {c.cpl && <div><div style={{ fontSize: 9, color: '#4a5568' }}>CPL</div><div style={{ fontSize: 11, fontWeight: 700, color: '#34d399' }}>€{c.cpl}</div></div>}
-                        {c.spend && <div><div style={{ fontSize: 9, color: '#4a5568' }}>Spend</div><div style={{ fontSize: 11, fontWeight: 700, color: '#e2e8f0' }}>€{c.spend}</div></div>}
+                        {c.ctr && <div><div style={{ fontSize: 9, color: '#94a3b8' }}>CTR</div><div style={{ fontSize: 11, fontWeight: 700, color: '#2563eb' }}>{c.ctr}%</div></div>}
+                        {c.cpl && <div><div style={{ fontSize: 9, color: '#94a3b8' }}>CPL</div><div style={{ fontSize: 11, fontWeight: 700, color: '#16a34a' }}>€{c.cpl}</div></div>}
+                        {c.spend && <div><div style={{ fontSize: 9, color: '#94a3b8' }}>Spend</div><div style={{ fontSize: 11, fontWeight: 700, color: '#0f172a' }}>€{c.spend}</div></div>}
                       </div>
                     )}
                     <div style={{ display: 'flex', gap: 6, marginTop: 'auto', paddingTop: 6 }}>
-                      <button onClick={() => openEdit(c)} style={{ flex: 1, background: '#1a1a2e', color: '#a0aec0', border: '1px solid #252540', borderRadius: 6, padding: '5px 0', fontSize: 11, cursor: 'pointer' }}>Bewerken</button>
-                      {c.imageUrl && <a href={c.imageUrl} download target="_blank" rel="noreferrer" style={{ background: 'transparent', color: '#4a5568', border: '1px solid #1a1a2e', borderRadius: 6, padding: '5px 8px', fontSize: 11, cursor: 'pointer', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>⬇</a>}
+                      <button onClick={() => openEdit(c)} style={{ flex: 1, background: '#f8fafc', color: '#64748b', border: '1px solid #e2e8f0', borderRadius: 6, padding: '5px 0', fontSize: 11, cursor: 'pointer' }}>Bewerken</button>
+                      {c.imageUrl && <a href={c.imageUrl} download target="_blank" rel="noreferrer" style={{ background: 'transparent', color: '#94a3b8', border: '1px solid #e2e8f0', borderRadius: 6, padding: '5px 8px', fontSize: 11, cursor: 'pointer', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>⬇</a>}
                       {deleteConfirm === c.id ? (
                         <>
-                          <button onClick={() => handleDelete(c.id)} style={{ flex: 1, background: '#7f1d1d', color: '#fca5a5', border: '1px solid #991b1b', borderRadius: 6, padding: '6px 0', fontSize: 12, cursor: 'pointer' }}>Bevestig</button>
-                          <button onClick={() => setDeleteConfirm(null)} style={{ background: 'transparent', color: '#4a5568', border: 'none', padding: '6px 8px', fontSize: 12, cursor: 'pointer' }}>✕</button>
+                          <button onClick={() => handleDelete(c.id)} style={{ flex: 1, background: '#fee2e2', color: '#dc2626', border: '1px solid #fca5a5', borderRadius: 6, padding: '6px 0', fontSize: 12, cursor: 'pointer' }}>Bevestig</button>
+                          <button onClick={() => setDeleteConfirm(null)} style={{ background: 'transparent', color: '#94a3b8', border: 'none', padding: '6px 8px', fontSize: 12, cursor: 'pointer' }}>✕</button>
                         </>
                       ) : (
-                        <button onClick={() => setDeleteConfirm(c.id)} style={{ background: 'transparent', color: '#4a5568', border: '1px solid #1a1a2e', borderRadius: 6, padding: '6px 10px', fontSize: 12, cursor: 'pointer' }}>🗑</button>
+                        <button onClick={() => setDeleteConfirm(c.id)} style={{ background: 'transparent', color: '#94a3b8', border: '1px solid #e2e8f0', borderRadius: 6, padding: '6px 10px', fontSize: 12, cursor: 'pointer' }}>🗑</button>
                       )}
                     </div>
                   </div>
@@ -346,20 +347,20 @@ export default function CreativesTab() {
       {/* ── Modal ── */}
       {modal.open && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 20 }}>
-          <div style={{ background: '#111118', border: '1px solid #1a1a2e', borderRadius: 16, width: '100%', maxWidth: 560, maxHeight: '90vh', overflowY: 'auto', padding: 28 }}>
+          <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 16, width: '100%', maxWidth: 560, maxHeight: '90vh', overflowY: 'auto', padding: 28, boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-              <h2 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: '#e2e8f0' }}>{modal.editing ? 'Bewerken' : `Nieuwe creative — ${currentFolder?.name}`}</h2>
-              <button onClick={() => setModal({ open: false, editing: null })} style={{ background: 'none', border: 'none', color: '#4a5568', fontSize: 20, cursor: 'pointer' }}>✕</button>
+              <h2 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: '#0f172a' }}>{modal.editing ? 'Bewerken' : `Nieuwe creative — ${currentFolder?.name}`}</h2>
+              <button onClick={() => setModal({ open: false, editing: null })} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: 20, cursor: 'pointer' }}>✕</button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
                 <label style={labelStyle}>Afbeelding</label>
                 <div style={{ position: 'relative' }}>
-                  <div onClick={() => fileRef.current?.click()} style={{ border: '2px dashed #252540', borderRadius: 10, overflow: 'hidden', cursor: 'pointer', minHeight: 140, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0d0d15' }}>
+                  <div onClick={() => fileRef.current?.click()} style={{ border: '2px dashed #e2e8f0', borderRadius: 10, overflow: 'hidden', cursor: 'pointer', minHeight: 140, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc' }}>
                     {imagePreview ? (
                       <img src={imagePreview} alt="" style={{ width: '100%', maxHeight: 240, objectFit: 'cover' }} />
                     ) : (
-                      <div style={{ color: '#4a5568', fontSize: 13, textAlign: 'center', padding: 20 }}>Klik om afbeelding te uploaden</div>
+                      <div style={{ color: '#94a3b8', fontSize: 13, textAlign: 'center', padding: 20 }}>Klik om afbeelding te uploaden</div>
                     )}
                   </div>
                   {imagePreview && (
@@ -382,7 +383,7 @@ export default function CreativesTab() {
                   {ANGLES.map(a => {
                     const selected = form.angles.includes(a)
                     return (
-                      <button key={a} type="button" onClick={() => toggleAngle(a)} style={{ padding: '5px 12px', borderRadius: 6, fontSize: 12, cursor: 'pointer', fontWeight: 600, background: selected ? '#312e81' : '#0d0d15', color: selected ? '#818cf8' : '#4a5568', border: `1px solid ${selected ? '#4338ca' : '#252540'}` }}>
+                      <button key={a} type="button" onClick={() => toggleAngle(a)} style={{ padding: '5px 12px', borderRadius: 6, fontSize: 12, cursor: 'pointer', fontWeight: 600, background: selected ? '#eef2ff' : '#f8fafc', color: selected ? '#4f46e5' : '#64748b', border: `1px solid ${selected ? '#c7d2fe' : '#e2e8f0'}` }}>
                         {a}
                       </button>
                     )
@@ -396,7 +397,7 @@ export default function CreativesTab() {
                     const active = form.status === s
                     const sc = STATUS_COLOR[s]
                     return (
-                      <button key={s} type="button" onClick={() => setForm(p => ({ ...p, status: s }))} style={{ flex: 1, padding: '7px 0', borderRadius: 8, fontSize: 12, cursor: 'pointer', fontWeight: 700, background: active ? sc.bg : 'transparent', color: active ? sc.color : '#4a5568', border: `1px solid ${active ? sc.border : '#1a1a2e'}` }}>
+                      <button key={s} type="button" onClick={() => setForm(p => ({ ...p, status: s }))} style={{ flex: 1, padding: '7px 0', borderRadius: 8, fontSize: 12, cursor: 'pointer', fontWeight: 700, background: active ? sc.bg : '#f8fafc', color: active ? sc.color : '#64748b', border: `1px solid ${active ? sc.border : '#e2e8f0'}` }}>
                         {s}
                       </button>
                     )
@@ -432,4 +433,4 @@ export default function CreativesTab() {
 }
 
 const labelStyle: React.CSSProperties = { display: 'block', fontSize: 11, fontWeight: 600, color: '#6b7280', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }
-const inputStyle: React.CSSProperties = { width: '100%', background: '#0d0d15', border: '1px solid #1a1a2e', borderRadius: 8, padding: '9px 12px', color: '#e2e8f0', fontSize: 13, outline: 'none', boxSizing: 'border-box' }
+const inputStyle: React.CSSProperties = { width: '100%', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: '9px 12px', color: '#0f172a', fontSize: 13, outline: 'none', boxSizing: 'border-box' }
