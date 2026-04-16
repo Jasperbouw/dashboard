@@ -121,9 +121,9 @@ function entryKey(companyId: string, month: string) {
 /* ════════════════════════════════════════════════════════
    MAIN COMPONENT
 ════════════════════════════════════════════════════════ */
-const CARD = { background: '#111118', border: '1px solid #1a1a2e', borderRadius: 12, padding: '16px 20px' } as const
-const INPUT = { width: '100%', padding: '8px 10px', borderRadius: 8, fontSize: 13, background: '#0a0a0f', border: '1px solid #252540', color: '#e2e8f0', outline: 'none' } as const
-const LABEL = { fontSize: 11, color: '#4a5568', marginBottom: 4, display: 'block' as const }
+const CARD = { background: '#ffffff', border: '1px solid #e8ecf0', borderRadius: 12, padding: '16px 20px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' } as const
+const INPUT = { width: '100%', padding: '8px 10px', borderRadius: 8, fontSize: 13, background: '#f8fafc', border: '1px solid #e2e8f0', color: '#0f172a', outline: 'none' } as const
+const LABEL = { fontSize: 11, color: '#64748b', marginBottom: 4, display: 'block' as const }
 
 export default function FinanceTab() {
   const [sub, setSub] = useState<'overzicht' | 'kosten' | 'pipeline'>('overzicht')
@@ -387,8 +387,8 @@ export default function FinanceTab() {
       {/* ── Header ── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <div>
-          <h1 style={{ fontSize: 20, fontWeight: 600, color: '#e2e8f0', margin: 0 }}>Finance</h1>
-          <p style={{ fontSize: 12, color: '#4a5568', marginTop: 4 }}>B2B commissie & gegenereerde omzet per divisie</p>
+          <h1 style={{ fontSize: 20, fontWeight: 600, color: '#0f172a', margin: 0 }}>Finance</h1>
+          <p style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>B2B commissie & gegenereerde omzet per divisie</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           {/* Sub-tab */}
@@ -396,23 +396,23 @@ export default function FinanceTab() {
             <button key={t} onClick={() => setSub(t)}
               style={{
                 padding: '7px 16px', borderRadius: 8, fontSize: 12, fontWeight: 500, cursor: 'pointer',
-                background: sub === t ? '#6366f120' : 'transparent',
-                border: `1px solid ${sub === t ? '#6366f1' : '#1a1a2e'}`,
-                color: sub === t ? '#6366f1' : '#4a5568',
+                background: sub === t ? '#eef2ff' : 'transparent',
+                border: `1px solid ${sub === t ? '#6366f1' : '#e2e8f0'}`,
+                color: sub === t ? '#4f46e5' : '#64748b',
               }}>
               {t === 'overzicht' ? 'Overzicht' : t === 'kosten' ? 'Kosten & Winst' : 'Pipeline'}
             </button>
           ))}
           {/* Month navigator */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 0, background: '#111118', border: '1px solid #1a1a2e', borderRadius: 8, overflow: 'hidden' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 0, background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 8, overflow: 'hidden', boxShadow: '0 1px 2px rgba(0,0,0,0.04)' }}>
             <button onClick={() => setActiveMonth(m => addMonths(m, -1))}
-              style={{ padding: '7px 13px', background: 'none', border: 'none', color: '#8896a8', cursor: 'pointer', fontSize: 14 }}>‹</button>
-            <div style={{ padding: '7px 16px', fontSize: 13, fontWeight: 600, color: isPresent ? '#6366f1' : '#e2e8f0', borderLeft: '1px solid #1a1a2e', borderRight: '1px solid #1a1a2e', minWidth: 100, textAlign: 'center' }}>
+              style={{ padding: '7px 13px', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: 14 }}>‹</button>
+            <div style={{ padding: '7px 16px', fontSize: 13, fontWeight: 600, color: isPresent ? '#4f46e5' : '#0f172a', borderLeft: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0', minWidth: 100, textAlign: 'center' }}>
               {monthLabel(activeMonth)}
-              {isPresent && <span style={{ fontSize: 10, color: '#6366f1', marginLeft: 6 }}>huidig</span>}
+              {isPresent && <span style={{ fontSize: 10, color: '#4f46e5', marginLeft: 6 }}>huidig</span>}
             </div>
             <button onClick={() => setActiveMonth(m => addMonths(m, 1))}
-              style={{ padding: '7px 13px', background: 'none', border: 'none', color: '#8896a8', cursor: 'pointer', fontSize: 14 }}>›</button>
+              style={{ padding: '7px 13px', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: 14 }}>›</button>
           </div>
           {sub === 'overzicht' && (
             <button
@@ -461,14 +461,14 @@ export default function FinanceTab() {
           onTargetChange={v => saveTopTargets({ ...topTargets, clientTarget: v })}
         />
         <div style={CARD}>
-          <div style={{ fontSize: 11, color: '#4a5568', marginBottom: 8 }}>Advertentiebudget klanten</div>
-          <div style={{ fontSize: 22, fontWeight: 700, color: '#38bdf8' }}>{eur(totalAdBudget)}</div>
-          <div style={{ fontSize: 11, color: '#374151', marginTop: 4 }}>totaal advertentiebudget</div>
+          <div style={{ fontSize: 11, color: '#64748b', marginBottom: 8 }}>Advertentiebudget klanten</div>
+          <div style={{ fontSize: 22, fontWeight: 700, color: '#0ea5e9' }}>{eur(totalAdBudget)}</div>
+          <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>totaal advertentiebudget</div>
         </div>
         <div style={CARD}>
-          <div style={{ fontSize: 11, color: '#4a5568', marginBottom: 8 }}>Bijna vol contract</div>
-          <div style={{ fontSize: 22, fontWeight: 700, color: nearFull.length > 0 ? '#ef4444' : '#374151' }}>{nearFull.length}</div>
-          <div style={{ fontSize: 11, color: nearFull.length > 0 ? '#ef4444' : '#374151', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div style={{ fontSize: 11, color: '#64748b', marginBottom: 8 }}>Bijna vol contract</div>
+          <div style={{ fontSize: 22, fontWeight: 700, color: nearFull.length > 0 ? '#ef4444' : '#94a3b8' }}>{nearFull.length}</div>
+          <div style={{ fontSize: 11, color: nearFull.length > 0 ? '#ef4444' : '#94a3b8', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {nearFull.length > 0 ? nearFull.map(c => c.name).join(', ') : 'Geen'}
           </div>
         </div>
@@ -477,22 +477,22 @@ export default function FinanceTab() {
       {/* ── Chart ── */}
       {activeCompanies.length > 0 && (
         <div style={{ ...CARD, marginBottom: 16 }}>
-          <div style={{ fontSize: 12, fontWeight: 500, color: '#8896a8', marginBottom: 14 }}>
+          <div style={{ fontSize: 12, fontWeight: 500, color: '#94a3b8', marginBottom: 14 }}>
             Commissie per bedrijf (bars, kleur = divisie) + gegenereerde omzet voor klant (lijn) — {monthLabel(activeMonth)}
           </div>
           <ResponsiveContainer width="100%" height={210}>
             <ComposedChart data={chartData} margin={{ top: 4, right: 16, bottom: 0, left: 0 }}>
-              <XAxis dataKey="name" tick={{ fill: '#4a5568', fontSize: 10 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: '#4a5568', fontSize: 10 }} axisLine={false} tickLine={false}
+              <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 10 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: '#94a3b8', fontSize: 10 }} axisLine={false} tickLine={false}
                 tickFormatter={v => v >= 1000 ? `€${(v / 1000).toFixed(0)}k` : `€${v}`} />
               <Tooltip
-                contentStyle={{ background: '#1a1a2e', border: '1px solid #252540', borderRadius: 8, color: '#e2e8f0', fontSize: 11 }}
+                contentStyle={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 8, color: '#0f172a', fontSize: 11, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                 content={({ active, payload }) => {
                   if (!active || !payload?.length) return null
                   const d = payload[0].payload
                   const div = DIVISIONS.find(x => x.id === d.division)!
                   return (
-                    <div style={{ background: '#1a1a2e', border: '1px solid #252540', borderRadius: 8, padding: '10px 14px', fontSize: 11 }}>
+                    <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 8, padding: '10px 14px', fontSize: 11, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
                       <div style={{ fontWeight: 600, color: div.color, marginBottom: 8 }}>{d.fullName}</div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                         <span style={{ color: '#8896a8' }}>Commissie: <span style={{ color: div.color, fontWeight: 600 }}>{eur(d.commissie)}</span>
@@ -513,7 +513,7 @@ export default function FinanceTab() {
                 dot={{ fill: '#6366f1', r: 4, strokeWidth: 0 }} activeDot={{ r: 6 }} />
             </ComposedChart>
           </ResponsiveContainer>
-          <div style={{ display: 'flex', gap: 16, fontSize: 11, color: '#4a5568', marginTop: 10, paddingTop: 10, borderTop: '1px solid #1a1a2e' }}>
+          <div style={{ display: 'flex', gap: 16, fontSize: 11, color: '#94a3b8', marginTop: 10, paddingTop: 10, borderTop: '1px solid #e8ecf0' }}>
             {DIVISIONS.map(d => (
               <span key={d.id} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                 <span style={{ width: 8, height: 8, borderRadius: 2, background: d.color, display: 'inline-block' }} />
@@ -530,14 +530,14 @@ export default function FinanceTab() {
 
       {/* ── Division filter ── */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-        {[{ id: 'all' as const, label: 'Alle', color: '#8896a8' }, ...DIVISIONS].map(d => {
+        {[{ id: 'all' as const, label: 'Alle', color: '#64748b' }, ...DIVISIONS].map(d => {
           const count = d.id === 'all' ? activeCompanies.length : activeCompanies.filter(c => c.division === d.id).length
           return (
             <button key={d.id} onClick={() => setActiveDiv(d.id as any)}
               style={{
                 padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 500, cursor: 'pointer',
-                background: activeDiv === d.id ? d.color + '22' : 'transparent',
-                border: `1px solid ${activeDiv === d.id ? d.color : '#1a1a2e'}`,
+                background: activeDiv === d.id ? d.color + '18' : '#ffffff',
+                border: `1px solid ${activeDiv === d.id ? d.color : '#e2e8f0'}`,
                 color: activeDiv === d.id ? d.color : '#4a5568',
               }}>
               {d.label} <span style={{ opacity: 0.6 }}>({count})</span>
@@ -548,7 +548,7 @@ export default function FinanceTab() {
 
       {/* ── Company grid ── */}
       {visible.length === 0 ? (
-        <div style={{ ...CARD, textAlign: 'center', padding: 48, color: '#374151', fontSize: 13 }}>
+        <div style={{ ...CARD, textAlign: 'center', padding: 48, color: '#94a3b8', fontSize: 13 }}>
           {companies.length === 0 ? 'Nog geen bedrijven — klik "+ Bedrijf" om te starten.' : 'Geen bedrijven in deze divisie.'}
         </div>
       ) : (
@@ -1057,7 +1057,7 @@ function PipelineSub({ deals, onEdit, onDelete, onStatusChange }: {
         {/* Cashflow sidebar */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div style={CARD}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: '#4a5568', letterSpacing: 1, marginBottom: 12 }}>VERWACHTE CASHFLOW</div>
+            <div style={{ fontSize: 11, fontWeight: 600, color: '#94a3b8', letterSpacing: 1, marginBottom: 12 }}>VERWACHTE CASHFLOW</div>
             {Object.keys(byMonth).length === 0 ? (
               <div style={{ fontSize: 12, color: '#374151' }}>Geen deals met betaaldatum.</div>
             ) : (
@@ -1095,7 +1095,7 @@ function PipelineSub({ deals, onEdit, onDelete, onStatusChange }: {
           </div>
 
           <div style={CARD}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: '#4a5568', letterSpacing: 1, marginBottom: 12 }}>SAMENVATTING</div>
+            <div style={{ fontSize: 11, fontWeight: 600, color: '#94a3b8', letterSpacing: 1, marginBottom: 12 }}>SAMENVATTING</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: 12, color: '#4a5568' }}>Actieve pipeline</span>
@@ -1187,19 +1187,19 @@ function KostenTab({ costs, incomes, activeMonth, totalCommission, costsForMonth
       {/* Profit KPIs */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
         <div style={CARD}>
-          <div style={{ fontSize: 11, color: '#4a5568', marginBottom: 6 }}>Totale inkomsten</div>
+          <div style={{ fontSize: 11, color: '#64748b', marginBottom: 6 }}>Totale inkomsten</div>
           <div style={{ fontSize: 22, fontWeight: 700, color: '#10b981' }}>{eur(totalIncome)}</div>
           <div style={{ fontSize: 11, color: '#374151', marginTop: 4 }}>
             Commissie {eur(totalCommission)}{extraIncome > 0 ? ` + overig ${eur(extraIncome)}` : ''}
           </div>
         </div>
         <div style={CARD}>
-          <div style={{ fontSize: 11, color: '#4a5568', marginBottom: 6 }}>Totale kosten</div>
+          <div style={{ fontSize: 11, color: '#64748b', marginBottom: 6 }}>Totale kosten</div>
           <div style={{ fontSize: 22, fontWeight: 700, color: '#ef4444' }}>{eur(totalCosts)}</div>
-          <div style={{ fontSize: 11, color: '#374151', marginTop: 4 }}>{monthCosts.length} kostenposten</div>
+          <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>{monthCosts.length} kostenposten</div>
         </div>
         <div style={{ ...CARD, border: `1px solid ${netProfit >= 0 ? '#10b98130' : '#ef444430'}` }}>
-          <div style={{ fontSize: 11, color: '#4a5568', marginBottom: 6 }}>Netto winst</div>
+          <div style={{ fontSize: 11, color: '#64748b', marginBottom: 6 }}>Netto winst</div>
           <div style={{ fontSize: 22, fontWeight: 700, color: netProfit >= 0 ? '#10b981' : '#ef4444' }}>{eur(netProfit)}</div>
           <div style={{ fontSize: 11, color: netProfit >= 0 ? '#065f46' : '#7f1d1d', marginTop: 4 }}>
             {netProfit >= 0 ? `Marge: ${totalIncome > 0 ? Math.round((netProfit / totalIncome) * 100) : 0}%` : 'Kosten > inkomsten'}
@@ -1210,14 +1210,14 @@ function KostenTab({ costs, incomes, activeMonth, totalCommission, costsForMonth
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
         {/* Recurring costs */}
         <div style={CARD}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: '#4a5568', letterSpacing: 1, marginBottom: 12 }}>VASTE MAANDELIJKSE LASTEN</div>
+          <div style={{ fontSize: 11, fontWeight: 600, color: '#94a3b8', letterSpacing: 1, marginBottom: 12 }}>VASTE MAANDELIJKSE LASTEN</div>
           {recurring.length === 0 && <div style={{ fontSize: 12, color: '#374151' }}>Geen vaste lasten ingevoerd.</div>}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {recurring.map(c => (
-              <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', background: '#0a0a0f', borderRadius: 8 }}>
+              <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', background: '#f8fafc', borderRadius: 8 }}>
                 <div>
-                  <div style={{ fontSize: 12, color: '#e2e8f0' }}>{c.description}</div>
-                  <div style={{ fontSize: 10, color: '#4a5568', marginTop: 2 }}>{c.category} · vanaf {monthLabel(c.date.slice(0, 7))}</div>
+                  <div style={{ fontSize: 12, color: '#0f172a' }}>{c.description}</div>
+                  <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 2 }}>{c.category} · vanaf {monthLabel(c.date.slice(0, 7))}</div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <span style={{ fontSize: 13, fontWeight: 600, color: '#ef4444' }}>{eur(c.amount)}</span>
@@ -1227,7 +1227,7 @@ function KostenTab({ costs, incomes, activeMonth, totalCommission, costsForMonth
               </div>
             ))}
             {recurring.length > 0 && (
-              <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: 6, borderTop: '1px solid #1a1a2e' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: 6, borderTop: '1px solid #e8ecf0' }}>
                 <span style={{ fontSize: 12, color: '#4a5568' }}>Totaal: <strong style={{ color: '#ef4444' }}>{eur(recurring.reduce((s, c) => s + c.amount, 0))}/maand</strong></span>
               </div>
             )}
@@ -1236,14 +1236,14 @@ function KostenTab({ costs, incomes, activeMonth, totalCommission, costsForMonth
 
         {/* One-off costs this month */}
         <div style={CARD}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: '#4a5568', letterSpacing: 1, marginBottom: 12 }}>EENMALIG / ONREGELMATIG — {monthLabel(activeMonth)}</div>
+          <div style={{ fontSize: 11, fontWeight: 600, color: '#94a3b8', letterSpacing: 1, marginBottom: 12 }}>EENMALIG / ONREGELMATIG — {monthLabel(activeMonth)}</div>
           {oneoff.length === 0 && <div style={{ fontSize: 12, color: '#374151' }}>Geen losse kostenposten deze maand.</div>}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {oneoff.map(c => (
-              <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', background: '#0a0a0f', borderRadius: 8 }}>
+              <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', background: '#f8fafc', borderRadius: 8 }}>
                 <div>
-                  <div style={{ fontSize: 12, color: '#e2e8f0' }}>{c.description}</div>
-                  <div style={{ fontSize: 10, color: '#4a5568', marginTop: 2 }}>{c.category} · {c.date}</div>
+                  <div style={{ fontSize: 12, color: '#0f172a' }}>{c.description}</div>
+                  <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 2 }}>{c.category} · {c.date}</div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <span style={{ fontSize: 13, fontWeight: 600, color: '#ef4444' }}>{eur(c.amount)}</span>
@@ -1258,11 +1258,11 @@ function KostenTab({ costs, incomes, activeMonth, totalCommission, costsForMonth
 
       {/* Extra income this month */}
       <div style={CARD}>
-        <div style={{ fontSize: 11, fontWeight: 600, color: '#4a5568', letterSpacing: 1, marginBottom: 12 }}>LOSSE INKOMSTEN — {monthLabel(activeMonth)}</div>
+        <div style={{ fontSize: 11, fontWeight: 600, color: '#94a3b8', letterSpacing: 1, marginBottom: 12 }}>LOSSE INKOMSTEN — {monthLabel(activeMonth)}</div>
         {monthIncomes.length === 0 && <div style={{ fontSize: 12, color: '#374151' }}>Geen losse inkomsten deze maand.</div>}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {monthIncomes.map(i => (
-            <div key={i.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', background: '#0a0a0f', borderRadius: 8 }}>
+            <div key={i.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', background: '#f8fafc', borderRadius: 8 }}>
               <div>
                 <div style={{ fontSize: 12, color: '#e2e8f0' }}>{i.description}</div>
                 <div style={{ fontSize: 10, color: '#4a5568', marginTop: 2 }}>{i.category} · {i.date}</div>
@@ -1275,7 +1275,7 @@ function KostenTab({ costs, incomes, activeMonth, totalCommission, costsForMonth
             </div>
           ))}
           {monthIncomes.length > 0 && (
-            <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: 6, borderTop: '1px solid #1a1a2e' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: 6, borderTop: '1px solid #e8ecf0' }}>
               <span style={{ fontSize: 12, color: '#4a5568' }}>Totaal: <strong style={{ color: '#10b981' }}>{eur(extraIncome)}</strong></span>
             </div>
           )}
@@ -1376,7 +1376,7 @@ function TargetKpiCard({ label, actual, target, color, sub, onTargetChange, auto
   const commit = () => { const v = parseInt(draft); if (!isNaN(v) && v >= 0) onTargetChange(v); setEditing(false) }
   return (
     <div style={CARD}>
-      <div style={{ fontSize: 11, color: '#4a5568', marginBottom: 6 }}>{label}</div>
+      <div style={{ fontSize: 11, color: '#64748b', marginBottom: 6 }}>{label}</div>
       <div style={{ fontSize: 22, fontWeight: 700, color, marginBottom: 8 }}>{eur(actual)}</div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
         {editing ? (
@@ -1395,8 +1395,8 @@ function TargetKpiCard({ label, actual, target, color, sub, onTargetChange, auto
         )}
         {target > 0 && !editing && <span style={{ fontSize: 11, color, fontWeight: 600, marginLeft: 'auto' }}>{pct}%</span>}
       </div>
-      {target > 0 && <div style={{ height: 4, background: '#1a1a2e', borderRadius: 2 }}><div style={{ height: 4, background: color, borderRadius: 2, width: `${pct}%`, transition: 'width 0.3s' }} /></div>}
-      <div style={{ fontSize: 11, color: '#374151', marginTop: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sub}</div>
+      {target > 0 && <div style={{ height: 4, background: '#f1f5f9', borderRadius: 2 }}><div style={{ height: 4, background: color, borderRadius: 2, width: `${pct}%`, transition: 'width 0.3s' }} /></div>}
+      <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sub}</div>
     </div>
   )
 }
@@ -1418,7 +1418,7 @@ function CompanyCard({ company: c, entry, month, monthly, onEditEntry, onClickDe
           <div style={{ width: 8, height: 8, borderRadius: '50%', background: div.color, marginTop: 4, flexShrink: 0 }} />
           <div style={{ minWidth: 0 }}>
             <div
-              style={{ fontSize: 13, fontWeight: 600, color: '#e2e8f0', cursor: 'pointer', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+              style={{ fontSize: 13, fontWeight: 600, color: '#0f172a', cursor: 'pointer', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
               onClick={onClickDetail}
             >{c.name}</div>
             <div style={{ fontSize: 11, color: div.color, marginTop: 1 }}>{div.label}</div>
@@ -1427,11 +1427,11 @@ function CompanyCard({ company: c, entry, month, monthly, onEditEntry, onClickDe
         <div style={{ display: 'flex', gap: 6, flexShrink: 0, marginLeft: 8 }}>
           <button onClick={onEditCompany}
             title="Bedrijf & targets bewerken"
-            style={{ padding: '4px 8px', background: 'transparent', border: '1px solid #252540', borderRadius: 6, fontSize: 11, color: '#4a5568', cursor: 'pointer' }}>
+            style={{ padding: '4px 8px', background: 'transparent', border: '1px solid #e2e8f0', borderRadius: 6, fontSize: 11, color: '#64748b', cursor: 'pointer' }}>
             ⚙
           </button>
           <button onClick={onEditEntry}
-            style={{ padding: '4px 10px', background: 'transparent', border: `1px solid ${hasData ? '#252540' : '#6366f130'}`, borderRadius: 6, fontSize: 11, color: hasData ? '#4a5568' : '#6366f1', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+            style={{ padding: '4px 10px', background: 'transparent', border: `1px solid ${hasData ? '#e2e8f0' : '#6366f140'}`, borderRadius: 6, fontSize: 11, color: hasData ? '#64748b' : '#6366f1', cursor: 'pointer', whiteSpace: 'nowrap' }}>
             {hasData ? '✎' : '+'} Invullen
           </button>
         </div>
@@ -1486,14 +1486,14 @@ function CompanyCard({ company: c, entry, month, monthly, onEditEntry, onClickDe
         return (
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 5 }}>
-              <span style={{ color: '#4a5568' }}>Ontvangen leads</span>
-              <span style={{ color: '#8896a8' }}>
+              <span style={{ color: '#64748b' }}>Ontvangen leads</span>
+              <span style={{ color: '#94a3b8' }}>
                 {totalLeads}{c.leadsTarget > 0 ? ` / ${c.leadsTarget}` : ''}
                 {c.leadsTarget > 0 && <span style={{ color: leadsColor, marginLeft: 5 }}>{Math.round(leadsPct)}%</span>}
               </span>
             </div>
             {c.leadsTarget > 0 && (
-              <div style={{ height: 4, background: '#1a1a2e', borderRadius: 2, overflow: 'hidden' }}>
+              <div style={{ height: 4, background: '#f1f5f9', borderRadius: 2, overflow: 'hidden' }}>
                 <div style={{ height: '100%', width: `${leadsPct}%`, background: leadsColor, borderRadius: 2, transition: 'width 0.3s' }} />
               </div>
             )}
@@ -1507,12 +1507,12 @@ function CompanyCard({ company: c, entry, month, monthly, onEditEntry, onClickDe
 function Metric({ label, value, target, pct, color }: { label: string; value: string; target: string | null; pct: number; color: string }) {
   return (
     <div>
-      <div style={{ fontSize: 10, color: '#4a5568', marginBottom: 2 }}>{label}</div>
+      <div style={{ fontSize: 10, color: '#94a3b8', marginBottom: 2 }}>{label}</div>
       <div style={{ fontSize: 14, fontWeight: 700, color }}>{value}</div>
       {target && (
         <>
-          <div style={{ fontSize: 10, color: '#374151', marginTop: 1, marginBottom: 2 }}>{Math.round(pct)}% v {target}</div>
-          <div style={{ height: 3, background: '#1a1a2e', borderRadius: 2 }}>
+          <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 1, marginBottom: 2 }}>{Math.round(pct)}% v {target}</div>
+          <div style={{ height: 3, background: '#f1f5f9', borderRadius: 2 }}>
             <div style={{ height: 3, background: color, borderRadius: 2, width: `${pct}%` }} />
           </div>
         </>
@@ -1611,7 +1611,7 @@ function Modal({ children, onClose }: { children: React.ReactNode; onClose: () =
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}
       onClick={e => e.target === e.currentTarget && onClose()}>
-      <div style={{ background: '#0d0d15', border: '1px solid #1a1a2e', borderRadius: 16, padding: 28, width: 520, maxHeight: '88vh', overflowY: 'auto' }}>
+      <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 16, padding: 28, width: 520, maxHeight: '88vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }}>
         {children}
       </div>
     </div>
@@ -1621,8 +1621,8 @@ function Modal({ children, onClose }: { children: React.ReactNode; onClose: () =
 function ModalHeader({ title, onClose }: { title: string; onClose: () => void }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-      <h2 style={{ fontSize: 16, fontWeight: 600, color: '#e2e8f0', margin: 0 }}>{title}</h2>
-      <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#4a5568', cursor: 'pointer', fontSize: 18 }}>✕</button>
+      <h2 style={{ fontSize: 16, fontWeight: 600, color: '#0f172a', margin: 0 }}>{title}</h2>
+      <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: 18 }}>✕</button>
     </div>
   )
 }
