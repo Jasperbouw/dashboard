@@ -65,7 +65,7 @@ export default function Dashboard() {
                 width: '100%', textAlign: 'left', padding: '9px 12px', borderRadius: 8,
                 fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10,
                 background: activeTab === item.id ? '#eef2ff' : 'transparent',
-                color: activeTab === item.id ? '#4f46e5' : '#64748b',
+                color: activeTab === item.id ? '#4f46e5' : '#111827',
                 border: activeTab === item.id ? '1px solid #c7d2fe' : '1px solid transparent',
                 fontWeight: activeTab === item.id ? 600 : 400,
                 transition: 'all 0.15s',

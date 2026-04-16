@@ -398,9 +398,9 @@ export default function FinanceTab() {
                 padding: '7px 16px', borderRadius: 8, fontSize: 12, fontWeight: 500, cursor: 'pointer',
                 background: sub === t ? '#eef2ff' : 'transparent',
                 border: `1px solid ${sub === t ? '#6366f1' : '#e2e8f0'}`,
-                color: sub === t ? '#4f46e5' : '#64748b',
+                color: sub === t ? '#4f46e5' : '#111827',
               }}>
-              {t === 'overzicht' ? 'Overzicht' : t === 'kosten' ? 'Kosten & Winst' : 'Pipeline'}
+              {t === 'overzicht' ? 'Overzicht' : t === 'kosten' ? 'Kosten & Winst' : 'Cashflow'}
             </button>
           ))}
           {/* Month navigator */}
