@@ -36,27 +36,27 @@ export default function Dashboard() {
   }, [])
 
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: '#f4f6f9' }}>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: '#f8fafc' }}>
 
       {/* ── Sidebar ── */}
       <aside style={{
-        width: 220, flexShrink: 0, background: '#ffffff',
-        borderRight: '1px solid #e8ecf0', display: 'flex', flexDirection: 'column',
+        width: 216, flexShrink: 0, background: '#0f172a',
+        display: 'flex', flexDirection: 'column', zIndex: 10,
       }}>
         {/* Logo */}
-        <div style={{ padding: '20px 16px', borderBottom: '1px solid #e8ecf0' }}>
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 3, color: '#6366f1', marginBottom: 4 }}>
+        <div style={{ padding: '22px 18px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+          <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 3, color: '#ffffff', marginBottom: 2 }}>
             BOUW CHECK
           </div>
-          <div style={{ fontSize: 11, color: '#374151' }}>Command Center</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 10 }}>
-            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981' }} />
-            <span style={{ fontSize: 10, color: '#10b981' }}>Alle systemen actief</span>
+          <div style={{ fontSize: 11, color: '#64748b' }}>Command Center</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 12 }}>
+            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e' }} />
+            <span style={{ fontSize: 10, color: '#4ade80' }}>Alle systemen actief</span>
           </div>
         </div>
 
         {/* Nav */}
-        <nav style={{ flex: 1, padding: 10, display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <nav style={{ flex: 1, padding: '12px 10px', display: 'flex', flexDirection: 'column', gap: 2 }}>
           {NAV_ITEMS.map(item => (
             <button
               key={item.id}
@@ -64,11 +64,11 @@ export default function Dashboard() {
               style={{
                 width: '100%', textAlign: 'left', padding: '9px 12px', borderRadius: 8,
                 fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10,
-                background: activeTab === item.id ? '#eef2ff' : 'transparent',
-                color: activeTab === item.id ? '#4f46e5' : '#111827',
-                border: activeTab === item.id ? '1px solid #c7d2fe' : '1px solid transparent',
+                background: activeTab === item.id ? '#4f46e5' : 'transparent',
+                color: activeTab === item.id ? '#ffffff' : '#94a3b8',
+                border: 'none',
                 fontWeight: activeTab === item.id ? 600 : 400,
-                transition: 'all 0.15s',
+                transition: 'all 0.12s',
               }}
             >
               <span style={{ fontSize: 14 }}>{item.icon}</span>
@@ -78,14 +78,14 @@ export default function Dashboard() {
         </nav>
 
         {/* Footer */}
-        <div style={{ padding: '12px 16px', borderTop: '1px solid #e8ecf0' }}>
-          <div style={{ fontSize: 11, color: '#374151' }}>Jasper van Heyningen</div>
-          {time && <div style={{ fontSize: 10, color: '#374151', marginTop: 2 }}>{time}</div>}
+        <div style={{ padding: '14px 18px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: '#e2e8f0' }}>Jasper van Heyningen</div>
+          {time && <div style={{ fontSize: 10, color: '#475569', marginTop: 2 }}>{time}</div>}
         </div>
       </aside>
 
       {/* ── Main content ── */}
-      <main style={{ flex: 1, overflow: 'auto', padding: 28 }}>
+      <main style={{ flex: 1, overflow: 'auto', padding: '28px 32px' }}>
         {activeTab === 'creatives' && <CreativesTab />}
         {activeTab === 'finance' && <FinanceTab />}
         {activeTab === 'docs'    && <DocsTab />}
@@ -99,10 +99,10 @@ function MapTab() {
   return (
     <div>
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 20, fontWeight: 600, color: '#0f172a', margin: 0 }}>Client Map</h1>
-        <p style={{ fontSize: 12, color: '#374151', marginTop: 4 }}>B2B aannemers overzicht</p>
+        <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', margin: 0 }}>Client Map</h1>
+        <p style={{ fontSize: 12, color: '#6b7280', marginTop: 4 }}>B2B aannemers overzicht</p>
       </div>
-      <div style={{ background: '#ffffff', border: '1px solid #e8ecf0', borderRadius: 12, overflow: 'hidden', height: 'calc(100vh - 148px)', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+      <div style={{ background: '#ffffff', borderRadius: 12, overflow: 'hidden', height: 'calc(100vh - 148px)', boxShadow: '0 1px 3px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04)' }}>
         <iframe src="/client-map.html" style={{ width: '100%', height: '100%', border: 'none' }} />
       </div>
     </div>
