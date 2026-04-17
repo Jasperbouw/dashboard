@@ -10,10 +10,10 @@ import { dbGet, dbSet, dbSubscribe } from '../../lib/db'
 type Division = 'daken' | 'dakkapel' | 'bouw' | 'extras'
 
 const DIVISIONS: { id: Division; label: string; color: string }[] = [
-  { id: 'daken',    label: 'Daken',    color: '#6366f1' },
-  { id: 'dakkapel', label: 'Dakkapel', color: '#10b981' },
-  { id: 'bouw',     label: 'Bouw',     color: '#f59e0b' },
-  { id: 'extras',   label: "Extra's",  color: '#e040fb' },
+  { id: 'daken',    label: 'Daken',    color: '#525252' },
+  { id: 'dakkapel', label: 'Dakkapel', color: '#525252' },
+  { id: 'bouw',     label: 'Bouw',     color: '#525252' },
+  { id: 'extras',   label: "Extra's",  color: '#525252' },
 ]
 
 /** Static company info — never resets */
@@ -67,10 +67,10 @@ type CashflowEntry = {
 }
 
 const CASHFLOW_CATS: { id: CashflowCategory; label: string; color: string; bg: string; border: string }[] = [
-  { id: 'commissie',  label: 'Commissie',  color: '#6366f1', bg: '#eef2ff', border: '#c7d2fe' },
-  { id: 'ad budget',  label: 'Ad budget',  color: '#0ea5e9', bg: '#f0f9ff', border: '#bae6fd' },
-  { id: 'deal',       label: 'Deal',       color: '#f59e0b', bg: '#fffbeb', border: '#fde68a' },
-  { id: 'overig',     label: 'Overig',     color: '#10b981', bg: '#f0fdf4', border: '#bbf7d0' },
+  { id: 'commissie',  label: 'Commissie',  color: '#0a0a0a', bg: '#f5f5f5', border: '#e5e5e5' },
+  { id: 'ad budget',  label: 'Ad budget',  color: '#0a0a0a', bg: '#f5f5f5', border: '#e5e5e5' },
+  { id: 'deal',       label: 'Deal',       color: '#0a0a0a', bg: '#f5f5f5', border: '#e5e5e5' },
+  { id: 'overig',     label: 'Overig',     color: '#0a0a0a', bg: '#f5f5f5', border: '#e5e5e5' },
 ]
 
 /** Losse inkomstenpost — buiten vaste klantcommissies om */
@@ -121,9 +121,9 @@ function entryKey(companyId: string, month: string) {
 /* ════════════════════════════════════════════════════════
    MAIN COMPONENT
 ════════════════════════════════════════════════════════ */
-const CARD = { background: '#ffffff', borderRadius: 10, padding: '18px 20px', boxShadow: '0 1px 2px rgba(0,0,0,0.05), 0 0 0 1px rgba(0,0,0,0.06)' } as const
-const INPUT = { width: '100%', padding: '8px 10px', borderRadius: 8, fontSize: 13, background: '#f9fafb', border: '1px solid #e5e7eb', color: '#111827', outline: 'none' } as const
-const LABEL = { fontSize: 11, fontWeight: 600 as const, color: '#6b7280', marginBottom: 5, display: 'block' as const, letterSpacing: '0.3px' }
+const CARD = { background: '#ffffff', borderRadius: 8, padding: '20px', border: '1px solid #e5e5e5' } as const
+const INPUT = { width: '100%', padding: '8px 10px', borderRadius: 8, fontSize: 13, background: '#fafafa', border: '1px solid #e5e5e5', color: '#0a0a0a', outline: 'none' } as const
+const LABEL = { fontSize: 11, fontWeight: 600 as const, color: '#a3a3a3', marginBottom: 5, display: 'block' as const, letterSpacing: '0.5px', textTransform: 'uppercase' as const }
 
 export default function FinanceTab() {
   const [sub, setSub] = useState<'overzicht' | 'kosten' | 'pipeline'>('overzicht')
@@ -387,56 +387,56 @@ export default function FinanceTab() {
       {/* ── Header ── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <div>
-          <h1 style={{ fontSize: 20, fontWeight: 700, color: '#0f172a', margin: 0 }}>Finance</h1>
-          <p style={{ fontSize: 12, color: '#94a3b8', marginTop: 4 }}>B2B commissie & gegenereerde omzet per divisie</p>
+          <h1 style={{ fontSize: 20, fontWeight: 600, color: '#0a0a0a', margin: 0 }}>Finance</h1>
+          <p style={{ fontSize: 13, color: '#525252', marginTop: 4 }}>B2B commissie & gegenereerde omzet per divisie</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           {/* Sub-tab */}
           {(['overzicht', 'kosten', 'pipeline'] as const).map(t => (
             <button key={t} onClick={() => setSub(t)}
               style={{
-                padding: '7px 16px', borderRadius: 8, fontSize: 12, fontWeight: sub === t ? 600 : 400, cursor: 'pointer',
-                background: sub === t ? '#0f172a' : '#ffffff',
-                border: `1px solid ${sub === t ? '#0f172a' : '#e5e7eb'}`,
-                color: sub === t ? '#ffffff' : '#64748b',
+                padding: '8px 14px', borderRadius: 6, fontSize: 13, fontWeight: sub === t ? 500 : 400, cursor: 'pointer',
+                background: sub === t ? '#ffffff' : 'transparent',
+                border: sub === t ? '1px solid #d4d4d4' : '1px solid transparent',
+                color: sub === t ? '#0a0a0a' : '#525252',
               }}>
               {t === 'overzicht' ? 'Overzicht' : t === 'kosten' ? 'Kosten & Winst' : 'Cashflow'}
             </button>
           ))}
           {/* Month navigator */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 0, background: '#ffffff', borderRadius: 8, overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.05)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 0, background: '#ffffff', borderRadius: 8, overflow: 'hidden', border: '1px solid #e5e5e5' }}>
             <button onClick={() => setActiveMonth(m => addMonths(m, -1))}
-              style={{ padding: '7px 13px', background: 'none', border: 'none', color: '#374151', cursor: 'pointer', fontSize: 14 }}>‹</button>
-            <div style={{ padding: '7px 16px', fontSize: 13, fontWeight: 600, color: isPresent ? '#4f46e5' : '#111827', borderLeft: '1px solid #f3f4f6', borderRight: '1px solid #f3f4f6', minWidth: 100, textAlign: 'center' }}>
+              style={{ padding: '7px 13px', background: 'none', border: 'none', color: '#525252', cursor: 'pointer', fontSize: 14 }}>‹</button>
+            <div style={{ padding: '7px 16px', fontSize: 13, fontWeight: 600, color: '#0a0a0a', borderLeft: '1px solid #e5e5e5', borderRight: '1px solid #e5e5e5', minWidth: 100, textAlign: 'center' }}>
               {monthLabel(activeMonth)}
-              {isPresent && <span style={{ fontSize: 10, color: '#4f46e5', marginLeft: 6 }}>huidig</span>}
+              {isPresent && <span style={{ fontSize: 10, color: '#a3a3a3', marginLeft: 6 }}>huidig</span>}
             </div>
             <button onClick={() => setActiveMonth(m => addMonths(m, 1))}
-              style={{ padding: '7px 13px', background: 'none', border: 'none', color: '#374151', cursor: 'pointer', fontSize: 14 }}>›</button>
+              style={{ padding: '7px 13px', background: 'none', border: 'none', color: '#525252', cursor: 'pointer', fontSize: 14 }}>›</button>
           </div>
           {sub === 'overzicht' && (
             <button
               onClick={() => setCompanyModal({ mode: 'add', data: { ...COMPANY_EMPTY } })}
-              style={{ padding: '9px 16px', background: '#0f172a', border: 'none', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+              style={{ padding: '9px 16px', background: '#171717', border: 'none', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
               + Bedrijf
             </button>
           )}
           {sub === 'pipeline' && (
             <button
               onClick={() => setCashflowModal({ category: 'commissie', recurring: false, date: new Date().toISOString().slice(0, 10), createdAt: new Date().toISOString() })}
-              style={{ padding: '9px 16px', background: '#0f172a', border: 'none', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+              style={{ padding: '9px 16px', background: '#171717', border: 'none', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
               + Betaling
             </button>
           )}
           {sub === 'kosten' && (<>
             <button
               onClick={() => setIncomeModal({ category: 'Overig', date: new Date().toISOString().slice(0, 10) })}
-              style={{ padding: '9px 16px', background: '#10b98120', border: '1px solid #10b981', borderRadius: 8, color: '#10b981', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+              style={{ padding: '9px 16px', background: '#ffffff', border: '1px solid #e5e5e5', borderRadius: 6, color: '#0a0a0a', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
               + Inkomstenpost
             </button>
             <button
               onClick={() => setCostModal({ type: 'oneoff', category: 'Overig', date: new Date().toISOString().slice(0, 10) })}
-              style={{ padding: '9px 16px', background: '#0f172a', border: 'none', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+              style={{ padding: '9px 16px', background: '#171717', border: 'none', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
               + Kostenpost
             </button>
           </>)}
@@ -448,27 +448,27 @@ export default function FinanceTab() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 16 }}>
         <TargetKpiCard
           label="Eigen commissie / maand"
-          actual={totalOwn} target={effectiveOwnTarget} color="#4f46e5"
+          actual={totalOwn} target={effectiveOwnTarget} color="#171717"
           sub={sumOwnTarget > 0 ? `${activeCompanies.filter(c => c.ownRevenueTarget > 0).length} bedrijfstargets` : `${activeCompanies.length} actieve klanten`}
           autoTarget={sumOwnTarget > 0}
           onTargetChange={v => saveTopTargets({ ...topTargets, ownTarget: v })}
         />
         <TargetKpiCard
           label="Gegenereerd voor klanten"
-          actual={totalClient} target={effectiveClientTarget} color="#0ea5e9"
+          actual={totalClient} target={effectiveClientTarget} color="#171717"
           sub={sumClientTarget > 0 ? `${activeCompanies.filter(c => c.clientRevenueTarget > 0).length} bedrijfstargets` : 'totale waardecreatie'}
           autoTarget={sumClientTarget > 0}
           onTargetChange={v => saveTopTargets({ ...topTargets, clientTarget: v })}
         />
         <div style={CARD}>
-          <div style={{ fontSize: 11, fontWeight: 500, color: '#94a3b8', marginBottom: 8 }}>Advertentiebudget klanten</div>
-          <div style={{ fontSize: 26, fontWeight: 700, color: '#0f172a' }}>{eur(totalAdBudget)}</div>
-          <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>totaal advertentiebudget</div>
+          <div style={{ fontSize: 11, fontWeight: 600, color: '#a3a3a3', marginBottom: 8, textTransform: 'uppercase' as const, letterSpacing: '0.5px' }}>Advertentiebudget klanten</div>
+          <div style={{ fontSize: 28, fontWeight: 600, color: '#0a0a0a', fontVariantNumeric: 'tabular-nums' }}>{eur(totalAdBudget)}</div>
+          <div style={{ fontSize: 12, color: '#a3a3a3', marginTop: 4 }}>totaal advertentiebudget</div>
         </div>
         <div style={CARD}>
-          <div style={{ fontSize: 11, fontWeight: 500, color: '#94a3b8', marginBottom: 8 }}>Bijna vol contract</div>
-          <div style={{ fontSize: 26, fontWeight: 700, color: nearFull.length > 0 ? '#ef4444' : '#0f172a' }}>{nearFull.length}</div>
-          <div style={{ fontSize: 11, color: nearFull.length > 0 ? '#ef4444' : '#94a3b8', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: '#a3a3a3', marginBottom: 8, textTransform: 'uppercase' as const, letterSpacing: '0.5px' }}>Bijna vol contract</div>
+          <div style={{ fontSize: 28, fontWeight: 600, color: nearFull.length > 0 ? '#ef4444' : '#0a0a0a', fontVariantNumeric: 'tabular-nums' }}>{nearFull.length}</div>
+          <div style={{ fontSize: 12, color: nearFull.length > 0 ? '#ef4444' : '#a3a3a3', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {nearFull.length > 0 ? nearFull.map(c => c.name).join(', ') : 'Geen'}
           </div>
         </div>
@@ -477,7 +477,7 @@ export default function FinanceTab() {
       {/* ── Chart ── */}
       {activeCompanies.length > 0 && (
         <div style={{ ...CARD, marginBottom: 16 }}>
-          <div style={{ fontSize: 12, fontWeight: 500, color: '#6b7280', marginBottom: 14 }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: '#a3a3a3', marginBottom: 14, textTransform: 'uppercase' as const, letterSpacing: '0.5px' }}>
             Commissie per bedrijf (bars, kleur = divisie) + gegenereerde omzet voor klant (lijn) — {monthLabel(activeMonth)}
           </div>
           <ResponsiveContainer width="100%" height={210}>
@@ -493,13 +493,13 @@ export default function FinanceTab() {
                   const div = DIVISIONS.find(x => x.id === d.division)!
                   return (
                     <div style={{ background: '#ffffff', border: 'none', borderRadius: 8, padding: '10px 14px', fontSize: 11, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-                      <div style={{ fontWeight: 600, color: div.color, marginBottom: 8 }}>{d.fullName}</div>
+                      <div style={{ fontWeight: 600, color: '#0a0a0a', marginBottom: 8 }}>{d.fullName}</div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                        <span style={{ color: '#6b7280' }}>Commissie:<span style={{ color: div.color, fontWeight: 600 }}>{eur(d.commissie)}</span>
-                          {d.commissieTarget > 0 && <span style={{ color: '#374151' }}> / {eur(d.commissieTarget)}</span>}
+                        <span style={{ color: '#525252' }}>Commissie:<span style={{ color: '#0a0a0a', fontWeight: 600 }}>{eur(d.commissie)}</span>
+                          {d.commissieTarget > 0 && <span style={{ color: '#525252' }}> / {eur(d.commissieTarget)}</span>}
                         </span>
-                        <span style={{ color: '#6b7280' }}>Gegenereerd:<span style={{ color: '#6366f1', fontWeight: 600 }}>{eur(d.gegenereerd)}</span>
-                          {d.gegGenTarget > 0 && <span style={{ color: '#374151' }}> / {eur(d.gegGenTarget)}</span>}
+                        <span style={{ color: '#525252' }}>Gegenereerd:<span style={{ color: '#0a0a0a', fontWeight: 600 }}>{eur(d.gegenereerd)}</span>
+                          {d.gegGenTarget > 0 && <span style={{ color: '#525252' }}> / {eur(d.gegGenTarget)}</span>}
                         </span>
                       </div>
                     </div>
@@ -691,7 +691,7 @@ export default function FinanceTab() {
               Annuleren
             </button>
             <button onClick={submitEntry}
-              style={{ padding: '9px 20px', background: '#0f172a', border: 'none', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+              style={{ padding: '9px 20px', background: '#171717', border: 'none', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
               Opslaan
             </button>
           </div>
