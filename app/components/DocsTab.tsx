@@ -124,12 +124,12 @@ type ICP = {
 const ICP_STATUSES: IcpStatus[] = ['niet gebeld', 'voicemail', 'terugbellen', 'gesprek gehad', 'geïnteresseerd', 'niet geïnteresseerd']
 
 const ICP_STATUS_COLORS: Record<IcpStatus, { bg: string; color: string; border: string }> = {
-  'niet gebeld':       { bg: '#e8ecf0', color: '#374151', border: '#e2e8f0' },
-  'voicemail':         { bg: '#2d1f0a', color: '#f59e0b', border: '#92400e' },
-  'terugbellen':       { bg: '#0a1f2d', color: '#38bdf8', border: '#0e4763' },
-  'gesprek gehad':     { bg: '#0a2d1f', color: '#10b981', border: '#065f46' },
-  'geïnteresseerd':    { bg: '#1a0a2e', color: '#a78bfa', border: '#5b21b6' },
-  'niet geïnteresseerd': { bg: '#2d0a0a', color: '#ef4444', border: '#7f1d1d' },
+  'niet gebeld':       { bg: '#f9fafb',  color: '#6b7280', border: '#e5e7eb' },
+  'voicemail':         { bg: '#fffbeb',  color: '#d97706', border: '#fde68a' },
+  'terugbellen':       { bg: '#eff6ff',  color: '#2563eb', border: '#bfdbfe' },
+  'gesprek gehad':     { bg: '#f0fdf4',  color: '#16a34a', border: '#bbf7d0' },
+  'geïnteresseerd':    { bg: '#f5f3ff',  color: '#7c3aed', border: '#ddd6fe' },
+  'niet geïnteresseerd': { bg: '#fef2f2', color: '#dc2626', border: '#fecaca' },
 }
 
 const SOP_CATEGORIES = ['Marketing', 'Sales', 'Delivery', 'Finance', 'Decision-making']
@@ -311,9 +311,9 @@ const DOC_CATEGORIES = ['Contract', 'Offerte', 'Strategie', 'Rapportage', 'Overi
 /* ════════════════════════════════════════════════════════
    HELPERS
 ════════════════════════════════════════════════════════ */
-const CARD = { background: '#ffffff', border: '1px solid #1a1a2e', borderRadius: 12, padding: '16px 20px' } as const
-const INPUT = { width: '100%', padding: '8px 10px', borderRadius: 8, fontSize: 13, background: '#f8fafc', border: '1px solid #252540', color: '#0f172a', outline: 'none' } as const
-const LABEL = { fontSize: 11, color: '#374151', marginBottom: 4, display: 'block' as const }
+const CARD = { background: '#ffffff', borderRadius: 10, padding: '16px 20px', boxShadow: '0 1px 2px rgba(0,0,0,0.05), 0 0 0 1px rgba(0,0,0,0.06)' } as const
+const INPUT = { width: '100%', padding: '8px 10px', borderRadius: 8, fontSize: 13, background: '#f9fafb', border: '1px solid #e5e7eb', color: '#0f172a', outline: 'none' } as const
+const LABEL = { fontSize: 11, fontWeight: 500 as const, color: '#94a3b8', marginBottom: 4, display: 'block' as const }
 
 function today() {
   return new Date().toISOString().slice(0, 10)
@@ -521,17 +521,18 @@ export default function DocsTab() {
       {/* Header + sub-nav */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
         <div>
-          <h1 style={{ fontSize: 20, fontWeight: 600, color: '#0f172a', margin: 0 }}>Docs & Checklist</h1>
-          <p style={{ fontSize: 12, color: '#374151', marginTop: 4 }}>Meeting checklists per bedrijf & belangrijke documenten</p>
+          <h1 style={{ fontSize: 20, fontWeight: 700, color: '#0f172a', margin: 0 }}>Docs & Checklist</h1>
+          <p style={{ fontSize: 12, color: '#94a3b8', marginTop: 4 }}>Meeting checklists per bedrijf & belangrijke documenten</p>
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
           {([['intake', 'Intake'], ['evaluatie', 'Evaluatie'], ['sops', "SOP's"], ['contracten', 'Contracten'], ['icps', 'ICP\'s']] as const).map(([id, label]) => (
             <button key={id} onClick={() => setSub(id)}
               style={{
                 padding: '7px 16px', borderRadius: 8, fontSize: 12, fontWeight: 500, cursor: 'pointer',
-                background: sub === id ? '#6366f120' : 'transparent',
-                border: `1px solid ${sub === id ? '#6366f1' : '#e8ecf0'}`,
-                color: sub === id ? '#6366f1' : '#4a5568',
+                background: sub === id ? '#0f172a' : '#ffffff',
+                border: `1px solid ${sub === id ? '#0f172a' : '#e5e7eb'}`,
+                color: sub === id ? '#ffffff' : '#64748b',
+                fontWeight: sub === id ? 600 : 400,
               }}>
               {label}
             </button>
@@ -657,9 +658,9 @@ export default function DocsTab() {
                     }}
                       style={{
                         padding: '5px 12px', borderRadius: 20, fontSize: 12, cursor: 'pointer',
-                        background: checked ? '#6366f1' : 'transparent',
-                        border: `1px solid ${checked ? '#6366f1' : '#e2e8f0'}`,
-                        color: checked ? '#fff' : '#4a5568',
+                        background: checked ? '#0f172a' : '#f9fafb',
+                        border: `1px solid ${checked ? '#0f172a' : '#e5e7eb'}`,
+                        color: checked ? '#fff' : '#374151',
                       }}>
                       {opt}
                     </button>
@@ -675,9 +676,9 @@ export default function DocsTab() {
                 {(['ja', 'nee'] as const).map(v => (
                   <button key={v} onClick={() => setIntakeModal(m => m && { ...m, ervaringExterneLeads: v })}
                     style={{ flex: 1, padding: '7px', borderRadius: 8, fontSize: 12, cursor: 'pointer',
-                      background: intakeModal.ervaringExterneLeads === v ? '#6366f1' : 'transparent',
-                      border: `1px solid ${intakeModal.ervaringExterneLeads === v ? '#6366f1' : '#e2e8f0'}`,
-                      color: intakeModal.ervaringExterneLeads === v ? '#fff' : '#4a5568' }}>
+                      background: intakeModal.ervaringExterneLeads === v ? '#0f172a' : '#f9fafb',
+                      border: '1px solid #e5e7eb',
+                      color: intakeModal.ervaringExterneLeads === v ? '#fff' : '#374151' }}>
                     {v.charAt(0).toUpperCase() + v.slice(1)}
                   </button>
                 ))}
@@ -739,9 +740,9 @@ export default function DocsTab() {
                 {(['ja', 'nee', 'onbekend'] as const).map(v => (
                   <button key={v} onClick={() => setIntakeModal(m => m && { ...m, carVerzekering: v })}
                     style={{ flex: 1, padding: '7px', borderRadius: 8, fontSize: 12, cursor: 'pointer',
-                      background: intakeModal.carVerzekering === v ? '#6366f1' : 'transparent',
-                      border: `1px solid ${intakeModal.carVerzekering === v ? '#6366f1' : '#e2e8f0'}`,
-                      color: intakeModal.carVerzekering === v ? '#fff' : '#4a5568' }}>
+                      background: intakeModal.carVerzekering === v ? '#0f172a' : '#f9fafb',
+                      border: '1px solid #e5e7eb',
+                      color: intakeModal.carVerzekering === v ? '#fff' : '#374151' }}>
                     {v.charAt(0).toUpperCase() + v.slice(1)}
                   </button>
                 ))}
@@ -755,9 +756,9 @@ export default function DocsTab() {
                 {(['ja', 'nee', 'misschien'] as const).map(v => (
                   <button key={v} onClick={() => setIntakeModal(m => m && { ...m, salesOndersteuning: v })}
                     style={{ flex: 1, padding: '7px', borderRadius: 8, fontSize: 12, cursor: 'pointer',
-                      background: intakeModal.salesOndersteuning === v ? '#6366f1' : 'transparent',
-                      border: `1px solid ${intakeModal.salesOndersteuning === v ? '#6366f1' : '#e2e8f0'}`,
-                      color: intakeModal.salesOndersteuning === v ? '#fff' : '#4a5568' }}>
+                      background: intakeModal.salesOndersteuning === v ? '#0f172a' : '#f9fafb',
+                      border: '1px solid #e5e7eb',
+                      color: intakeModal.salesOndersteuning === v ? '#fff' : '#374151' }}>
                     {v.charAt(0).toUpperCase() + v.slice(1)}
                   </button>
                 ))}
@@ -771,9 +772,9 @@ export default function DocsTab() {
                 {(['ja', 'nee'] as const).map(v => (
                   <button key={v} onClick={() => setIntakeModal(m => m && { ...m, crmErvaring: v })}
                     style={{ flex: 1, padding: '7px', borderRadius: 8, fontSize: 12, cursor: 'pointer',
-                      background: intakeModal.crmErvaring === v ? '#6366f1' : 'transparent',
-                      border: `1px solid ${intakeModal.crmErvaring === v ? '#6366f1' : '#e2e8f0'}`,
-                      color: intakeModal.crmErvaring === v ? '#fff' : '#4a5568' }}>
+                      background: intakeModal.crmErvaring === v ? '#0f172a' : '#f9fafb',
+                      border: '1px solid #e5e7eb',
+                      color: intakeModal.crmErvaring === v ? '#fff' : '#374151' }}>
                     {v.charAt(0).toUpperCase() + v.slice(1)}
                   </button>
                 ))}
@@ -804,11 +805,11 @@ export default function DocsTab() {
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 24 }}>
             <button onClick={() => setIntakeModal(null)}
-              style={{ padding: '9px 14px', background: 'transparent', border: '1px solid #252540', borderRadius: 8, color: '#374151', fontSize: 13, cursor: 'pointer' }}>
+              style={{ padding: '9px 14px', background: 'transparent', border: '1px solid #e5e7eb', borderRadius: 8, color: '#374151', fontSize: 13, cursor: 'pointer' }}>
               Annuleren
             </button>
             <button onClick={submitIntake}
-              style={{ padding: '9px 20px', background: '#6366f1', border: 'none', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+              style={{ padding: '9px 20px', background: '#0f172a', border: 'none', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
               Intake opslaan
             </button>
           </div>
@@ -876,11 +877,11 @@ export default function DocsTab() {
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
             <button onClick={() => setMeetingModal(null)}
-              style={{ padding: '9px 14px', background: 'transparent', border: '1px solid #252540', borderRadius: 8, color: '#374151', fontSize: 13, cursor: 'pointer' }}>
+              style={{ padding: '9px 14px', background: 'transparent', border: '1px solid #e5e7eb', borderRadius: 8, color: '#374151', fontSize: 13, cursor: 'pointer' }}>
               Annuleren
             </button>
             <button onClick={submitMeeting}
-              style={{ padding: '9px 20px', background: '#6366f1', border: 'none', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+              style={{ padding: '9px 20px', background: '#0f172a', border: 'none', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
               Meeting opslaan
             </button>
           </div>
@@ -930,11 +931,11 @@ export default function DocsTab() {
           </div>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 20 }}>
             <button onClick={() => setDocModal(null)}
-              style={{ padding: '9px 14px', background: 'transparent', border: '1px solid #252540', borderRadius: 8, color: '#374151', fontSize: 13, cursor: 'pointer' }}>
+              style={{ padding: '9px 14px', background: 'transparent', border: '1px solid #e5e7eb', borderRadius: 8, color: '#374151', fontSize: 13, cursor: 'pointer' }}>
               Annuleren
             </button>
             <button onClick={submitDoc} disabled={!docModal.title?.trim()}
-              style={{ padding: '9px 20px', background: docModal.title?.trim() ? '#6366f1' : '#e2e8f0', border: 'none', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+              style={{ padding: '9px 20px', background: docModal.title?.trim() ? '#0f172a' : '#e5e7eb', border: 'none', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
               Opslaan
             </button>
           </div>
@@ -968,8 +969,8 @@ export default function DocsTab() {
             </div>
 
             {/* 5 Criteria */}
-            <div style={{ background: '#f8fafc', border: '1px solid #1a1a2e', borderRadius: 10, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: '#6366f1', letterSpacing: 2 }}>DE 5 CRITERIA</div>
+            <div style={{ background: '#f9fafb', border: '1px solid #f1f5f9', borderRadius: 10, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', letterSpacing: 2 }}>DE 5 CRITERIA</div>
 
               <div>
                 <label style={{ ...LABEL, color: '#374151' }}>1. Trigger — wat start het proces objectief?</label>
@@ -1019,7 +1020,7 @@ export default function DocsTab() {
                   }} />
                 <button
                   onClick={() => { if (sopModal.stepDraft?.trim()) setSopModal(m => m && { ...m, steps: [...(m.steps ?? []), m.stepDraft!.trim()], stepDraft: '' }) }}
-                  style={{ padding: '8px 14px', background: '#e2e8f0', border: 'none', borderRadius: 8, color: '#0f172a', fontSize: 13, cursor: 'pointer' }}>
+                  style={{ padding: '8px 14px', background: '#f3f4f6', border: 'none', borderRadius: 8, color: '#0f172a', fontSize: 13, cursor: 'pointer' }}>
                   + Voeg toe
                 </button>
               </div>
@@ -1035,11 +1036,11 @@ export default function DocsTab() {
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 4 }}>
               <button onClick={() => setSopModal(null)}
-                style={{ padding: '9px 20px', background: 'transparent', border: '1px solid #252540', borderRadius: 8, color: '#718096', fontSize: 13, cursor: 'pointer' }}>
+                style={{ padding: '9px 20px', background: 'transparent', border: '1px solid #e5e7eb', borderRadius: 8, color: '#64748b', fontSize: 13, cursor: 'pointer' }}>
                 Annuleren
               </button>
               <button onClick={submitSop} disabled={!sopModal.title?.trim()}
-                style={{ padding: '9px 20px', background: sopModal.title?.trim() ? '#6366f1' : '#e2e8f0', border: 'none', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                style={{ padding: '9px 20px', background: sopModal.title?.trim() ? '#0f172a' : '#e5e7eb', border: 'none', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
                 Opslaan
               </button>
             </div>
@@ -1071,14 +1072,14 @@ function SopsSub({ sops, onAdd, onEdit, onDelete }: {
             <button key={c} onClick={() => setFilter(c)}
               style={{
                 padding: '5px 12px', borderRadius: 6, fontSize: 11, cursor: 'pointer',
-                background: filter === c ? '#6366f120' : 'transparent',
-                border: `1px solid ${filter === c ? '#6366f1' : '#e8ecf0'}`,
-                color: filter === c ? '#6366f1' : '#4a5568',
+                background: filter === c ? '#0f172a' : 'transparent',
+                border: `1px solid ${filter === c ? '#0f172a' : '#e5e7eb'}`,
+                color: filter === c ? '#ffffff' : '#374151',
               }}>{c}</button>
           ))}
         </div>
         <button onClick={onAdd}
-          style={{ padding: '8px 16px', background: '#6366f1', border: 'none', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+          style={{ padding: '8px 16px', background: '#0f172a', border: 'none', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
           + Nieuwe SOP
         </button>
       </div>
@@ -1099,14 +1100,14 @@ function SopsSub({ sops, onAdd, onEdit, onDelete }: {
               <div>
                 <div style={{ fontSize: 15, fontWeight: 600, color: '#0f172a' }}>{sop.title}</div>
                 <div style={{ display: 'flex', gap: 8, marginTop: 5 }}>
-                  <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 4, background: '#6366f115', color: '#6366f1', border: '1px solid #6366f130' }}>{sop.category}</span>
+                  <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 4, background: '#eef2ff', color: '#4f46e5', border: '1px solid #c7d2fe' }}>{sop.category}</span>
                   {sop.owner && <span style={{ fontSize: 10, color: '#374151' }}>Owner: {sop.owner}</span>}
                   <span style={{ fontSize: 10, color: '#374151' }}>bijgewerkt {fmtDate(sop.updatedAt)}</span>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button onClick={() => onEdit(sop)}
-                  style={{ padding: '6px 12px', background: '#e8ecf0', border: '1px solid #252540', borderRadius: 6, color: '#a0aec0', fontSize: 12, cursor: 'pointer' }}>
+                  style={{ padding: '6px 12px', background: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: 6, color: '#9ca3af', fontSize: 12, cursor: 'pointer' }}>
                   Bewerken
                 </button>
                 <button onClick={() => { if (confirm(`"${sop.title}" verwijderen?`)) onDelete(sop.id) }}
@@ -1119,15 +1120,15 @@ function SopsSub({ sops, onAdd, onEdit, onDelete }: {
             {/* Trigger + Outcome */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
               {sop.trigger && (
-                <div style={{ background: '#f8fafc', border: '1px solid #1a1a2e', borderRadius: 8, padding: '10px 12px' }}>
+                <div style={{ background: '#f9fafb', border: '1px solid #f1f5f9', borderRadius: 8, padding: '10px 12px' }}>
                   <div style={{ fontSize: 9, fontWeight: 700, color: '#f59e0b', letterSpacing: 1.5, marginBottom: 4 }}>TRIGGER</div>
-                  <div style={{ fontSize: 12, color: '#a0aec0', lineHeight: 1.5 }}>{sop.trigger}</div>
+                  <div style={{ fontSize: 12, color: '#9ca3af', lineHeight: 1.5 }}>{sop.trigger}</div>
                 </div>
               )}
               {sop.outcome && (
-                <div style={{ background: '#f8fafc', border: '1px solid #1a1a2e', borderRadius: 8, padding: '10px 12px' }}>
+                <div style={{ background: '#f9fafb', border: '1px solid #f1f5f9', borderRadius: 8, padding: '10px 12px' }}>
                   <div style={{ fontSize: 9, fontWeight: 700, color: '#10b981', letterSpacing: 1.5, marginBottom: 4 }}>OUTCOME</div>
-                  <div style={{ fontSize: 12, color: '#a0aec0', lineHeight: 1.5 }}>{sop.outcome}</div>
+                  <div style={{ fontSize: 12, color: '#9ca3af', lineHeight: 1.5 }}>{sop.outcome}</div>
                 </div>
               )}
             </div>
@@ -1135,7 +1136,7 @@ function SopsSub({ sops, onAdd, onEdit, onDelete }: {
             {/* Steps */}
             {sop.steps.length > 0 && (
               <div style={{ marginBottom: 14 }}>
-                <div style={{ fontSize: 9, fontWeight: 700, color: '#6366f1', letterSpacing: 1.5, marginBottom: 8 }}>STAPPEN</div>
+                <div style={{ fontSize: 9, fontWeight: 700, color: '#9ca3af', letterSpacing: 1.5, marginBottom: 8 }}>STAPPEN</div>
                 <ol style={{ margin: 0, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 7 }}>
                   {sop.steps.map((step, i) => (
                     <li key={i} style={{ fontSize: 13, color: '#374151', lineHeight: 1.5 }}>{step}</li>
@@ -1212,7 +1213,7 @@ function ContractenSub({ companies, contracts, onOpen, onUpdateStatus }: {
                 </button>
               )}
               <button onClick={() => onOpen(c)}
-                style={{ padding: '6px 14px', background: '#6366f1', border: 'none', borderRadius: 6, color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                style={{ padding: '6px 14px', background: '#0f172a', border: 'none', borderRadius: 6, color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
                 {ct ? '✎ Bewerken' : '+ Contract'}
               </button>
             </div>
@@ -1267,9 +1268,9 @@ function ContractModal({ contract: ct, companyName, onChange, onSave, onClose }:
         {(['bewerken', 'preview'] as const).map(t => (
           <button key={t} onClick={() => setActiveTab(t)}
             style={{ padding: '6px 14px', borderRadius: 6, fontSize: 12, cursor: 'pointer',
-              background: activeTab === t ? '#6366f120' : 'transparent',
-              border: `1px solid ${activeTab === t ? '#6366f1' : '#e2e8f0'}`,
-              color: activeTab === t ? '#6366f1' : '#4a5568' }}>
+              background: activeTab === t ? '#eef2ff' : 'transparent',
+              border: `1px solid ${activeTab === t ? '#0f172a' : '#e5e7eb'}`,
+              color: activeTab === t ? '#4f46e5' : '#374151' }}>
             {t === 'bewerken' ? 'Invullen' : 'Preview / Print'}
           </button>
         ))}
@@ -1277,8 +1278,8 @@ function ContractModal({ contract: ct, companyName, onChange, onSave, onClose }:
 
       {activeTab === 'bewerken' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <div style={{ background: '#f8fafc', border: '1px solid #1a1a2e', borderRadius: 8, padding: '12px 14px' }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: '#6366f1', letterSpacing: 1.5, marginBottom: 10 }}>AANNEMER GEGEVENS</div>
+          <div style={{ background: '#f9fafb', border: '1px solid #f1f5f9', borderRadius: 8, padding: '12px 14px' }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', letterSpacing: 1.5, marginBottom: 10 }}>AANNEMER GEGEVENS</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               <div>
                 <label style={LABEL}>Naam onderneming</label>
@@ -1303,7 +1304,7 @@ function ContractModal({ contract: ct, companyName, onChange, onSave, onClose }:
             </div>
           </div>
 
-          <div style={{ background: '#f8fafc', border: '1px solid #1a1a2e', borderRadius: 8, padding: '12px 14px' }}>
+          <div style={{ background: '#f9fafb', border: '1px solid #f1f5f9', borderRadius: 8, padding: '12px 14px' }}>
             <div style={{ fontSize: 10, fontWeight: 700, color: '#f59e0b', letterSpacing: 1.5, marginBottom: 10 }}>BATCHAFSPRAKEN</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               <div style={{ gridColumn: '1/-1' }}>
@@ -1342,7 +1343,7 @@ function ContractModal({ contract: ct, companyName, onChange, onSave, onClose }:
           </div>
 
           {/* Signed version upload */}
-          <div style={{ background: '#f8fafc', border: '1px solid #1a1a2e', borderRadius: 8, padding: '12px 14px' }}>
+          <div style={{ background: '#f9fafb', border: '1px solid #f1f5f9', borderRadius: 8, padding: '12px 14px' }}>
             <div style={{ fontSize: 10, fontWeight: 700, color: '#10b981', letterSpacing: 1.5, marginBottom: 10 }}>GETEKENDE VERSIE UPLOADEN</div>
             {ct.signedFileName ? (
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1363,7 +1364,7 @@ function ContractModal({ contract: ct, companyName, onChange, onSave, onClose }:
               </div>
             ) : (
               <label style={{ display: 'block', cursor: 'pointer' }}>
-                <div style={{ border: '1px dashed #252540', borderRadius: 8, padding: '16px', textAlign: 'center', color: '#374151', fontSize: 12 }}>
+                <div style={{ border: '1px dashed #e5e7eb', borderRadius: 8, padding: '16px', textAlign: 'center', color: '#374151', fontSize: 12 }}>
                   Klik om getekend document te uploaden (PDF)
                 </div>
                 <input type="file" accept=".pdf,.png,.jpg" style={{ display: 'none' }}
@@ -1374,11 +1375,11 @@ function ContractModal({ contract: ct, companyName, onChange, onSave, onClose }:
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 4 }}>
             <button onClick={onClose}
-              style={{ padding: '9px 20px', background: 'transparent', border: '1px solid #252540', borderRadius: 8, color: '#718096', fontSize: 13, cursor: 'pointer' }}>
+              style={{ padding: '9px 20px', background: 'transparent', border: '1px solid #e5e7eb', borderRadius: 8, color: '#64748b', fontSize: 13, cursor: 'pointer' }}>
               Annuleren
             </button>
             <button onClick={onSave}
-              style={{ padding: '9px 20px', background: '#6366f1', border: 'none', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+              style={{ padding: '9px 20px', background: '#0f172a', border: 'none', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
               Opslaan
             </button>
           </div>
@@ -1389,11 +1390,11 @@ function ContractModal({ contract: ct, companyName, onChange, onSave, onClose }:
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={handlePrint}
-              style={{ padding: '8px 18px', background: '#6366f1', border: 'none', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+              style={{ padding: '8px 18px', background: '#0f172a', border: 'none', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
               🖨 Afdrukken / Opslaan als PDF
             </button>
           </div>
-          <div style={{ background: '#fff', borderRadius: 8, overflow: 'auto', maxHeight: 520, border: '1px solid #e2e8f0' }}>
+          <div style={{ background: '#fff', borderRadius: 8, overflow: 'auto', maxHeight: 520, border: '1px solid #e5e7eb' }}>
             <iframe
               srcDoc={previewHtml}
               style={{ width: '100%', height: 500, border: 'none' }}
@@ -1567,11 +1568,11 @@ function IntakeSub({ companies, intakes, selectedCompany, setSelectedCompany, on
             <button key={c.id} onClick={() => setSelectedCompany(c.id)}
               style={{
                 width: '100%', textAlign: 'left', padding: '9px 12px', borderRadius: 8, marginBottom: 4,
-                background: selectedCompany === c.id ? '#e8ecf0' : 'transparent',
-                border: `1px solid ${selectedCompany === c.id ? '#e2e8f0' : 'transparent'}`,
+                background: selectedCompany === c.id ? '#eef2ff' : 'transparent',
+                border: `1px solid ${selectedCompany === c.id ? '#c7d2fe' : 'transparent'}`,
                 cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
               }}>
-              <span style={{ fontSize: 13, color: selectedCompany === c.id ? '#e2e8f0' : '#8896a8' }}>{c.name}</span>
+              <span style={{ fontSize: 13, color: selectedCompany === c.id ? '#4f46e5' : '#374151' }}>{c.name}</span>
               {done
                 ? <span style={{ fontSize: 10, color: '#10b981' }}>✓</span>
                 : <span style={{ fontSize: 10, color: '#374151' }}>—</span>
@@ -1592,12 +1593,12 @@ function IntakeSub({ companies, intakes, selectedCompany, setSelectedCompany, on
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <div>
                 <div style={{ fontSize: 16, fontWeight: 600, color: '#0f172a' }}>{company?.name}</div>
-                <div style={{ fontSize: 11, color: intake?.completedAt ? '#10b981' : '#4a5568', marginTop: 2 }}>
+                <div style={{ fontSize: 11, color: intake?.completedAt ? '#16a34a' : '#9ca3af', marginTop: 2 }}>
                   {intake?.completedAt ? `Intake voltooid op ${fmtDate(intake.completedAt)}` : 'Intake nog niet ingevuld'}
                 </div>
               </div>
               <button onClick={() => onOpen(selectedCompany)}
-                style={{ padding: '8px 16px', background: '#6366f1', border: 'none', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                style={{ padding: '8px 16px', background: '#0f172a', border: 'none', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
                 {intake?.completedAt ? '✎ Bewerken' : '+ Intake invullen'}
               </button>
             </div>
@@ -1621,14 +1622,14 @@ function IntakeSub({ companies, intakes, selectedCompany, setSelectedCompany, on
                 <IntakeField label="Sales ondersteuning gewenst" value={intake.salesOndersteuning || '—'} />
                 <IntakeField label="CRM ervaring" value={intake.crmErvaring || '—'} tag={intake.crmWelk || undefined} />
                 {intake.klantprofiel && (
-                  <div style={{ gridColumn: '1/-1', background: '#ffffff', border: '1px solid #1a1a2e', borderRadius: 8, padding: '12px 14px' }}>
+                  <div style={{ gridColumn: '1/-1', background: '#ffffff', border: '1px solid #f1f5f9', borderRadius: 8, padding: '12px 14px' }}>
                     <div style={{ fontSize: 10, color: '#374151', marginBottom: 4 }}>Klantprofiel voorkeur</div>
                     <div style={{ fontSize: 13, color: '#0f172a', lineHeight: 1.5 }}>{intake.klantprofiel}</div>
                   </div>
                 )}
                 {intake.extraNotities && (
-                  <div style={{ gridColumn: '1/-1', background: '#6366f110', border: '1px solid #6366f130', borderRadius: 8, padding: '12px 14px' }}>
-                    <div style={{ fontSize: 10, color: '#6366f1', fontWeight: 600, marginBottom: 4, letterSpacing: 1 }}>NOTITIES</div>
+                  <div style={{ gridColumn: '1/-1', background: '#f9fafb', border: '1px solid #f1f5f9', borderRadius: 8, padding: '12px 14px' }}>
+                    <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 700, marginBottom: 4, letterSpacing: 1 }}>NOTITIES</div>
                     <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.6 }}>{intake.extraNotities}</div>
                   </div>
                 )}
@@ -1643,10 +1644,10 @@ function IntakeSub({ companies, intakes, selectedCompany, setSelectedCompany, on
 
 function IntakeField({ label, value, tag }: { label: string; value: string; tag?: string }) {
   return (
-    <div style={{ background: '#ffffff', border: '1px solid #1a1a2e', borderRadius: 8, padding: '10px 14px' }}>
+    <div style={{ background: '#ffffff', border: '1px solid #f1f5f9', borderRadius: 8, padding: '10px 14px' }}>
       <div style={{ fontSize: 10, color: '#374151', marginBottom: 4 }}>{label}</div>
-      <div style={{ fontSize: 13, color: value === '—' ? '#374151' : '#e2e8f0', fontStyle: value === '—' ? 'italic' : 'normal' }}>{value}</div>
-      {tag && <div style={{ fontSize: 11, color: '#6366f1', marginTop: 3 }}>{tag}</div>}
+      <div style={{ fontSize: 13, color: value === '—' ? '#9ca3af' : '#0f172a', fontStyle: value === '—' ? 'italic' : 'normal' }}>{value}</div>
+      {tag && <div style={{ fontSize: 11, color: '#4f46e5', marginTop: 3 }}>{tag}</div>}
     </div>
   )
 }
@@ -1672,12 +1673,12 @@ function EvaluatieSub({ companies, questions, meetings, selectedCompany, setSele
                 onClick={() => setSelectedCompany(c.id)}
                 style={{
                   width: '100%', textAlign: 'left', padding: '9px 12px', borderRadius: 8, marginBottom: 4,
-                  background: isSelected ? '#e8ecf0' : 'transparent',
-                  border: `1px solid ${isSelected ? '#e2e8f0' : 'transparent'}`,
+                  background: isSelected ? '#eef2ff' : 'transparent',
+                  border: `1px solid ${isSelected ? '#c7d2fe' : 'transparent'}`,
                   cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                 }}>
-                <span style={{ fontSize: 13, color: isSelected ? '#e2e8f0' : '#8896a8', fontWeight: isSelected ? 600 : 400 }}>{c.name}</span>
-                {count > 0 && <span style={{ fontSize: 10, color: '#374151', background: '#e8ecf0', padding: '2px 7px', borderRadius: 10 }}>{count}</span>}
+                <span style={{ fontSize: 13, color: isSelected ? '#4f46e5' : '#374151', fontWeight: isSelected ? 600 : 400 }}>{c.name}</span>
+                {count > 0 && <span style={{ fontSize: 10, color: '#4f46e5', background: '#eef2ff', padding: '2px 7px', borderRadius: 10 }}>{count}</span>}
               </button>
             )
           })}
@@ -1715,7 +1716,7 @@ function EvaluatieSub({ companies, questions, meetings, selectedCompany, setSele
                   placeholder="Nieuwe vraag..."
                   style={{ ...INPUT, fontSize: 11, padding: '5px 8px', flex: 1 }} />
                 <button onClick={onAddQuestion}
-                  style={{ padding: '5px 10px', background: '#6366f1', border: 'none', borderRadius: 6, color: '#fff', fontSize: 12, cursor: 'pointer' }}>+</button>
+                  style={{ padding: '5px 10px', background: '#0f172a', border: 'none', borderRadius: 6, color: '#fff', fontSize: 12, cursor: 'pointer' }}>+</button>
               </div>
             </div>
           )}
@@ -1754,7 +1755,7 @@ function CompanyChecklistView({ company, questions, meetings, onNewMeeting }: {
           <div style={{ fontSize: 11, color: '#374151', marginTop: 2 }}>{meetings.length} meetings opgeslagen</div>
         </div>
         <button onClick={onNewMeeting}
-          style={{ padding: '8px 16px', background: '#6366f1', border: 'none', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+          style={{ padding: '8px 16px', background: '#0f172a', border: 'none', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
           + Nieuwe meeting
         </button>
       </div>
@@ -1769,7 +1770,7 @@ function CompanyChecklistView({ company, questions, meetings, onNewMeeting }: {
             const isOpen = openMeeting === m.id
             const filled = m.answers.filter(a => a.answer.trim()).length
             return (
-              <div key={m.id} style={{ background: '#ffffff', border: '1px solid #1a1a2e', borderRadius: 12, overflow: 'hidden' }}>
+              <div key={m.id} style={{ background: '#ffffff', border: '1px solid #f1f5f9', borderRadius: 12, overflow: 'hidden' }}>
                 {/* Meeting header */}
                 <button onClick={() => setOpenMeeting(isOpen ? null : m.id)}
                   style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 18px', background: 'none', border: 'none', cursor: 'pointer' }}>
@@ -1784,7 +1785,7 @@ function CompanyChecklistView({ company, questions, meetings, onNewMeeting }: {
 
                 {/* Meeting answers */}
                 {isOpen && (
-                  <div style={{ padding: '0 18px 16px', borderTop: '1px solid #1a1a2e' }}>
+                  <div style={{ padding: '0 18px 16px', borderTop: '1px solid #f1f5f9' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 14 }}>
                       {questions.map((q, i) => {
                         const ans = m.answers.find(a => a.questionId === q.id)?.answer ?? ''
@@ -1794,8 +1795,8 @@ function CompanyChecklistView({ company, questions, meetings, onNewMeeting }: {
                               <span style={{ color: '#374151', marginRight: 6 }}>{i + 1}.</span>{q.text}
                             </div>
                             <div style={{
-                              fontSize: 12, color: ans ? '#e2e8f0' : '#374151',
-                              background: '#f8fafc', border: '1px solid #1a1a2e', borderRadius: 6,
+                              fontSize: 12, color: ans ? '#0f172a' : '#9ca3af',
+                              background: '#f9fafb', border: '1px solid #f1f5f9', borderRadius: 6,
                               padding: '7px 10px', lineHeight: 1.5, fontStyle: ans ? 'normal' : 'italic',
                             }}>
                               {ans || 'Niet beantwoord'}
@@ -1805,8 +1806,8 @@ function CompanyChecklistView({ company, questions, meetings, onNewMeeting }: {
                       })}
                     </div>
                     {m.notes && (
-                      <div style={{ marginTop: 14, padding: '10px 12px', background: '#6366f110', border: '1px solid #6366f130', borderRadius: 8 }}>
-                        <div style={{ fontSize: 10, color: '#6366f1', fontWeight: 600, marginBottom: 4, letterSpacing: 1 }}>NOTITIES</div>
+                      <div style={{ marginTop: 14, padding: '10px 12px', background: '#f9fafb', border: '1px solid #f1f5f9', borderRadius: 8 }}>
+                        <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 700, marginBottom: 4, letterSpacing: 1 }}>NOTITIES</div>
                         <div style={{ fontSize: 12, color: '#374151', lineHeight: 1.6 }}>{m.notes}</div>
                       </div>
                     )}
@@ -1864,12 +1865,12 @@ function DocumentsSub({ documents, companies, onAdd, onEdit, onDelete }: {
             <button key={c.id} onClick={() => setSelectedCompany(c.id)}
               style={{
                 width: '100%', textAlign: 'left', padding: '9px 12px', borderRadius: 8, marginBottom: 4,
-                background: selectedCompany === c.id ? '#e8ecf0' : 'transparent',
-                border: `1px solid ${selectedCompany === c.id ? '#e2e8f0' : 'transparent'}`,
+                background: selectedCompany === c.id ? '#eef2ff' : 'transparent',
+                border: `1px solid ${selectedCompany === c.id ? '#c7d2fe' : 'transparent'}`,
                 cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
               }}>
-              <span style={{ fontSize: 13, color: selectedCompany === c.id ? '#e2e8f0' : '#8896a8' }}>{c.name}</span>
-              {count > 0 && <span style={{ fontSize: 10, color: '#374151', background: '#e8ecf0', padding: '2px 7px', borderRadius: 10 }}>{count}</span>}
+              <span style={{ fontSize: 13, color: selectedCompany === c.id ? '#4f46e5' : '#374151' }}>{c.name}</span>
+              {count > 0 && <span style={{ fontSize: 10, color: '#4f46e5', background: '#eef2ff', padding: '2px 7px', borderRadius: 10 }}>{count}</span>}
             </button>
           )
         })}
@@ -1879,7 +1880,7 @@ function DocumentsSub({ documents, companies, onAdd, onEdit, onDelete }: {
       <div>
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
           <button onClick={() => onAdd(selectedCompany === '__all__' || selectedCompany === '__general__' ? undefined : selectedCompany)}
-            style={{ padding: '9px 16px', background: '#6366f1', border: 'none', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+            style={{ padding: '9px 16px', background: '#0f172a', border: 'none', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
             + Document toevoegen
           </button>
         </div>
@@ -1908,11 +1909,11 @@ function DocumentsSub({ documents, companies, onAdd, onEdit, onDelete }: {
                               <button onClick={() => window.confirm('Verwijderen?') && onDelete(d.id)} style={{ background: 'none', border: 'none', color: '#374151', cursor: 'pointer', fontSize: 14 }}>×</button>
                             </div>
                           </div>
-                          {co && <div style={{ fontSize: 11, color: '#6366f1', marginBottom: 6 }}>{co.name}</div>}
+                          {co && <div style={{ fontSize: 11, color: '#4f46e5', marginBottom: 6 }}>{co.name}</div>}
                           {d.description && <div style={{ fontSize: 11, color: '#374151', marginBottom: 8, lineHeight: 1.5 }}>{d.description}</div>}
                           {d.url && (
                             <a href={d.url} target="_blank" rel="noreferrer"
-                              style={{ fontSize: 11, color: '#6366f1', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>
+                              style={{ fontSize: 11, color: '#4f46e5', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>
                               ↗ Openen
                             </a>
                           )}
@@ -1996,14 +1997,14 @@ function IcpSub({ icps, onSave }: { icps: ICP[]; onSave: (next: ICP[]) => void }
             <button key={s} onClick={() => setFilter(s)}
               style={{
                 padding: '5px 12px', borderRadius: 6, fontSize: 11, cursor: 'pointer', textTransform: 'capitalize',
-                background: filter === s ? '#6366f120' : 'transparent',
-                border: `1px solid ${filter === s ? '#6366f1' : '#e8ecf0'}`,
-                color: filter === s ? '#6366f1' : '#4a5568',
+                background: filter === s ? '#0f172a' : 'transparent',
+                border: `1px solid ${filter === s ? '#0f172a' : '#e5e7eb'}`,
+                color: filter === s ? '#ffffff' : '#374151',
               }}>{s === 'alle' ? `Alle (${icps.length})` : s}</button>
           ))}
         </div>
         <button onClick={openAdd}
-          style={{ padding: '8px 16px', background: '#6366f1', border: 'none', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+          style={{ padding: '8px 16px', background: '#0f172a', border: 'none', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
           + Nieuw bedrijf
         </button>
       </div>
@@ -2023,15 +2024,15 @@ function IcpSub({ icps, onSave }: { icps: ICP[]; onSave: (next: ICP[]) => void }
           return (
             <div key={icp.id} onClick={() => { setModal(icp); setLogDraft({ notes: '', outcome: 'gesprek gehad' }) }}
               style={{ ...CARD, cursor: 'pointer', transition: 'border-color 0.15s' }}
-              onMouseEnter={e => (e.currentTarget.style.borderColor = '#e2e8f0')}
-              onMouseLeave={e => (e.currentTarget.style.borderColor = '#e8ecf0')}>
+              onMouseEnter={e => (e.currentTarget.style.borderColor = '#e5e7eb')}
+              onMouseLeave={e => (e.currentTarget.style.borderColor = 'transparent')}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
                 <div style={{ fontSize: 14, fontWeight: 600, color: '#0f172a' }}>{icp.bedrijfsnaam}</div>
                 <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 4, background: sc.bg, color: sc.color, border: `1px solid ${sc.border}`, whiteSpace: 'nowrap', marginLeft: 8 }}>
                   {icp.status}
                 </span>
               </div>
-              {icp.contactpersoon && <div style={{ fontSize: 12, color: '#a0aec0', marginBottom: 4 }}>{icp.contactpersoon}</div>}
+              {icp.contactpersoon && <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 4 }}>{icp.contactpersoon}</div>}
               <div style={{ display: 'flex', gap: 12, fontSize: 11, color: '#374151' }}>
                 {icp.telefoon && <span>{icp.telefoon}</span>}
                 {icp.regio && <span>{icp.regio}</span>}
@@ -2052,17 +2053,17 @@ function IcpSub({ icps, onSave }: { icps: ICP[]; onSave: (next: ICP[]) => void }
       {modal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}
           onClick={e => e.target === e.currentTarget && setModal(null)}>
-          <div style={{ background: '#f8fafc', border: '1px solid #1a1a2e', borderRadius: 16, padding: 28, width: 600, maxHeight: '90vh', overflowY: 'auto' }}>
+          <div style={{ background: '#f9fafb', border: '1px solid #f1f5f9', borderRadius: 16, padding: 28, width: 600, maxHeight: '90vh', overflowY: 'auto' }}>
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
               <div>
                 <h2 style={{ fontSize: 16, fontWeight: 600, color: '#0f172a', margin: 0 }}>{modal.bedrijfsnaam}</h2>
                 <div style={{ display: 'flex', gap: 8, marginTop: 6, flexWrap: 'wrap' }}>
-                  {modal.contactpersoon && <span style={{ fontSize: 11, color: '#a0aec0' }}>{modal.contactpersoon}</span>}
+                  {modal.contactpersoon && <span style={{ fontSize: 11, color: '#9ca3af' }}>{modal.contactpersoon}</span>}
                   {modal.telefoon && <span style={{ fontSize: 11, color: '#374151' }}>{modal.telefoon}</span>}
                   {modal.regio && <span style={{ fontSize: 11, color: '#374151' }}>{modal.regio}</span>}
                   {modal.type && <span style={{ fontSize: 11, color: '#374151' }}>{modal.type}</span>}
-                  {modal.website && <a href={modal.website.startsWith('http') ? modal.website : `https://${modal.website}`} target="_blank" rel="noreferrer" style={{ fontSize: 11, color: '#6366f1' }} onClick={e => e.stopPropagation()}>{modal.website}</a>}
+                  {modal.website && <a href={modal.website.startsWith('http') ? modal.website : `https://${modal.website}`} target="_blank" rel="noreferrer" style={{ fontSize: 11, color: '#4f46e5' }} onClick={e => e.stopPropagation()}>{modal.website}</a>}
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
@@ -2075,7 +2076,7 @@ function IcpSub({ icps, onSave }: { icps: ICP[]; onSave: (next: ICP[]) => void }
 
             {/* Call log history */}
             <div style={{ marginBottom: 20 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: '#6366f1', marginBottom: 10, letterSpacing: 1 }}>GESPREKKEN</div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: '#9ca3af', marginBottom: 10, letterSpacing: 1 }}>GESPREKKEN</div>
               {modal.callLogs.length === 0 && (
                 <div style={{ fontSize: 12, color: '#374151', padding: '10px 0' }}>Nog geen gesprekken gelogd.</div>
               )}
@@ -2088,7 +2089,7 @@ function IcpSub({ icps, onSave }: { icps: ICP[]; onSave: (next: ICP[]) => void }
                         <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 4, background: sc.bg, color: sc.color, border: `1px solid ${sc.border}` }}>{log.outcome}</span>
                         <span style={{ fontSize: 10, color: '#374151' }}>{fmtDate(log.date)}</span>
                       </div>
-                      <div style={{ fontSize: 12, color: '#a0aec0', lineHeight: 1.5 }}>{log.notes}</div>
+                      <div style={{ fontSize: 12, color: '#9ca3af', lineHeight: 1.5 }}>{log.notes}</div>
                     </div>
                   )
                 })}
@@ -2096,8 +2097,8 @@ function IcpSub({ icps, onSave }: { icps: ICP[]; onSave: (next: ICP[]) => void }
             </div>
 
             {/* Add feedback */}
-            <div style={{ borderTop: '1px solid #1a1a2e', paddingTop: 16 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: '#6366f1', marginBottom: 12, letterSpacing: 1 }}>FEEDBACK TOEVOEGEN</div>
+            <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: 16 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: '#9ca3af', marginBottom: 12, letterSpacing: 1 }}>FEEDBACK TOEVOEGEN</div>
               <div style={{ marginBottom: 10 }}>
                 <label style={LABEL}>Uitkomst</label>
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -2109,8 +2110,8 @@ function IcpSub({ icps, onSave }: { icps: ICP[]; onSave: (next: ICP[]) => void }
                         style={{
                           padding: '4px 10px', borderRadius: 6, fontSize: 11, cursor: 'pointer', textTransform: 'capitalize',
                           background: active ? sc.bg : 'transparent',
-                          border: `1px solid ${active ? sc.border : '#e8ecf0'}`,
-                          color: active ? sc.color : '#4a5568',
+                          border: `1px solid ${active ? sc.border : '#e5e7eb'}`,
+                          color: active ? sc.color : '#374151',
                         }}>{s}</button>
                     )
                   })}
@@ -2124,7 +2125,7 @@ function IcpSub({ icps, onSave }: { icps: ICP[]; onSave: (next: ICP[]) => void }
                   onChange={e => setLogDraft(d => ({ ...d, notes: e.target.value }))} />
               </div>
               <button onClick={() => submitLog(modal)}
-                style={{ padding: '8px 20px', background: '#6366f1', border: 'none', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                style={{ padding: '8px 20px', background: '#0f172a', border: 'none', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
                 Opslaan
               </button>
             </div>
@@ -2136,7 +2137,7 @@ function IcpSub({ icps, onSave }: { icps: ICP[]; onSave: (next: ICP[]) => void }
       {addModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}
           onClick={e => e.target === e.currentTarget && setAddModal(false)}>
-          <div style={{ background: '#f8fafc', border: '1px solid #1a1a2e', borderRadius: 16, padding: 28, width: 500, maxHeight: '90vh', overflowY: 'auto' }}>
+          <div style={{ background: '#f9fafb', border: '1px solid #f1f5f9', borderRadius: 16, padding: 28, width: 500, maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
               <h2 style={{ fontSize: 16, fontWeight: 600, color: '#0f172a', margin: 0 }}>Nieuw bedrijf toevoegen</h2>
               <button onClick={() => setAddModal(false)} style={{ background: 'none', border: 'none', color: '#374151', cursor: 'pointer', fontSize: 18 }}>✕</button>
@@ -2175,11 +2176,11 @@ function IcpSub({ icps, onSave }: { icps: ICP[]; onSave: (next: ICP[]) => void }
             </div>
             <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
               <button onClick={submitAdd}
-                style={{ flex: 1, padding: '10px 0', background: '#6366f1', border: 'none', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                style={{ flex: 1, padding: '10px 0', background: '#0f172a', border: 'none', borderRadius: 8, color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
                 Toevoegen
               </button>
               <button onClick={() => setAddModal(false)}
-                style={{ padding: '10px 16px', background: 'transparent', border: '1px solid #1a1a2e', borderRadius: 8, color: '#374151', fontSize: 13, cursor: 'pointer' }}>
+                style={{ padding: '10px 16px', background: 'transparent', border: '1px solid #f1f5f9', borderRadius: 8, color: '#374151', fontSize: 13, cursor: 'pointer' }}>
                 Annuleren
               </button>
             </div>
@@ -2197,7 +2198,7 @@ function Modal({ children, onClose, wide }: { children: React.ReactNode; onClose
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}
       onClick={e => e.target === e.currentTarget && onClose()}>
-      <div style={{ background: '#f8fafc', border: '1px solid #1a1a2e', borderRadius: 16, padding: 28, width: wide ? 680 : 500, maxHeight: '90vh', overflowY: 'auto' }}>
+      <div style={{ background: '#f9fafb', border: '1px solid #f1f5f9', borderRadius: 16, padding: 28, width: wide ? 680 : 500, maxHeight: '90vh', overflowY: 'auto' }}>
         {children}
       </div>
     </div>
