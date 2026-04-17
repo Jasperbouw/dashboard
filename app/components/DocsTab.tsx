@@ -313,7 +313,7 @@ const DOC_CATEGORIES = ['Contract', 'Offerte', 'Strategie', 'Rapportage', 'Overi
 ════════════════════════════════════════════════════════ */
 const CARD = { background: '#ffffff', borderRadius: 10, padding: '16px 20px', boxShadow: '0 1px 2px rgba(0,0,0,0.05), 0 0 0 1px rgba(0,0,0,0.06)' } as const
 const INPUT = { width: '100%', padding: '8px 10px', borderRadius: 8, fontSize: 13, background: '#f9fafb', border: '1px solid #e5e7eb', color: '#0f172a', outline: 'none' } as const
-const LABEL = { fontSize: 11, fontWeight: 500 as const, color: '#94a3b8', marginBottom: 4, display: 'block' as const }
+const LABEL = { fontSize: 11, fontWeight: 500 as const, color: '#6b7280', marginBottom: 5, display: 'block' as const }
 
 function today() {
   return new Date().toISOString().slice(0, 10)
@@ -1560,7 +1560,7 @@ function IntakeSub({ companies, intakes, selectedCompany, setSelectedCompany, on
     <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: 16, alignItems: 'start' }}>
       {/* Company list */}
       <div style={{ ...CARD, padding: '12px 16px' }}>
-        <div style={{ fontSize: 11, fontWeight: 600, color: '#374151', letterSpacing: 1, marginBottom: 12 }}>BEDRIJVEN</div>
+        <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', letterSpacing: 1, textTransform: 'uppercase' as const, marginBottom: 12 }}>BEDRIJVEN</div>
         {companies.length === 0 && <div style={{ fontSize: 12, color: '#374151' }}>Geen bedrijven — voeg ze toe in Finance.</div>}
         {companies.map((c: Company) => {
           const done = !!intakes[c.id]?.completedAt
@@ -1643,10 +1643,11 @@ function IntakeSub({ companies, intakes, selectedCompany, setSelectedCompany, on
 }
 
 function IntakeField({ label, value, tag }: { label: string; value: string; tag?: string }) {
+  const empty = !value || value === '—'
   return (
-    <div style={{ background: '#ffffff', border: '1px solid #f1f5f9', borderRadius: 8, padding: '10px 14px' }}>
-      <div style={{ fontSize: 10, color: '#374151', marginBottom: 4 }}>{label}</div>
-      <div style={{ fontSize: 13, color: value === '—' ? '#9ca3af' : '#0f172a', fontStyle: value === '—' ? 'italic' : 'normal' }}>{value}</div>
+    <div style={{ background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 8, padding: '10px 14px' }}>
+      <div style={{ fontSize: 11, fontWeight: 500, color: '#6b7280', marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 13, fontWeight: empty ? 400 : 500, color: empty ? '#d1d5db' : '#0f172a', fontStyle: empty ? 'italic' : 'normal' }}>{empty ? '—' : value}</div>
       {tag && <div style={{ fontSize: 11, color: '#4f46e5', marginTop: 3 }}>{tag}</div>}
     </div>
   )
@@ -1661,7 +1662,7 @@ function EvaluatieSub({ companies, questions, meetings, selectedCompany, setSele
       {/* Left: company list */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         <div style={{ ...CARD, padding: '12px 16px' }}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: '#374151', letterSpacing: 1, marginBottom: 12 }}>BEDRIJVEN</div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', letterSpacing: 1, textTransform: 'uppercase' as const, marginBottom: 12 }}>BEDRIJVEN</div>
           {companies.length === 0 && (
             <div style={{ fontSize: 12, color: '#374151' }}>Geen bedrijven — voeg ze toe in Finance.</div>
           )}
@@ -1688,7 +1689,7 @@ function EvaluatieSub({ companies, questions, meetings, selectedCompany, setSele
         <div style={CARD}>
           <button onClick={() => setShowQEditor(!showQEditor)}
             style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-            <span style={{ fontSize: 11, fontWeight: 600, color: '#374151', letterSpacing: 1 }}>VRAGENLIJST ({questions.length})</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', letterSpacing: 1, textTransform: 'uppercase' as const }}>VRAGENLIJST ({questions.length})</span>
             <span style={{ fontSize: 11, color: '#374151' }}>{showQEditor ? '▲' : '▼'}</span>
           </button>
           {showQEditor && (
@@ -1849,7 +1850,7 @@ function DocumentsSub({ documents, companies, onAdd, onEdit, onDelete }: {
     <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: 16, alignItems: 'start' }}>
       {/* Company list */}
       <div style={{ ...CARD, padding: '12px 16px' }}>
-        <div style={{ fontSize: 11, fontWeight: 600, color: '#374151', letterSpacing: 1, marginBottom: 12 }}>FILTER</div>
+        <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', letterSpacing: 1, textTransform: 'uppercase' as const, marginBottom: 12 }}>FILTER</div>
 
         {[
           { id: '__all__', name: 'Alle documenten' },
@@ -1896,7 +1897,7 @@ function DocumentsSub({ documents, companies, onAdd, onEdit, onDelete }: {
               if (docs.length === 0) return null
               return (
                 <div key={cat}>
-                  <div style={{ fontSize: 11, fontWeight: 600, color: '#374151', letterSpacing: 1, marginBottom: 10 }}>{cat.toUpperCase()}</div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', letterSpacing: 1, textTransform: 'uppercase' as const, marginBottom: 10 }}>{cat.toUpperCase()}</div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
                     {docs.map(d => {
                       const co = companies.find(c => c.id === d.companyId)
