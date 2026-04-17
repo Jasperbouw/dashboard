@@ -528,7 +528,7 @@ export default function DocsTab() {
           {([['intake', 'Intake'], ['evaluatie', 'Evaluatie'], ['sops', "SOP's"], ['contracten', 'Contracten'], ['icps', 'ICP\'s']] as const).map(([id, label]) => (
             <button key={id} onClick={() => setSub(id)}
               style={{
-                padding: '7px 16px', borderRadius: 8, fontSize: 12, fontWeight: 500, cursor: 'pointer',
+                padding: '7px 16px', borderRadius: 8, fontSize: 12, cursor: 'pointer',
                 background: sub === id ? '#0f172a' : '#ffffff',
                 border: `1px solid ${sub === id ? '#0f172a' : '#e5e7eb'}`,
                 color: sub === id ? '#ffffff' : '#64748b',
