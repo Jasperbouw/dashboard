@@ -1,0 +1,5693 @@
+[
+  {
+    "id": "5094253760",
+    "name": "Subitems of Tbouw",
+    "board_kind": "share",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "person",
+        "title": "Owner",
+        "type": "people"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date0",
+        "title": "Date",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "id": "5094253751",
+    "name": "Tbouw",
+    "board_kind": "share",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Open Leads"
+      },
+      {
+        "id": "group_mksy1p9m",
+        "title": "Inspectie gepland"
+      },
+      {
+        "id": "group_mksytvt2",
+        "title": "Offerte verzonden"
+      },
+      {
+        "id": "group_mkt7w9ay",
+        "title": "Later opvolgen"
+      },
+      {
+        "id": "group_mkzt5963",
+        "title": "Akkoord"
+      },
+      {
+        "id": "new_group95562",
+        "title": "Niet bereikbaar/geinteresseerd/al voorzien"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "text_mm28975r",
+        "title": "Campagne",
+        "type": "text"
+      },
+      {
+        "id": "subtasks_mksnx3wm",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "contact_phone",
+        "title": "Telefoon",
+        "type": "phone"
+      },
+      {
+        "id": "text_mksk3arq",
+        "title": "Email",
+        "type": "text"
+      },
+      {
+        "id": "long_text4",
+        "title": "Opmerkingen",
+        "type": "long_text"
+      },
+      {
+        "id": "color_mkskgdv2",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "long_text_mktfh12b",
+        "title": "Urgentie",
+        "type": "long_text"
+      },
+      {
+        "id": "text_mkskv446",
+        "title": "Dienst",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskn3bq",
+        "title": "M2",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskb49d",
+        "title": "Tekening",
+        "type": "text"
+      },
+      {
+        "id": "text_mksk8j3",
+        "title": "Postcode",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskpdsk",
+        "title": "Straat",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "id": "5094087854",
+    "name": "Subitems of Vloeren leads",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "person",
+        "title": "Owner",
+        "type": "people"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date0",
+        "title": "Date",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "id": "5094087853",
+    "name": "Vloeren leads",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Open Leads"
+      },
+      {
+        "id": "new_group95562",
+        "title": "Niet bereikbaar/geinteresseerd/al voorzien"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "subtasks_mksnx3wm",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "text_mkskqqft",
+        "title": "Campagne",
+        "type": "text"
+      },
+      {
+        "id": "contact_phone",
+        "title": "Telefoon",
+        "type": "phone"
+      },
+      {
+        "id": "text_mksk3arq",
+        "title": "Email address",
+        "type": "text"
+      },
+      {
+        "id": "long_text4",
+        "title": "Opmerkingen",
+        "type": "long_text"
+      },
+      {
+        "id": "color_mkskgdv2",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "text_mkskv446",
+        "title": "Type",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskn3bq",
+        "title": "m2",
+        "type": "text"
+      },
+      {
+        "id": "text_mksk8j3",
+        "title": "Postcode",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskpdsk",
+        "title": "Plaats",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "id": "5094044111",
+    "name": "Subitems of Aannemer Noorden/Oosten",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "person",
+        "title": "Owner",
+        "type": "people"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date0",
+        "title": "Date",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "id": "5094044110",
+    "name": "Aannemer Noorden/Oosten",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Open Leads"
+      },
+      {
+        "id": "group_mksy1p9m",
+        "title": "Inspectie gepland"
+      },
+      {
+        "id": "group_mksytvt2",
+        "title": "Offerte verzonden"
+      },
+      {
+        "id": "group_mkt7w9ay",
+        "title": "Later opvolgen"
+      },
+      {
+        "id": "group_mkzt5963",
+        "title": "Akkoord"
+      },
+      {
+        "id": "new_group95562",
+        "title": "Niet bereikbaar/geinteresseerd/al voorzien"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "subtasks_mksnx3wm",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "contact_phone",
+        "title": "Telefoon",
+        "type": "phone"
+      },
+      {
+        "id": "text_mksk3arq",
+        "title": "Email",
+        "type": "text"
+      },
+      {
+        "id": "long_text4",
+        "title": "Opmerkingen",
+        "type": "long_text"
+      },
+      {
+        "id": "color_mkskgdv2",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "long_text_mktfh12b",
+        "title": "Urgentie",
+        "type": "long_text"
+      },
+      {
+        "id": "text_mkskv446",
+        "title": "Dienst",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskn3bq",
+        "title": "M2",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskb49d",
+        "title": "Tekening",
+        "type": "text"
+      },
+      {
+        "id": "text_mksk8j3",
+        "title": "Postcode",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskpdsk",
+        "title": "Straat",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "id": "5093939581",
+    "name": "Subitems van Vastgoed Groep",
+    "board_kind": "share",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "person",
+        "title": "Owner",
+        "type": "people"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date0",
+        "title": "Date",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "id": "5093939578",
+    "name": "Vastgoed Groep",
+    "board_kind": "share",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Open Leads"
+      },
+      {
+        "id": "group_mkt7w9ay",
+        "title": "Later opvolgen"
+      },
+      {
+        "id": "group_mksy1p9m",
+        "title": "Inspectie gepland"
+      },
+      {
+        "id": "group_mksytvt2",
+        "title": "Offerte verzonden"
+      },
+      {
+        "id": "group_mkzt5963",
+        "title": "Akkoord"
+      },
+      {
+        "id": "new_group95562",
+        "title": "Niet bereikbaar/geinteresseerd/al voorzien"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "subtasks_mksnx3wm",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "color_mkskgdv2",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "text_mkskpdsk",
+        "title": "Straat",
+        "type": "text"
+      },
+      {
+        "id": "text_mksk8j3",
+        "title": "Postcode",
+        "type": "text"
+      },
+      {
+        "id": "contact_phone",
+        "title": "Telefoon",
+        "type": "phone"
+      },
+      {
+        "id": "text_mksk3arq",
+        "title": "Email",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskv446",
+        "title": "Dienst",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskn3bq",
+        "title": "M2",
+        "type": "text"
+      },
+      {
+        "id": "long_text4",
+        "title": "Opmerkingen",
+        "type": "long_text"
+      },
+      {
+        "id": "long_text_mktfh12b",
+        "title": "Urgentie",
+        "type": "long_text"
+      },
+      {
+        "id": "text_mkskb49d",
+        "title": "Tekening",
+        "type": "text"
+      },
+      {
+        "id": "text_mm2820vb",
+        "title": "Campagne",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "id": "5093896252",
+    "name": "Subitems of Flair",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "person",
+        "title": "Owner",
+        "type": "people"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date0",
+        "title": "Date",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "id": "5093896251",
+    "name": "Flair",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Open Leads"
+      },
+      {
+        "id": "group_mksy1p9m",
+        "title": "Inspectie gepland"
+      },
+      {
+        "id": "group_mksytvt2",
+        "title": "Offerte verzonden"
+      },
+      {
+        "id": "group_mkt7w9ay",
+        "title": "Later opvolgen"
+      },
+      {
+        "id": "group_mkzt5963",
+        "title": "Akkoord"
+      },
+      {
+        "id": "new_group95562",
+        "title": "Niet bereikbaar/geinteresseerd/al voorzien"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "text_mm28xa9m",
+        "title": "Campagne",
+        "type": "text"
+      },
+      {
+        "id": "subtasks_mksnx3wm",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "contact_phone",
+        "title": "Telefoon",
+        "type": "phone"
+      },
+      {
+        "id": "text_mksk3arq",
+        "title": "Email",
+        "type": "text"
+      },
+      {
+        "id": "long_text4",
+        "title": "Opmerkingen",
+        "type": "long_text"
+      },
+      {
+        "id": "color_mkskgdv2",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "long_text_mktfh12b",
+        "title": "Urgentie",
+        "type": "long_text"
+      },
+      {
+        "id": "text_mkskv446",
+        "title": "Dienst",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskn3bq",
+        "title": "M2",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskb49d",
+        "title": "Tekening",
+        "type": "text"
+      },
+      {
+        "id": "text_mksk8j3",
+        "title": "Postcode",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskpdsk",
+        "title": "Straat",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "id": "5093568632",
+    "name": "Subitems of Bouwcombinatie",
+    "board_kind": "share",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "person",
+        "title": "Owner",
+        "type": "people"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date0",
+        "title": "Date",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "id": "5093568631",
+    "name": "Bouwcombinatie",
+    "board_kind": "share",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Open Leads"
+      },
+      {
+        "id": "group_mksy1p9m",
+        "title": "Inspectie gepland"
+      },
+      {
+        "id": "group_mksytvt2",
+        "title": "Offerte verzonden"
+      },
+      {
+        "id": "group_mkt7w9ay",
+        "title": "Later opvolgen"
+      },
+      {
+        "id": "group_mkzt5963",
+        "title": "Akkoord"
+      },
+      {
+        "id": "new_group95562",
+        "title": "Niet bereikbaar/geinteresseerd/al voorzien"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "text_mm28xcn1",
+        "title": "Campagne",
+        "type": "text"
+      },
+      {
+        "id": "subtasks_mksnx3wm",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "contact_phone",
+        "title": "Telefoon",
+        "type": "phone"
+      },
+      {
+        "id": "text_mksk3arq",
+        "title": "Email",
+        "type": "text"
+      },
+      {
+        "id": "long_text4",
+        "title": "Opmerkingen",
+        "type": "long_text"
+      },
+      {
+        "id": "color_mkskgdv2",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date_mm1zbd26",
+        "title": "Follow-up",
+        "type": "date"
+      },
+      {
+        "id": "long_text_mktfh12b",
+        "title": "Urgentie",
+        "type": "long_text"
+      },
+      {
+        "id": "text_mkskv446",
+        "title": "Dienst",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskn3bq",
+        "title": "M2",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskb49d",
+        "title": "Tekening",
+        "type": "text"
+      },
+      {
+        "id": "text_mksk8j3",
+        "title": "Postcode",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskpdsk",
+        "title": "Straat",
+        "type": "text"
+      },
+      {
+        "id": "text_mm2g3y2n",
+        "title": "Datum",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "id": "5093516992",
+    "name": "Subitems of BKC",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "person",
+        "title": "Owner",
+        "type": "people"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date0",
+        "title": "Date",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "id": "5093516990",
+    "name": "BKC",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Open Leads"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "subtasks_mksnx3wm",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "contact_phone",
+        "title": "Telefoon",
+        "type": "phone"
+      },
+      {
+        "id": "text_mksk3arq",
+        "title": "Email",
+        "type": "text"
+      },
+      {
+        "id": "color_mkskgdv2",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "long_text_mktfh12b",
+        "title": "Urgentie",
+        "type": "long_text"
+      },
+      {
+        "id": "text_mkskv446",
+        "title": "Dienst",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskb49d",
+        "title": "Tekening",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "id": "5093454925",
+    "name": "Subitems of ECO x Flowbridge",
+    "board_kind": "share",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "person",
+        "title": "Owner",
+        "type": "people"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date0",
+        "title": "Date",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "id": "5093454924",
+    "name": "ECO x Flowbridge",
+    "board_kind": "share",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Open Leads"
+      },
+      {
+        "id": "group_mksytvt2",
+        "title": "Offerte verzonden"
+      },
+      {
+        "id": "group_mkzt5963",
+        "title": "Akkoord"
+      },
+      {
+        "id": "new_group95562",
+        "title": "Niet bereikbaar/geinteresseerd/al voorzien"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "text_mm22psrv",
+        "title": "Campagne",
+        "type": "text"
+      },
+      {
+        "id": "subtasks_mksnx3wm",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "contact_phone",
+        "title": "Telefoon",
+        "type": "phone"
+      },
+      {
+        "id": "text_mksk3arq",
+        "title": "Email",
+        "type": "text"
+      },
+      {
+        "id": "long_text4",
+        "title": "Opmerkingen",
+        "type": "long_text"
+      },
+      {
+        "id": "color_mkskgdv2",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "text_mm21vkdr",
+        "title": "P/Z",
+        "type": "text"
+      },
+      {
+        "id": "text_mm29faga",
+        "title": "Branche",
+        "type": "text"
+      },
+      {
+        "id": "text_mm29rwrv",
+        "title": "Aansluitingen/Locaties",
+        "type": "text"
+      },
+      {
+        "id": "text_mm29a8fp",
+        "title": "Ook gas?",
+        "type": "text"
+      },
+      {
+        "id": "text_mm29sjq6",
+        "title": "Jaarverbruik",
+        "type": "text"
+      },
+      {
+        "id": "long_text_mktfh12b",
+        "title": "Type contract",
+        "type": "long_text"
+      },
+      {
+        "id": "text_mkskv446",
+        "title": "Vast tot?",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskn3bq",
+        "title": "Leverancier",
+        "type": "text"
+      },
+      {
+        "id": "text_mm296cxd",
+        "title": "USP",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskb49d",
+        "title": "Zonnepanelen?",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "id": "5092569119",
+    "name": "Subitems van Prefab Op Maat",
+    "board_kind": "share",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "person",
+        "title": "Owner",
+        "type": "people"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date0",
+        "title": "Date",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "id": "5092569117",
+    "name": "Prefab Op Maat",
+    "board_kind": "share",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Open Leads"
+      },
+      {
+        "id": "group_mksy1p9m",
+        "title": "Inspectie gepland"
+      },
+      {
+        "id": "group_mksytvt2",
+        "title": "Offerte verzonden"
+      },
+      {
+        "id": "group_mkt7w9ay",
+        "title": "Later opvolgen"
+      },
+      {
+        "id": "group_mkzt5963",
+        "title": "Akkoord"
+      },
+      {
+        "id": "new_group95562",
+        "title": "Niet bereikbaar/geinteresseerd/al voorzien"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "text_mm12g9jx",
+        "title": "Campagne",
+        "type": "text"
+      },
+      {
+        "id": "subtasks_mksnx3wm",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "contact_phone",
+        "title": "Telefoon",
+        "type": "phone"
+      },
+      {
+        "id": "text_mksk3arq",
+        "title": "Email",
+        "type": "text"
+      },
+      {
+        "id": "long_text4",
+        "title": "Opmerkingen",
+        "type": "long_text"
+      },
+      {
+        "id": "color_mkskgdv2",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "long_text_mktfh12b",
+        "title": "Urgentie",
+        "type": "long_text"
+      },
+      {
+        "id": "text_mkskv446",
+        "title": "Dienst",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskn3bq",
+        "title": "M2",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskb49d",
+        "title": "Tekening",
+        "type": "text"
+      },
+      {
+        "id": "text_mksk8j3",
+        "title": "Postcode",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskpdsk",
+        "title": "Straat",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "id": "5091706229",
+    "name": "Subitems of Bouw Leads",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "person",
+        "title": "Owner",
+        "type": "people"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date0",
+        "title": "Date",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "id": "5091706227",
+    "name": "Bouw Leads",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Open Leads"
+      },
+      {
+        "id": "group_mm0y2qrp",
+        "title": "Later opvolgen"
+      },
+      {
+        "id": "new_group95562",
+        "title": "Niet bereikbaar/geinteresseerd/al voorzien"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "subtasks_mksnx3wm",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "text_mm0ghcar",
+        "title": "Campagne",
+        "type": "text"
+      },
+      {
+        "id": "text_mm28rm1x",
+        "title": "Datum",
+        "type": "text"
+      },
+      {
+        "id": "contact_phone",
+        "title": "Telefoon",
+        "type": "phone"
+      },
+      {
+        "id": "text_mksk3arq",
+        "title": "Email",
+        "type": "text"
+      },
+      {
+        "id": "long_text4",
+        "title": "Opmerkingen",
+        "type": "long_text"
+      },
+      {
+        "id": "color_mkskgdv2",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "boolean_mm1re1x6",
+        "title": "App?",
+        "type": "checkbox"
+      },
+      {
+        "id": "long_text_mktfh12b",
+        "title": "Urgentie",
+        "type": "long_text"
+      },
+      {
+        "id": "text_mkskv446",
+        "title": "Dienst",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskn3bq",
+        "title": "M2",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskb49d",
+        "title": "Tekening",
+        "type": "text"
+      },
+      {
+        "id": "text_mksk8j3",
+        "title": "Postcode",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskpdsk",
+        "title": "Straat",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "id": "5091704361",
+    "name": "Subitems of Hollands Prefab",
+    "board_kind": "share",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "person",
+        "title": "Owner",
+        "type": "people"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date0",
+        "title": "Date",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "id": "5091704359",
+    "name": "Hollands Prefab",
+    "board_kind": "share",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Open Leads"
+      },
+      {
+        "id": "group_mksy1p9m",
+        "title": "Inspectie gepland"
+      },
+      {
+        "id": "group_mm209jh1",
+        "title": "Laatste poging"
+      },
+      {
+        "id": "group_mksytvt2",
+        "title": "Offerte verzonden"
+      },
+      {
+        "id": "group_mkt7w9ay",
+        "title": "Later opvolgen"
+      },
+      {
+        "id": "group_mkzt5963",
+        "title": "Akkoord"
+      },
+      {
+        "id": "new_group95562",
+        "title": "Niet bereikbaar/geinteresseerd/al voorzien"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "subtasks_mksnx3wm",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "text_mm0gvtwe",
+        "title": "Campagne",
+        "type": "text"
+      },
+      {
+        "id": "contact_phone",
+        "title": "Telefoon",
+        "type": "phone"
+      },
+      {
+        "id": "text_mksk3arq",
+        "title": "Email",
+        "type": "text"
+      },
+      {
+        "id": "long_text4",
+        "title": "Opmerkingen",
+        "type": "long_text"
+      },
+      {
+        "id": "text_mm16dj1n",
+        "title": "Beste bereikbaar",
+        "type": "text"
+      },
+      {
+        "id": "color_mkskgdv2",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date_mm19a3g2",
+        "title": "Follow-up",
+        "type": "date"
+      },
+      {
+        "id": "long_text_mktfh12b",
+        "title": "Urgentie",
+        "type": "long_text"
+      },
+      {
+        "id": "text_mkskv446",
+        "title": "Dienst",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskn3bq",
+        "title": "M2",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskb49d",
+        "title": "Tekening",
+        "type": "text"
+      },
+      {
+        "id": "text_mksk8j3",
+        "title": "Postcode",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskpdsk",
+        "title": "Straat",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "id": "5091639462",
+    "name": "Subitems of Schilder Bedrijven",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "person",
+        "title": "Owner",
+        "type": "people"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date0",
+        "title": "Date",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "id": "5091639459",
+    "name": "Schilder Bedrijven",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Open Leads"
+      },
+      {
+        "id": "group_mkth6zkk",
+        "title": "Contact mee"
+      },
+      {
+        "id": "group_mksytvt2",
+        "title": "Inlog verzonden"
+      },
+      {
+        "id": "group_mky0y2mn",
+        "title": "Aangemeld"
+      },
+      {
+        "id": "new_group95562",
+        "title": "Niet bereikbaar/geinteresseerd/al voorzien"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "subtasks_mksnx3wm",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "multiple_person_mkt4ge0",
+        "title": "People",
+        "type": "people"
+      },
+      {
+        "id": "text_mkxzgmk0",
+        "title": "Bedrijf",
+        "type": "text"
+      },
+      {
+        "id": "contact_phone",
+        "title": "Telefoon",
+        "type": "phone"
+      },
+      {
+        "id": "text_mksk3arq",
+        "title": "Email",
+        "type": "text"
+      },
+      {
+        "id": "long_text4",
+        "title": "Comments",
+        "type": "long_text"
+      },
+      {
+        "id": "color_mkskgdv2",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "text_mkskpdsk",
+        "title": "Plaats",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "id": "5091629812",
+    "name": "Subitems of Bouwbedrijf Gemmink",
+    "board_kind": "share",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "person",
+        "title": "Owner",
+        "type": "people"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date0",
+        "title": "Date",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "id": "5091629811",
+    "name": "Bouwbedrijf Gemmink",
+    "board_kind": "share",
+    "groups": [
+      {
+        "id": "group_mkth6zkk",
+        "title": "Inplannen"
+      },
+      {
+        "id": "group_mksy1p9m",
+        "title": "Inspectie gepland"
+      },
+      {
+        "id": "group_mksytvt2",
+        "title": "Offerte verzonden"
+      },
+      {
+        "id": "group_mkt7w9ay",
+        "title": "Later opvolgen"
+      },
+      {
+        "id": "group_mkzt5963",
+        "title": "Akkoord"
+      },
+      {
+        "id": "new_group95562",
+        "title": "Niet bereikbaar/geinteresseerd/al voorzien"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "subtasks_mksnx3wm",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "contact_phone",
+        "title": "Telefoon",
+        "type": "phone"
+      },
+      {
+        "id": "text_mksk3arq",
+        "title": "Email",
+        "type": "text"
+      },
+      {
+        "id": "long_text4",
+        "title": "Opmerkingen",
+        "type": "long_text"
+      },
+      {
+        "id": "color_mkskgdv2",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "long_text_mktfh12b",
+        "title": "Urgentie",
+        "type": "long_text"
+      },
+      {
+        "id": "text_mkskv446",
+        "title": "Dienst",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskn3bq",
+        "title": "M2",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskb49d",
+        "title": "Tekening",
+        "type": "text"
+      },
+      {
+        "id": "text_mksk8j3",
+        "title": "Postcode",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskpdsk",
+        "title": "Straat",
+        "type": "text"
+      },
+      {
+        "id": "text_mm0qrv2f",
+        "title": "Campagne",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "id": "5091629647",
+    "name": "Subitems of Aannemer X",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "person",
+        "title": "Owner",
+        "type": "people"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date0",
+        "title": "Date",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "id": "5091629639",
+    "name": "Aannemer X",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Open Leads"
+      },
+      {
+        "id": "group_mksy1p9m",
+        "title": "Inspectie gepland"
+      },
+      {
+        "id": "group_mksytvt2",
+        "title": "Offerte verzonden"
+      },
+      {
+        "id": "group_mkt7w9ay",
+        "title": "Later opvolgen"
+      },
+      {
+        "id": "group_mkzt5963",
+        "title": "Akkoord"
+      },
+      {
+        "id": "new_group95562",
+        "title": "Niet bereikbaar/geinteresseerd/al voorzien"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "subtasks_mksnx3wm",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "contact_phone",
+        "title": "Telefoon",
+        "type": "phone"
+      },
+      {
+        "id": "text_mksk3arq",
+        "title": "Email",
+        "type": "text"
+      },
+      {
+        "id": "long_text4",
+        "title": "Opmerkingen",
+        "type": "long_text"
+      },
+      {
+        "id": "color_mkskgdv2",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "long_text_mktfh12b",
+        "title": "Urgentie",
+        "type": "long_text"
+      },
+      {
+        "id": "text_mkskv446",
+        "title": "Dienst",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskn3bq",
+        "title": "M2",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskb49d",
+        "title": "Tekening",
+        "type": "text"
+      },
+      {
+        "id": "text_mksk8j3",
+        "title": "Postcode",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskpdsk",
+        "title": "Straat",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "id": "5091346285",
+    "name": "Subitems of Vloeren leads",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "person",
+        "title": "Owner",
+        "type": "people"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date0",
+        "title": "Date",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "id": "5091346283",
+    "name": "Vloeren leads",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Open Leads"
+      },
+      {
+        "id": "new_group95562",
+        "title": "Niet bereikbaar/geinteresseerd/al voorzien"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "subtasks_mksnx3wm",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "text_mkskqqft",
+        "title": "Campagne",
+        "type": "text"
+      },
+      {
+        "id": "contact_phone",
+        "title": "Telefoon",
+        "type": "phone"
+      },
+      {
+        "id": "text_mksk3arq",
+        "title": "Email address",
+        "type": "text"
+      },
+      {
+        "id": "long_text4",
+        "title": "Opmerkingen",
+        "type": "long_text"
+      },
+      {
+        "id": "color_mkskgdv2",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "text_mkskv446",
+        "title": "Type",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskn3bq",
+        "title": "m2",
+        "type": "text"
+      },
+      {
+        "id": "text_mksk8j3",
+        "title": "Postcode",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskpdsk",
+        "title": "Plaats",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "id": "5091346253",
+    "name": "Subitems of Vloeren leads",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "person",
+        "title": "Owner",
+        "type": "people"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date0",
+        "title": "Date",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "id": "5091346251",
+    "name": "Vloeren leads",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Open Leads"
+      },
+      {
+        "id": "new_group95562",
+        "title": "Niet bereikbaar/geinteresseerd/al voorzien"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "subtasks_mksnx3wm",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "text_mkskqqft",
+        "title": "Campagne",
+        "type": "text"
+      },
+      {
+        "id": "contact_phone",
+        "title": "Telefoon",
+        "type": "phone"
+      },
+      {
+        "id": "text_mksk3arq",
+        "title": "Email address",
+        "type": "text"
+      },
+      {
+        "id": "long_text4",
+        "title": "Opmerkingen",
+        "type": "long_text"
+      },
+      {
+        "id": "color_mkskgdv2",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "text_mkskv446",
+        "title": "Type",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskn3bq",
+        "title": "m2",
+        "type": "text"
+      },
+      {
+        "id": "text_mksk8j3",
+        "title": "Postcode",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskpdsk",
+        "title": "Plaats",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "id": "5091346156",
+    "name": "Subitems of Vloeren Bedrijven",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "person",
+        "title": "Owner",
+        "type": "people"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date0",
+        "title": "Date",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "id": "5091346155",
+    "name": "Vloeren Bedrijven",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Open Leads"
+      },
+      {
+        "id": "group_mkth6zkk",
+        "title": "Contact mee"
+      },
+      {
+        "id": "group_mksytvt2",
+        "title": "Inlog verzonden"
+      },
+      {
+        "id": "group_mky0y2mn",
+        "title": "Aangemeld"
+      },
+      {
+        "id": "new_group95562",
+        "title": "Niet bereikbaar/geinteresseerd/al voorzien"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "subtasks_mksnx3wm",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "multiple_person_mkt4ge0",
+        "title": "People",
+        "type": "people"
+      },
+      {
+        "id": "text_mkxzgmk0",
+        "title": "Bedrijf",
+        "type": "text"
+      },
+      {
+        "id": "contact_phone",
+        "title": "Telefoon",
+        "type": "phone"
+      },
+      {
+        "id": "text_mksk3arq",
+        "title": "Email",
+        "type": "text"
+      },
+      {
+        "id": "long_text4",
+        "title": "Comments",
+        "type": "long_text"
+      },
+      {
+        "id": "color_mkskgdv2",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "text_mkskpdsk",
+        "title": "Plaats",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "id": "5091346133",
+    "name": "Subitems of Vloeren Bedrijven",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "person",
+        "title": "Owner",
+        "type": "people"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date0",
+        "title": "Date",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "id": "5091346132",
+    "name": "Vloeren Bedrijven",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Open Leads"
+      },
+      {
+        "id": "group_mkth6zkk",
+        "title": "Contact mee"
+      },
+      {
+        "id": "group_mksytvt2",
+        "title": "Inlog verzonden"
+      },
+      {
+        "id": "group_mky0y2mn",
+        "title": "Aangemeld"
+      },
+      {
+        "id": "new_group95562",
+        "title": "Niet bereikbaar/geinteresseerd/al voorzien"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "subtasks_mksnx3wm",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "multiple_person_mkt4ge0",
+        "title": "People",
+        "type": "people"
+      },
+      {
+        "id": "text_mkxzgmk0",
+        "title": "Bedrijf",
+        "type": "text"
+      },
+      {
+        "id": "contact_phone",
+        "title": "Telefoon",
+        "type": "phone"
+      },
+      {
+        "id": "text_mksk3arq",
+        "title": "Email",
+        "type": "text"
+      },
+      {
+        "id": "long_text4",
+        "title": "Comments",
+        "type": "long_text"
+      },
+      {
+        "id": "color_mkskgdv2",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "text_mkskpdsk",
+        "title": "Plaats",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "id": "5091346094",
+    "name": "Subitems of Airco Bedrijven",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "person",
+        "title": "Owner",
+        "type": "people"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date0",
+        "title": "Date",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "id": "5091346093",
+    "name": "Airco Bedrijven",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Open Leads"
+      },
+      {
+        "id": "group_mkth6zkk",
+        "title": "Contact mee"
+      },
+      {
+        "id": "group_mksytvt2",
+        "title": "Inlog verzonden"
+      },
+      {
+        "id": "group_mky0kfjp",
+        "title": "Aangemeld"
+      },
+      {
+        "id": "new_group95562",
+        "title": "Niet bereikbaar/geinteresseerd/al voorzien"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "subtasks_mksnx3wm",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "multiple_person_mkt4ge0",
+        "title": "People",
+        "type": "people"
+      },
+      {
+        "id": "text_mkxzb4c3",
+        "title": "Bedrijf",
+        "type": "text"
+      },
+      {
+        "id": "contact_phone",
+        "title": "Telefoon",
+        "type": "phone"
+      },
+      {
+        "id": "text_mksk3arq",
+        "title": "Email",
+        "type": "text"
+      },
+      {
+        "id": "long_text4",
+        "title": "Opmerkingen",
+        "type": "long_text"
+      },
+      {
+        "id": "color_mkskgdv2",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "text_mksk8j3",
+        "title": "Plaats",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "id": "5091346017",
+    "name": "Subitems of Airco Bedrijven",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "person",
+        "title": "Owner",
+        "type": "people"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date0",
+        "title": "Date",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "id": "5091346015",
+    "name": "Airco Bedrijven",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Open Leads"
+      },
+      {
+        "id": "group_mkth6zkk",
+        "title": "Contact mee"
+      },
+      {
+        "id": "group_mksytvt2",
+        "title": "Inlog verzonden"
+      },
+      {
+        "id": "group_mky0kfjp",
+        "title": "Aangemeld"
+      },
+      {
+        "id": "new_group95562",
+        "title": "Niet bereikbaar/geinteresseerd/al voorzien"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "subtasks_mksnx3wm",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "multiple_person_mkt4ge0",
+        "title": "People",
+        "type": "people"
+      },
+      {
+        "id": "text_mkxzb4c3",
+        "title": "Bedrijf",
+        "type": "text"
+      },
+      {
+        "id": "contact_phone",
+        "title": "Telefoon",
+        "type": "phone"
+      },
+      {
+        "id": "text_mksk3arq",
+        "title": "Email",
+        "type": "text"
+      },
+      {
+        "id": "long_text4",
+        "title": "Opmerkingen",
+        "type": "long_text"
+      },
+      {
+        "id": "color_mkskgdv2",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "text_mksk8j3",
+        "title": "Plaats",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "id": "5091345790",
+    "name": "Subitems of LT Elektro",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "person",
+        "title": "Owner",
+        "type": "people"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date0",
+        "title": "Date",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "id": "5091345789",
+    "name": "LT Elektro",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Open leads"
+      },
+      {
+        "id": "group_mkw6d26h",
+        "title": "Inplannen"
+      },
+      {
+        "id": "group_mkw6tf0g",
+        "title": "Inspectie gepland"
+      },
+      {
+        "id": "group_mkw6sk17",
+        "title": "Offerte verzonden"
+      },
+      {
+        "id": "group_mkw6tv6c",
+        "title": "Akkoord"
+      },
+      {
+        "id": "group_mkw6p7n4",
+        "title": "Niet geïnteresseerd"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "subtasks_mkvpdgxr",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "contact_phone",
+        "title": "Telefoon",
+        "type": "phone"
+      },
+      {
+        "id": "contact_email",
+        "title": "Email",
+        "type": "email"
+      },
+      {
+        "id": "text_mkyhh85w",
+        "title": "Opmerking",
+        "type": "text"
+      },
+      {
+        "id": "date_mkw6e8gx",
+        "title": "Datum",
+        "type": "date"
+      },
+      {
+        "id": "color_mkw6bxcb",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "text_mkw6kyja",
+        "title": "Aantal units",
+        "type": "text"
+      },
+      {
+        "id": "text_mkw693vf",
+        "title": "Type woning",
+        "type": "text"
+      },
+      {
+        "id": "text_mkw67kp7",
+        "title": "Plaats",
+        "type": "text"
+      },
+      {
+        "id": "text_mkyhy9kb",
+        "title": "Postcode",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "id": "5091345635",
+    "name": "Subitems of Airco Leads",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "person",
+        "title": "Owner",
+        "type": "people"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date0",
+        "title": "Date",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "id": "5091345633",
+    "name": "Airco Leads",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Open Leads"
+      },
+      {
+        "id": "group_mkw5jg07",
+        "title": "Niet geïnteresseerd"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "subtasks_mkvpdgxr",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "phone_mkw5schz",
+        "title": "Phone",
+        "type": "phone"
+      },
+      {
+        "id": "contact_email",
+        "title": "Email",
+        "type": "email"
+      },
+      {
+        "id": "color_mkw5a1z7",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "text_mkw53e4q",
+        "title": "Type woning",
+        "type": "text"
+      },
+      {
+        "id": "text_mkw5m2y4",
+        "title": "Aantal units",
+        "type": "text"
+      },
+      {
+        "id": "text_mkw5vatk",
+        "title": "Plaats",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "id": "5091345319",
+    "name": "Subitems of Airco Leads",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "person",
+        "title": "Owner",
+        "type": "people"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date0",
+        "title": "Date",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "id": "5091345317",
+    "name": "Airco Leads",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Open Leads"
+      },
+      {
+        "id": "group_mkw5jg07",
+        "title": "Niet geïnteresseerd"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "subtasks_mkvpdgxr",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "phone_mkw5schz",
+        "title": "Phone",
+        "type": "phone"
+      },
+      {
+        "id": "contact_email",
+        "title": "Email",
+        "type": "email"
+      },
+      {
+        "id": "color_mkw5a1z7",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "text_mkw53e4q",
+        "title": "Type woning",
+        "type": "text"
+      },
+      {
+        "id": "text_mkw5m2y4",
+        "title": "Aantal units",
+        "type": "text"
+      },
+      {
+        "id": "text_mkw5vatk",
+        "title": "Plaats",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "id": "5091344342",
+    "name": "Subitems of BK - MO",
+    "board_kind": "share",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "person",
+        "title": "Owner",
+        "type": "people"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date0",
+        "title": "Date",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "id": "5091344340",
+    "name": "BK - MO",
+    "board_kind": "share",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Open Leads"
+      },
+      {
+        "id": "group_mksy1p9m",
+        "title": "Inspectie gepland"
+      },
+      {
+        "id": "group_mksytvt2",
+        "title": "Offerte verzonden"
+      },
+      {
+        "id": "group_mkxq5j01",
+        "title": "Later opvolgen"
+      },
+      {
+        "id": "group_mkxnypcs",
+        "title": "Akkoord"
+      },
+      {
+        "id": "new_group95562",
+        "title": "Niet bereikbaar/geinteresseerd/al voorzien"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "subtasks_mksnx3wm",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "text_mkskqqft",
+        "title": "Campagne",
+        "type": "text"
+      },
+      {
+        "id": "contact_phone",
+        "title": "Telefoon",
+        "type": "phone"
+      },
+      {
+        "id": "text_mksk3arq",
+        "title": "Email",
+        "type": "text"
+      },
+      {
+        "id": "long_text4",
+        "title": "Opmerkingen",
+        "type": "long_text"
+      },
+      {
+        "id": "color_mkskgdv2",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date_mm158wne",
+        "title": "Terugbel",
+        "type": "date"
+      },
+      {
+        "id": "long_text_mktfh12b",
+        "title": "Urgentie",
+        "type": "long_text"
+      },
+      {
+        "id": "text_mkskv446",
+        "title": "Werkzaamheid",
+        "type": "text"
+      },
+      {
+        "id": "text_mksk8j3",
+        "title": "Postcode",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskpdsk",
+        "title": "Straat",
+        "type": "text"
+      },
+      {
+        "id": "file_mky32spz",
+        "title": "Offerte",
+        "type": "file"
+      }
+    ]
+  },
+  {
+    "id": "5091344309",
+    "name": "Subitems of Rotterdamse BK",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "person",
+        "title": "Owner",
+        "type": "people"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date0",
+        "title": "Date",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "id": "5091344307",
+    "name": "Rotterdamse BK",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Open Leads"
+      },
+      {
+        "id": "group_mksy1p9m",
+        "title": "Inspectie gepland"
+      },
+      {
+        "id": "group_mksytvt2",
+        "title": "Offerte verzonden"
+      },
+      {
+        "id": "group_mkxq5j01",
+        "title": "Later opvolgen"
+      },
+      {
+        "id": "group_mkxnypcs",
+        "title": "Akkoord"
+      },
+      {
+        "id": "new_group95562",
+        "title": "Niet bereikbaar/geinteresseerd/al voorzien"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "subtasks_mksnx3wm",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "text_mkskqqft",
+        "title": "Campagne",
+        "type": "text"
+      },
+      {
+        "id": "contact_phone",
+        "title": "Telefoon",
+        "type": "phone"
+      },
+      {
+        "id": "text_mksk3arq",
+        "title": "Email",
+        "type": "text"
+      },
+      {
+        "id": "long_text4",
+        "title": "Opmerkingen",
+        "type": "long_text"
+      },
+      {
+        "id": "color_mkskgdv2",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "long_text_mktfh12b",
+        "title": "Urgentie",
+        "type": "long_text"
+      },
+      {
+        "id": "text_mkskv446",
+        "title": "Werkzaamheid",
+        "type": "text"
+      },
+      {
+        "id": "text_mksk8j3",
+        "title": "Postcode",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskpdsk",
+        "title": "Straat",
+        "type": "text"
+      },
+      {
+        "id": "file_mky32spz",
+        "title": "Offerte",
+        "type": "file"
+      }
+    ]
+  },
+  {
+    "id": "5091344033",
+    "name": "Subitems of DCN - DK",
+    "board_kind": "share",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "person",
+        "title": "Owner",
+        "type": "people"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date0",
+        "title": "Date",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "id": "5091344029",
+    "name": "DCN - DK",
+    "board_kind": "share",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Open Leads"
+      },
+      {
+        "id": "group_mkzemyph",
+        "title": "Akkoord"
+      },
+      {
+        "id": "group_mksy1p9m",
+        "title": "Doorgestuurd"
+      },
+      {
+        "id": "new_group95562",
+        "title": "Niet bereikbaar/geinteresseerd/al voorzien"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "subtasks_mksnx3wm",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "contact_phone",
+        "title": "Telefoon",
+        "type": "phone"
+      },
+      {
+        "id": "text_mksk3arq",
+        "title": "E-mail",
+        "type": "text"
+      },
+      {
+        "id": "long_text4",
+        "title": "Opmerkingen",
+        "type": "long_text"
+      },
+      {
+        "id": "color_mkskgdv2",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "text_mkskv446",
+        "title": "Welke kant",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskn3bq",
+        "title": "Breedte",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskb49d",
+        "title": "Materiaal",
+        "type": "text"
+      },
+      {
+        "id": "text_mksk8j3",
+        "title": "Postcode",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskpdsk",
+        "title": "Straat",
+        "type": "text"
+      },
+      {
+        "id": "file_mm09b1rz",
+        "title": "Offertes",
+        "type": "file"
+      }
+    ]
+  },
+  {
+    "id": "5091343875",
+    "name": "Subitems of Dakcentrale Nederland",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "person",
+        "title": "Owner",
+        "type": "people"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date0",
+        "title": "Date",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "id": "5091343873",
+    "name": "Dakcentrale Nederland",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Open Leads"
+      },
+      {
+        "id": "group_mkzemyph",
+        "title": "Akkoord"
+      },
+      {
+        "id": "group_mksy1p9m",
+        "title": "Doorgestuurd"
+      },
+      {
+        "id": "new_group95562",
+        "title": "Niet bereikbaar/geinteresseerd/al voorzien"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "subtasks_mksnx3wm",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "contact_phone",
+        "title": "Telefoon",
+        "type": "phone"
+      },
+      {
+        "id": "text_mksk3arq",
+        "title": "E-mail",
+        "type": "text"
+      },
+      {
+        "id": "long_text4",
+        "title": "Opmerkingen",
+        "type": "long_text"
+      },
+      {
+        "id": "color_mkskgdv2",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "text_mkskv446",
+        "title": "Welke kant",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskn3bq",
+        "title": "Breedte",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskb49d",
+        "title": "Materiaal",
+        "type": "text"
+      },
+      {
+        "id": "text_mksk8j3",
+        "title": "Postcode",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskpdsk",
+        "title": "Straat",
+        "type": "text"
+      },
+      {
+        "id": "file_mm09b1rz",
+        "title": "Files",
+        "type": "file"
+      }
+    ]
+  },
+  {
+    "id": "5091343168",
+    "name": "Subitems of Quotes & Invoices",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "line_item_description",
+        "title": "Description",
+        "type": "long_text"
+      },
+      {
+        "id": "line_item_unit_price",
+        "title": "Unit price",
+        "type": "numbers"
+      },
+      {
+        "id": "line_item_quantity",
+        "title": "Quantity",
+        "type": "numbers"
+      },
+      {
+        "id": "line_item_total_multipliers",
+        "title": "Total multipliers",
+        "type": "numbers"
+      },
+      {
+        "id": "line_item_base_price",
+        "title": "Base price",
+        "type": "numbers"
+      },
+      {
+        "id": "line_item_adjustment_rate",
+        "title": "Discount rate",
+        "type": "numbers"
+      },
+      {
+        "id": "line_item_adjustment_value",
+        "title": "Discount value",
+        "type": "numbers"
+      },
+      {
+        "id": "line_item_fees_rate",
+        "title": "Fee rate",
+        "type": "numbers"
+      },
+      {
+        "id": "line_item_fees_value",
+        "title": "Fee value",
+        "type": "numbers"
+      },
+      {
+        "id": "line_item_tax_rate",
+        "title": "Tax rate",
+        "type": "numbers"
+      },
+      {
+        "id": "line_item_tax_value",
+        "title": "Tax value",
+        "type": "numbers"
+      },
+      {
+        "id": "line_item_final_price",
+        "title": "Total",
+        "type": "numbers"
+      },
+      {
+        "id": "line_item_currency",
+        "title": "Currency",
+        "type": "text"
+      },
+      {
+        "id": "line_item_product",
+        "title": "Product",
+        "type": "board_relation"
+      },
+      {
+        "id": "line_item_deal",
+        "title": "Deal",
+        "type": "board_relation"
+      },
+      {
+        "id": "line_item_contact",
+        "title": "Contact",
+        "type": "board_relation"
+      },
+      {
+        "id": "line_item_id",
+        "title": "Id",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "id": "5091343156",
+    "name": "Quotes & Invoices",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Quotes & Invoices"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "subtasks_mkz4agq",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "type",
+        "title": "Type",
+        "type": "status"
+      },
+      {
+        "id": "amount",
+        "title": "Amount",
+        "type": "numbers"
+      },
+      {
+        "id": "bill_to",
+        "title": "Recipient",
+        "type": "board_relation"
+      },
+      {
+        "id": "file",
+        "title": "File",
+        "type": "file"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "issue_date",
+        "title": "Issue date",
+        "type": "date"
+      },
+      {
+        "id": "creation_log__1",
+        "title": "Owner",
+        "type": "creation_log"
+      },
+      {
+        "id": "owner",
+        "title": "Owner",
+        "type": "people"
+      }
+    ]
+  },
+  {
+    "id": "5091343154",
+    "name": "Accounts",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Commissie accounts"
+      },
+      {
+        "id": "group_mm0ey5fe",
+        "title": "Pay-per-lead accounts"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "company_profile",
+        "title": "Company profile",
+        "type": "link"
+      },
+      {
+        "id": "text_mm0apf91",
+        "title": "CP",
+        "type": "text"
+      },
+      {
+        "id": "phone_mm0a4c5t",
+        "title": "Telefoon",
+        "type": "phone"
+      },
+      {
+        "id": "email_mm0awwq9",
+        "title": "Email",
+        "type": "email"
+      },
+      {
+        "id": "link_mm0ag0v9",
+        "title": "Website",
+        "type": "link"
+      },
+      {
+        "id": "text_mm0ap9v8",
+        "title": "Branche",
+        "type": "text"
+      },
+      {
+        "id": "text_mm0anwkd",
+        "title": "Lead price",
+        "type": "text"
+      },
+      {
+        "id": "text_mm0akh77",
+        "title": "Budget",
+        "type": "text"
+      },
+      {
+        "id": "color_mm0aajg7",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "text_mm0a3vqb",
+        "title": "Delivered : Agreed",
+        "type": "text"
+      },
+      {
+        "id": "text_mm0a3ag5",
+        "title": "Factuur datum",
+        "type": "text"
+      },
+      {
+        "id": "text_mm0a599x",
+        "title": "Start Ads",
+        "type": "text"
+      },
+      {
+        "id": "color_mm0a5hb1",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "file_mm0ahvkq",
+        "title": "Contract",
+        "type": "file"
+      }
+    ]
+  },
+  {
+    "id": "5091342553",
+    "name": "Subitems of Quotes & Invoices",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "line_item_description",
+        "title": "Description",
+        "type": "long_text"
+      },
+      {
+        "id": "line_item_unit_price",
+        "title": "Unit price",
+        "type": "numbers"
+      },
+      {
+        "id": "line_item_quantity",
+        "title": "Quantity",
+        "type": "numbers"
+      },
+      {
+        "id": "line_item_total_multipliers",
+        "title": "Total multipliers",
+        "type": "numbers"
+      },
+      {
+        "id": "line_item_base_price",
+        "title": "Base price",
+        "type": "numbers"
+      },
+      {
+        "id": "line_item_adjustment_rate",
+        "title": "Discount rate",
+        "type": "numbers"
+      },
+      {
+        "id": "line_item_adjustment_value",
+        "title": "Discount value",
+        "type": "numbers"
+      },
+      {
+        "id": "line_item_fees_rate",
+        "title": "Fee rate",
+        "type": "numbers"
+      },
+      {
+        "id": "line_item_fees_value",
+        "title": "Fee value",
+        "type": "numbers"
+      },
+      {
+        "id": "line_item_tax_rate",
+        "title": "Tax rate",
+        "type": "numbers"
+      },
+      {
+        "id": "line_item_tax_value",
+        "title": "Tax value",
+        "type": "numbers"
+      },
+      {
+        "id": "line_item_final_price",
+        "title": "Total",
+        "type": "numbers"
+      },
+      {
+        "id": "line_item_currency",
+        "title": "Currency",
+        "type": "text"
+      },
+      {
+        "id": "line_item_product",
+        "title": "Product",
+        "type": "board_relation"
+      },
+      {
+        "id": "line_item_deal",
+        "title": "Deal",
+        "type": "board_relation"
+      },
+      {
+        "id": "line_item_contact",
+        "title": "Contact",
+        "type": "board_relation"
+      },
+      {
+        "id": "line_item_id",
+        "title": "Id",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "id": "5091342552",
+    "name": "Subitems of Client Projects",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "subitems_of_596368986",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "person",
+        "title": "Owner",
+        "type": "people"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date0",
+        "title": "Date",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "id": "5091342542",
+    "name": "Client Projects",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "new_group29179",
+        "title": "New projects"
+      },
+      {
+        "id": "group_mm0dnd65",
+        "title": "In progress"
+      },
+      {
+        "id": "topics",
+        "title": "Completed"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "subitems",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "project_owner",
+        "title": "Owner",
+        "type": "people"
+      },
+      {
+        "id": "connect_boards",
+        "title": "Accounts",
+        "type": "board_relation"
+      },
+      {
+        "id": "project_timeline",
+        "title": "Timeline",
+        "type": "timeline"
+      },
+      {
+        "id": "project_status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "text_mm0dpc7",
+        "title": "Aanneemsom",
+        "type": "text"
+      },
+      {
+        "id": "color_mm0dgzza",
+        "title": "Betaal status",
+        "type": "status"
+      },
+      {
+        "id": "numeric_mm1mpd42",
+        "title": "Commissie",
+        "type": "numbers"
+      },
+      {
+        "id": "color_mm0ddwrj",
+        "title": "Commissie status",
+        "type": "status"
+      },
+      {
+        "id": "boolean_mm0drnnq",
+        "title": "Contracten?",
+        "type": "checkbox"
+      }
+    ]
+  },
+  {
+    "id": "5091342540",
+    "name": "Quotes & Invoices",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Quotes & Invoices"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "subtasks_mkz4agq",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "type",
+        "title": "Type",
+        "type": "status"
+      },
+      {
+        "id": "amount",
+        "title": "Amount",
+        "type": "numbers"
+      },
+      {
+        "id": "bill_to",
+        "title": "Recipient",
+        "type": "board_relation"
+      },
+      {
+        "id": "file",
+        "title": "File",
+        "type": "file"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "issue_date",
+        "title": "Issue date",
+        "type": "date"
+      },
+      {
+        "id": "creation_log__1",
+        "title": "Owner",
+        "type": "creation_log"
+      },
+      {
+        "id": "owner",
+        "title": "Owner",
+        "type": "people"
+      }
+    ]
+  },
+  {
+    "id": "5089167735",
+    "name": "Subitems of Aannemers",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "person",
+        "title": "Owner",
+        "type": "people"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date0",
+        "title": "Date",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "id": "5089167733",
+    "name": "Aannemers",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Open Leads"
+      },
+      {
+        "id": "group_mkt7w9ay",
+        "title": "In contact"
+      },
+      {
+        "id": "group_mksy1p9m",
+        "title": "Afspraak"
+      },
+      {
+        "id": "group_mm19gpx",
+        "title": "Aangemeld"
+      },
+      {
+        "id": "new_group95562",
+        "title": "Niet bereikbaar/geinteresseerd/al voorzien"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "subtasks_mksnx3wm",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "multiple_person_mkt4ge0",
+        "title": "People",
+        "type": "people"
+      },
+      {
+        "id": "text_mkyrrsgg",
+        "title": "Bedrijfsnaam",
+        "type": "text"
+      },
+      {
+        "id": "contact_phone",
+        "title": "Telefoon",
+        "type": "phone"
+      },
+      {
+        "id": "text_mksk3arq",
+        "title": "Email address",
+        "type": "text"
+      },
+      {
+        "id": "long_text4",
+        "title": "Comments",
+        "type": "long_text"
+      },
+      {
+        "id": "color_mkskgdv2",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "text_mksk8j3",
+        "title": "Plaats",
+        "type": "text"
+      },
+      {
+        "id": "text_mm079p98",
+        "title": "Omzet",
+        "type": "text"
+      },
+      {
+        "id": "text_mm07ezy2",
+        "title": "Regio",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "id": "5088858295",
+    "name": "Subitems of Weekly Totals",
+    "board_kind": "share",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "person",
+        "title": "Owner",
+        "type": "people"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date0",
+        "title": "Date",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "id": "5087925680",
+    "name": "Subitems of Dakcentrale Nederland",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "person",
+        "title": "Owner",
+        "type": "people"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date0",
+        "title": "Date",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "id": "5087925675",
+    "name": "Dakcentrale Nederland",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Open Leads huidig"
+      },
+      {
+        "id": "group_mkth6zkk",
+        "title": "Inspectie gepland"
+      },
+      {
+        "id": "new_group95562",
+        "title": "Niet bereikbaar/geinteresseerd/al voorzien"
+      },
+      {
+        "id": "group_mm0a4e0v",
+        "title": "Akkoord"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "text_mm286ary",
+        "title": "Campagne",
+        "type": "text"
+      },
+      {
+        "id": "subtasks_mksnx3wm",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "contact_phone",
+        "title": "Telefoon",
+        "type": "phone"
+      },
+      {
+        "id": "text_mksk3arq",
+        "title": "Email address",
+        "type": "text"
+      },
+      {
+        "id": "long_text4",
+        "title": "Comments",
+        "type": "long_text"
+      },
+      {
+        "id": "color_mkskgdv2",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "long_text_mktfh12b",
+        "title": "Urgentie",
+        "type": "long_text"
+      },
+      {
+        "id": "text_mkskv446",
+        "title": "Type Dak",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskn3bq",
+        "title": "Aantal m2",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskb49d",
+        "title": "P/Z",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskf302",
+        "title": "Werkzaamheden",
+        "type": "text"
+      },
+      {
+        "id": "text_mksk8j3",
+        "title": "Adres",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskpdsk",
+        "title": "Plaats",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "id": "5087427207",
+    "name": "Subitems of EKO Group",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "person",
+        "title": "Owner",
+        "type": "people"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date0",
+        "title": "Date",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "id": "5087427206",
+    "name": "EKO Group",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Open Leads"
+      },
+      {
+        "id": "group_mky05yh9",
+        "title": "Ramazan bellen"
+      },
+      {
+        "id": "group_mkt7w9ay",
+        "title": "Contact mee"
+      },
+      {
+        "id": "group_mksy1p9m",
+        "title": "Inspectie gepland"
+      },
+      {
+        "id": "group_mksytvt2",
+        "title": "Offerte verzonden"
+      },
+      {
+        "id": "group_mky3bfee",
+        "title": "Later opvolgen"
+      },
+      {
+        "id": "group_mkyaa2yd",
+        "title": "Akkoord"
+      },
+      {
+        "id": "new_group95562",
+        "title": "Niet bereikbaar/geinteresseerd/al voorzien"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "subtasks_mksnx3wm",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "text_mkskqqft",
+        "title": "Campagne",
+        "type": "text"
+      },
+      {
+        "id": "contact_phone",
+        "title": "Telefoon",
+        "type": "phone"
+      },
+      {
+        "id": "text_mksk3arq",
+        "title": "Email",
+        "type": "text"
+      },
+      {
+        "id": "long_text4",
+        "title": "Opmerkingen",
+        "type": "long_text"
+      },
+      {
+        "id": "color_mkskgdv2",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "long_text_mktfh12b",
+        "title": "Urgentie",
+        "type": "long_text"
+      },
+      {
+        "id": "text_mkskv446",
+        "title": "Dienst",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskn3bq",
+        "title": "M2",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskb49d",
+        "title": "Tekening",
+        "type": "text"
+      },
+      {
+        "id": "text_mksk8j3",
+        "title": "Postcode",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskpdsk",
+        "title": "Straat",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "id": "5081902469",
+    "name": "Subitems of EKO Group B.V.",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "person",
+        "title": "Owner",
+        "type": "people"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date0",
+        "title": "Date",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "id": "5081902452",
+    "name": "EKO Group B.V.",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Open Leads"
+      },
+      {
+        "id": "group_mkth6zkk",
+        "title": "Ramazan opbellen"
+      },
+      {
+        "id": "group_mksy1p9m",
+        "title": "Inspectie gepland"
+      },
+      {
+        "id": "group_mksytvt2",
+        "title": "Offerte verzonden"
+      },
+      {
+        "id": "group_mkt7w9ay",
+        "title": "Follow Up Later"
+      },
+      {
+        "id": "new_group95562",
+        "title": "Niet bereikbaar/geinteresseerd/al voorzien"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "subtasks_mksnx3wm",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "text_mkskqqft",
+        "title": "Campagne",
+        "type": "text"
+      },
+      {
+        "id": "multiple_person_mkt4ge0",
+        "title": "People",
+        "type": "people"
+      },
+      {
+        "id": "dropdown_mktr8dx9",
+        "title": "Dropdown",
+        "type": "dropdown"
+      },
+      {
+        "id": "contact_phone",
+        "title": "Telefoon",
+        "type": "phone"
+      },
+      {
+        "id": "text_mksk3arq",
+        "title": "Email address",
+        "type": "text"
+      },
+      {
+        "id": "long_text4",
+        "title": "Comments",
+        "type": "long_text"
+      },
+      {
+        "id": "color_mkskgdv2",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "long_text_mktfh12b",
+        "title": "Urgentie",
+        "type": "long_text"
+      },
+      {
+        "id": "text_mkskv446",
+        "title": "Welke kant",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskn3bq",
+        "title": "Breedte",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskb49d",
+        "title": "Materiaal",
+        "type": "text"
+      },
+      {
+        "id": "text_mksk8j3",
+        "title": "Postcode",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskpdsk",
+        "title": "Straat",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "id": "5073946543",
+    "name": "Quotes & Invoices",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Quotes & Invoices"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "type",
+        "title": "Type",
+        "type": "status"
+      },
+      {
+        "id": "amount",
+        "title": "Amount",
+        "type": "numbers"
+      },
+      {
+        "id": "bill_to",
+        "title": "Recipient",
+        "type": "board_relation"
+      },
+      {
+        "id": "file",
+        "title": "File",
+        "type": "file"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "issue_date",
+        "title": "Issue date",
+        "type": "date"
+      },
+      {
+        "id": "creation_log__1",
+        "title": "Owner",
+        "type": "creation_log"
+      }
+    ]
+  },
+  {
+    "id": "5062159430",
+    "name": "Subitems of AM Topdaken",
+    "board_kind": "share",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "person",
+        "title": "Owner",
+        "type": "people"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date0",
+        "title": "Date",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "id": "5062159390",
+    "name": "AM Topdaken",
+    "board_kind": "share",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Gebeld"
+      },
+      {
+        "id": "group_mkth6zkk",
+        "title": "In Afwachting bevestiging"
+      },
+      {
+        "id": "group_mksy1p9m",
+        "title": "Inspectie gepland"
+      },
+      {
+        "id": "group_mksytvt2",
+        "title": "Offerte verzonden"
+      },
+      {
+        "id": "group_mkt7w9ay",
+        "title": "Follow Up Later"
+      },
+      {
+        "id": "new_group95562",
+        "title": "Niet bereikbaar/geinteresseerd/al voorzien"
+      },
+      {
+        "id": "group_mkxv4gvr",
+        "title": "Akkoord"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "subtasks_mksnx3wm",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "text_mkskqqft",
+        "title": "Campagne",
+        "type": "text"
+      },
+      {
+        "id": "multiple_person_mkt4ge0",
+        "title": "People",
+        "type": "people"
+      },
+      {
+        "id": "contact_phone",
+        "title": "Telefoon",
+        "type": "phone"
+      },
+      {
+        "id": "text_mksk3arq",
+        "title": "Email address",
+        "type": "text"
+      },
+      {
+        "id": "long_text4",
+        "title": "Comments",
+        "type": "long_text"
+      },
+      {
+        "id": "color_mkskgdv2",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "long_text_mktfh12b",
+        "title": "Urgentie",
+        "type": "long_text"
+      },
+      {
+        "id": "text_mkskv446",
+        "title": "Type Dak",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskn3bq",
+        "title": "Aantal m2",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskb49d",
+        "title": "P/Z",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskf302",
+        "title": "Werkzaamheden",
+        "type": "text"
+      },
+      {
+        "id": "text_mksk8j3",
+        "title": "Adres",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskpdsk",
+        "title": "Plaats",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "id": "5049332167",
+    "name": "Weekly Totals",
+    "board_kind": "share",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Group Title"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "subtasks_mkyhr8v6",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "color_mkwty37m",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "text_mkwtdk7p",
+        "title": "ISO Week",
+        "type": "text"
+      },
+      {
+        "id": "text_mkwt7q8j",
+        "title": "Buyer ID",
+        "type": "text"
+      },
+      {
+        "id": "numeric_mkwtn3h3",
+        "title": "Lead Count",
+        "type": "numbers"
+      },
+      {
+        "id": "numeric_mkwtqk1c",
+        "title": "Amount EUR",
+        "type": "numbers"
+      },
+      {
+        "id": "text_mkwt5gj1",
+        "title": "Stripe PaymentIntent ID",
+        "type": "text"
+      },
+      {
+        "id": "date_mkwtaexy",
+        "title": "Charged At (ISO)",
+        "type": "date"
+      },
+      {
+        "id": "text_mkwtf7y0",
+        "title": "Key (buyer|week)",
+        "type": "text"
+      },
+      {
+        "id": "text_mkwz8ebh",
+        "title": "Notes",
+        "type": "text"
+      },
+      {
+        "id": "color_mkypepfw",
+        "title": "Stripe Invoice Status",
+        "type": "status"
+      },
+      {
+        "id": "text_mkyppzkk",
+        "title": "Stripe Invoice ID",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "id": "5049323798",
+    "name": "Ledger",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Group Title"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "date_mkwtrtw6",
+        "title": "Purchased at (ISO)",
+        "type": "date"
+      },
+      {
+        "id": "text_mkwt4am3",
+        "title": "ISO Week",
+        "type": "text"
+      },
+      {
+        "id": "text_mkwtw3sf",
+        "title": "Buyer ID",
+        "type": "text"
+      },
+      {
+        "id": "text_mkwzqz51",
+        "title": "Lead ID",
+        "type": "text"
+      },
+      {
+        "id": "numeric_mkwtmkxc",
+        "title": "Price (EUR)",
+        "type": "numbers"
+      },
+      {
+        "id": "text_mkwtcwgb",
+        "title": "Source",
+        "type": "text"
+      },
+      {
+        "id": "color_mkwwym23",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "text_mkx0v1tv",
+        "title": "Key (Buyer ID | Lead ID)",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "id": "5049140185",
+    "name": "Buyers",
+    "board_kind": "share",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Group Title"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "short_text4c9yxzlz",
+        "title": "Buyer Name",
+        "type": "text"
+      },
+      {
+        "id": "color_mkwtx3zk",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "text_mkwtxkq1",
+        "title": "Buyer ID",
+        "type": "text"
+      },
+      {
+        "id": "email_mkwtffcv",
+        "title": "Email",
+        "type": "email"
+      },
+      {
+        "id": "text_mkwtdm4d",
+        "title": "Phone",
+        "type": "text"
+      },
+      {
+        "id": "text_mkwtddv5",
+        "title": "Stripe Customer ID",
+        "type": "text"
+      },
+      {
+        "id": "text_mkwthgmc",
+        "title": "iDEAL URL",
+        "type": "text"
+      },
+      {
+        "id": "text_mkwtacwz",
+        "title": "SEPA Payment Method ID",
+        "type": "text"
+      },
+      {
+        "id": "text_mkwt8p3f",
+        "title": "SEPA Mandate ID",
+        "type": "text"
+      },
+      {
+        "id": "text_mkwtbc8a",
+        "title": "IBAN Last4",
+        "type": "text"
+      },
+      {
+        "id": "text_mkwtc416",
+        "title": "Notes",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "id": "5022676335",
+    "name": "Subitems of Dakdekker Leads",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "person",
+        "title": "Owner",
+        "type": "people"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date0",
+        "title": "Date",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "id": "5022676231",
+    "name": "Dakdekker Leads",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Open Leads"
+      },
+      {
+        "id": "group_mkth6zkk",
+        "title": "In Afwachting bevestiging"
+      },
+      {
+        "id": "group_mksy1p9m",
+        "title": "Inspectie gepland"
+      },
+      {
+        "id": "group_mksytvt2",
+        "title": "Offerte verzonden"
+      },
+      {
+        "id": "group_mkt7w9ay",
+        "title": "Follow Up Later"
+      },
+      {
+        "id": "new_group95562",
+        "title": "Niet bereikbaar/geinteresseerd/al voorzien"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "subtasks_mksnx3wm",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "text_mkskqqft",
+        "title": "Campagne",
+        "type": "text"
+      },
+      {
+        "id": "multiple_person_mkt4ge0",
+        "title": "People",
+        "type": "people"
+      },
+      {
+        "id": "dropdown_mktr8dx9",
+        "title": "Dropdown",
+        "type": "dropdown"
+      },
+      {
+        "id": "contact_phone",
+        "title": "Telefoon",
+        "type": "phone"
+      },
+      {
+        "id": "text_mksk3arq",
+        "title": "Email address",
+        "type": "text"
+      },
+      {
+        "id": "long_text4",
+        "title": "Comments",
+        "type": "long_text"
+      },
+      {
+        "id": "color_mkskgdv2",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "long_text_mktfh12b",
+        "title": "Urgentie",
+        "type": "long_text"
+      },
+      {
+        "id": "text_mkskv446",
+        "title": "Type Dak",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskn3bq",
+        "title": "Aantal m2",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskb49d",
+        "title": "P/Z",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskf302",
+        "title": "Werkzaamheden",
+        "type": "text"
+      },
+      {
+        "id": "text_mksk8j3",
+        "title": "Adres",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskpdsk",
+        "title": "Plaats",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "id": "5015843001",
+    "name": "Subitems of Ermir",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "person",
+        "title": "Owner",
+        "type": "people"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date0",
+        "title": "Date",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "id": "5015842998",
+    "name": "Ermir",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Open leads"
+      },
+      {
+        "id": "group_mkw6d26h",
+        "title": "Inplannen"
+      },
+      {
+        "id": "group_mkw6tf0g",
+        "title": "Inspectie gepland"
+      },
+      {
+        "id": "group_mkw6sk17",
+        "title": "Offerte verzonden"
+      },
+      {
+        "id": "group_mkw6tv6c",
+        "title": "Akkoord"
+      },
+      {
+        "id": "group_mkw6p7n4",
+        "title": "Niet geïnteresseerd"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "subtasks_mkvpdgxr",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "contact_phone",
+        "title": "Telefoon",
+        "type": "phone"
+      },
+      {
+        "id": "contact_email",
+        "title": "Email",
+        "type": "email"
+      },
+      {
+        "id": "date_mkw6e8gx",
+        "title": "Date",
+        "type": "date"
+      },
+      {
+        "id": "color_mkw6bxcb",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "text_mkw6kyja",
+        "title": "Type vloer",
+        "type": "text"
+      },
+      {
+        "id": "text_mkw693vf",
+        "title": "M2",
+        "type": "text"
+      },
+      {
+        "id": "text_mkw67kp7",
+        "title": "Plaats",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "id": "5015792751",
+    "name": "Subitems of Jongsma Dakbedekkingen",
+    "board_kind": "share",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "person",
+        "title": "Owner",
+        "type": "people"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date0",
+        "title": "Date",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "id": "5015792750",
+    "name": "Jongsma Dakbedekkingen",
+    "board_kind": "share",
+    "groups": [
+      {
+        "id": "group_mkth6zkk",
+        "title": "Gebeld"
+      },
+      {
+        "id": "group_mm1a7dcg",
+        "title": "Arjan niet bereikt"
+      },
+      {
+        "id": "group_mksytvt2",
+        "title": "Offerte verzonden"
+      },
+      {
+        "id": "group_mkt7w9ay",
+        "title": "Opvolgen"
+      },
+      {
+        "id": "group_mkw6h9x6",
+        "title": "Akkoord"
+      },
+      {
+        "id": "new_group95562",
+        "title": "Niet bereikbaar/geinteresseerd/al voorzien"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "subtasks_mksnx3wm",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "text_mkskqqft",
+        "title": "Campagne",
+        "type": "text"
+      },
+      {
+        "id": "multiple_person_mkt4ge0",
+        "title": "People",
+        "type": "people"
+      },
+      {
+        "id": "contact_phone",
+        "title": "Telefoon",
+        "type": "phone"
+      },
+      {
+        "id": "text_mksk3arq",
+        "title": "Email",
+        "type": "text"
+      },
+      {
+        "id": "long_text4",
+        "title": "Opmerkingen",
+        "type": "long_text"
+      },
+      {
+        "id": "color_mkskgdv2",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "long_text_mktfh12b",
+        "title": "Urgentie",
+        "type": "long_text"
+      },
+      {
+        "id": "text_mkskv446",
+        "title": "Type Dak",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskn3bq",
+        "title": "Aantal m2",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskb49d",
+        "title": "P/Z",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskf302",
+        "title": "Werkzaamheden",
+        "type": "text"
+      },
+      {
+        "id": "text_mksk8j3",
+        "title": "Adres",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskpdsk",
+        "title": "Plaats",
+        "type": "text"
+      },
+      {
+        "id": "location_mkxqb6b8",
+        "title": "Locatie",
+        "type": "location"
+      }
+    ]
+  },
+  {
+    "id": "5015792458",
+    "name": "Subitems of Dakdekker Leads",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "person",
+        "title": "Owner",
+        "type": "people"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date0",
+        "title": "Date",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "id": "5015792455",
+    "name": "Dakdekker Leads",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Open Leads"
+      },
+      {
+        "id": "group_mkth6zkk",
+        "title": "In Afwachting bevestiging"
+      },
+      {
+        "id": "group_mksy1p9m",
+        "title": "Inspectie gepland"
+      },
+      {
+        "id": "group_mksytvt2",
+        "title": "Offerte verzonden"
+      },
+      {
+        "id": "group_mkt7w9ay",
+        "title": "Follow Up Later"
+      },
+      {
+        "id": "new_group95562",
+        "title": "Niet bereikbaar/geinteresseerd/al voorzien"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "subtasks_mksnx3wm",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "text_mkskqqft",
+        "title": "Campagne",
+        "type": "text"
+      },
+      {
+        "id": "multiple_person_mkt4ge0",
+        "title": "People",
+        "type": "people"
+      },
+      {
+        "id": "dropdown_mktr8dx9",
+        "title": "Dropdown",
+        "type": "dropdown"
+      },
+      {
+        "id": "contact_phone",
+        "title": "Telefoon",
+        "type": "phone"
+      },
+      {
+        "id": "text_mksk3arq",
+        "title": "Email address",
+        "type": "text"
+      },
+      {
+        "id": "long_text4",
+        "title": "Comments",
+        "type": "long_text"
+      },
+      {
+        "id": "color_mkskgdv2",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "long_text_mktfh12b",
+        "title": "Urgentie",
+        "type": "long_text"
+      },
+      {
+        "id": "text_mkskv446",
+        "title": "Type Dak",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskn3bq",
+        "title": "Aantal m2",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskb49d",
+        "title": "P/Z",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskf302",
+        "title": "Werkzaamheden",
+        "type": "text"
+      },
+      {
+        "id": "text_mksk8j3",
+        "title": "Adres",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskpdsk",
+        "title": "Plaats",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "id": "5015588899",
+    "name": "Subitems of AC - Twente",
+    "board_kind": "share",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "person",
+        "title": "Owner",
+        "type": "people"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date0",
+        "title": "Date",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "id": "5015588898",
+    "name": "AC - Twente",
+    "board_kind": "share",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Open Leads"
+      },
+      {
+        "id": "group_mkw5hs1m",
+        "title": "Gesproken"
+      },
+      {
+        "id": "group_mkw5wvvn",
+        "title": "Offerte verzonden"
+      },
+      {
+        "id": "group_mkw5fzt3",
+        "title": "Akkoord"
+      },
+      {
+        "id": "group_mkwqmcy",
+        "title": "Offerte versturen"
+      },
+      {
+        "id": "group_mkw5jg07",
+        "title": "Niet geïnteresseerd"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "subtasks_mkvpdgxr",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "text_mkw53e4q",
+        "title": "Type woning",
+        "type": "text"
+      },
+      {
+        "id": "phone_mkw5schz",
+        "title": "Phone",
+        "type": "phone"
+      },
+      {
+        "id": "contact_email",
+        "title": "Email",
+        "type": "email"
+      },
+      {
+        "id": "date_mkw6fa56",
+        "title": "Date",
+        "type": "date"
+      },
+      {
+        "id": "color_mkw5a1z7",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "text_mkw5m2y4",
+        "title": "Aantal units",
+        "type": "text"
+      },
+      {
+        "id": "text_mkw5vatk",
+        "title": "Plaats",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "id": "5015588486",
+    "name": "Subitems of van Amelsvoort",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "person",
+        "title": "Owner",
+        "type": "people"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date0",
+        "title": "Date",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "id": "5015588483",
+    "name": "van Amelsvoort",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Open Leads"
+      },
+      {
+        "id": "group_mkw5hs1m",
+        "title": "Inplannen"
+      },
+      {
+        "id": "group_mkw5dzw0",
+        "title": "Inspectie gepland"
+      },
+      {
+        "id": "group_mkw5wvvn",
+        "title": "Offerte verzonden"
+      },
+      {
+        "id": "group_mkw5fzt3",
+        "title": "Akkoord"
+      },
+      {
+        "id": "group_mkw5jg07",
+        "title": "Niet geïnteresseerd"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "subtasks_mkvpdgxr",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "phone_mkw5schz",
+        "title": "Phone",
+        "type": "phone"
+      },
+      {
+        "id": "contact_email",
+        "title": "Email",
+        "type": "email"
+      },
+      {
+        "id": "color_mkw5a1z7",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "text_mkw53e4q",
+        "title": "Type woning",
+        "type": "text"
+      },
+      {
+        "id": "text_mkw5m2y4",
+        "title": "Aantal units",
+        "type": "text"
+      },
+      {
+        "id": "text_mkw5vatk",
+        "title": "Plaats",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "id": "5015392608",
+    "name": "Quotes & Invoices",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Quotes & Invoices"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "type",
+        "title": "Type",
+        "type": "status"
+      },
+      {
+        "id": "amount",
+        "title": "Amount",
+        "type": "numbers"
+      },
+      {
+        "id": "bill_to",
+        "title": "Recipient",
+        "type": "board_relation"
+      },
+      {
+        "id": "file",
+        "title": "File",
+        "type": "file"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "issue_date",
+        "title": "Issue date",
+        "type": "date"
+      },
+      {
+        "id": "creation_log__1",
+        "title": "Owner",
+        "type": "creation_log"
+      }
+    ]
+  },
+  {
+    "id": "2042245634",
+    "name": "Subitems of DD Leads",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Subitems"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "person",
+        "title": "Owner",
+        "type": "people"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "date0",
+        "title": "Date",
+        "type": "date"
+      }
+    ]
+  },
+  {
+    "id": "2037637603",
+    "name": "Quotes & Invoices",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Quotes & Invoices"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "type",
+        "title": "Type",
+        "type": "status"
+      },
+      {
+        "id": "amount",
+        "title": "Amount",
+        "type": "numbers"
+      },
+      {
+        "id": "bill_to",
+        "title": "Recipient",
+        "type": "board_relation"
+      },
+      {
+        "id": "file",
+        "title": "File",
+        "type": "file"
+      },
+      {
+        "id": "status",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "issue_date",
+        "title": "Issue date",
+        "type": "date"
+      },
+      {
+        "id": "creation_log__1",
+        "title": "Owner",
+        "type": "creation_log"
+      }
+    ]
+  },
+  {
+    "id": "2037637602",
+    "name": "DD Leads",
+    "board_kind": "public",
+    "groups": [
+      {
+        "id": "topics",
+        "title": "Open Leads"
+      },
+      {
+        "id": "group_mkth6zkk",
+        "title": "In Afwachting bevestiging"
+      },
+      {
+        "id": "group_mksy1p9m",
+        "title": "Inspectie gepland"
+      },
+      {
+        "id": "group_mksytvt2",
+        "title": "Offerte verzonden"
+      },
+      {
+        "id": "group_mkt7w9ay",
+        "title": "Follow Up Later"
+      },
+      {
+        "id": "new_group95562",
+        "title": "Niet bereikbaar/geinteresseerd/al voorzien"
+      }
+    ],
+    "columns": [
+      {
+        "id": "name",
+        "title": "Name",
+        "type": "name"
+      },
+      {
+        "id": "subtasks_mksnx3wm",
+        "title": "Subitems",
+        "type": "subtasks"
+      },
+      {
+        "id": "text_mkskqqft",
+        "title": "Campagne",
+        "type": "text"
+      },
+      {
+        "id": "contact_phone",
+        "title": "Telefoon",
+        "type": "phone"
+      },
+      {
+        "id": "text_mksk3arq",
+        "title": "Email address",
+        "type": "text"
+      },
+      {
+        "id": "long_text4",
+        "title": "Comments",
+        "type": "long_text"
+      },
+      {
+        "id": "color_mkskgdv2",
+        "title": "Status",
+        "type": "status"
+      },
+      {
+        "id": "text_mkskv446",
+        "title": "Type Dak",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskn3bq",
+        "title": "Aantal m2",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskf302",
+        "title": "Werkzaamheden",
+        "type": "text"
+      },
+      {
+        "id": "text_mksk8j3",
+        "title": "Adres",
+        "type": "text"
+      },
+      {
+        "id": "text_mkskpdsk",
+        "title": "Plaats",
+        "type": "text"
+      }
+    ]
+  }
+]
