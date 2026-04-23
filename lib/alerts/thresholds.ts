@@ -1,0 +1,9 @@
+export const STALE_QUOTE_DAYS         = 14   // CRITICAL: no update on quote_sent lead
+export const AGING_QUOTE_MIN_DAYS     = 7    // WARNING: quote 7-14 days old
+export const SLOW_LEAD_HOURS          = 72   // WARNING: new lead uncontacted > 72h (48h too aggressive over weekends)
+export const LOW_CLOSE_RATE_PCT       = 10   // CRITICAL: close rate below this %
+export const LOW_CLOSE_RATE_MIN_QUOTES = 5   // min quotes before low-close alert fires
+export const LOW_QUAL_RATE_PCT        = 25   // WARNING: qual rate below this %
+export const LOW_QUAL_RATE_MIN_LEADS  = 10   // min leads before low-qual alert fires
+export const UNROUTED_BACKLOG_COUNT   = 10   // WARNING: unrouted leads threshold
+export const UNROUTED_BACKLOG_HOURS   = 48   // WARNING: unrouted age threshold

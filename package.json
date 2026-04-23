@@ -10,7 +10,8 @@
     "test-monday": "tsx --env-file=.env.local scripts/test-monday.ts",
     "inspect-monday": "tsx --env-file=.env.local scripts/inspect-monday.ts",
     "seed": "tsx --env-file=.env.local scripts/seed.ts",
-    "sync-now": "tsx --env-file=.env.local scripts/sync-now.ts"
+    "sync-now": "tsx --env-file=.env.local scripts/sync-now.ts",
+    "truncate-sync": "tsx --env-file=.env.local scripts/truncate-and-sync.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.80.0",
