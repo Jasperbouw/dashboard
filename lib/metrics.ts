@@ -329,13 +329,14 @@ export async function commissionBooked(contractorId: string, range: TimeRange): 
   if (!contractor) return 0
 
   if (contractor.commission_model === 'retainer') {
-    // Retainer contributes monthly_retainer_fee to revenue.
-    // monthly_ad_budget is pass-through — client's ad spend, not our income.
-    if (!contractor.monthly_retainer_fee) return 0
-    const months =
-      (range.to.getFullYear() - range.from.getFullYear()) * 12 +
-      (range.to.getMonth() - range.from.getMonth()) + 1
-    return contractor.monthly_retainer_fee * months
+    // Use actual invoices — not months × rate, which overstates mid-year starters.
+    const { data } = await db()
+      .from('retainer_invoices')
+      .select('fee_amount')
+      .eq('contractor_id', contractorId)
+      .gte('invoice_date', range.from.toISOString().slice(0, 10))
+      .lte('invoice_date', range.to.toISOString().slice(0, 10))
+    return (data ?? []).reduce((s, i) => s + Number((i as { fee_amount: number }).fee_amount), 0)
   }
 
   const { data } = await db()
@@ -494,16 +495,36 @@ export async function totalPipelineValue(): Promise<number> {
 //   Project with commissie_status = 'betaald' this month → PAID this month
 export async function totalCommissionBooked(range: TimeRange): Promise<number> {
   const contractors = await getActiveContractors()
-  const activeIds = contractors.map(c => c.id)
-  const { data } = await db()
-    .from('projects')
-    .select('commissie, commissie_status')
-    .in('contractor_id', activeIds)
-    .gte('monday_created_at', range.from.toISOString())
-    .lte('monday_created_at', range.to.toISOString())
-  return (data ?? [])
+  const activeIds    = contractors.map(c => c.id)
+  const retainerIds  = contractors.filter(c => c.commission_model === 'retainer').map(c => c.id)
+  const fromDate     = range.from.toISOString().slice(0, 10)
+  const toDate       = range.to.toISOString().slice(0, 10)
+
+  const [{ data: projectData }, invoiceResult] = await Promise.all([
+    db()
+      .from('projects')
+      .select('commissie, commissie_status')
+      .in('contractor_id', activeIds)
+      .gte('monday_created_at', range.from.toISOString())
+      .lte('monday_created_at', range.to.toISOString()),
+    retainerIds.length > 0
+      ? db()
+          .from('retainer_invoices')
+          .select('fee_amount')
+          .in('contractor_id', retainerIds)
+          .gte('invoice_date', fromDate)
+          .lte('invoice_date', toDate)
+      : Promise.resolve({ data: [] as { fee_amount: number }[] }),
+  ])
+
+  const projectCommission = (projectData ?? [])
     .filter(p => p.commissie_status?.toLowerCase().includes('betaald'))
     .reduce((s, p) => s + (p.commissie ?? 0), 0)
+
+  const retainerFees = ((invoiceResult as { data: { fee_amount: number }[] | null }).data ?? [])
+    .reduce((s, i) => s + Number(i.fee_amount), 0)
+
+  return projectCommission + retainerFees
 }
 
 export async function totalCommissionPending(): Promise<number> {
@@ -579,11 +600,14 @@ export interface ContractorSummary {
 }
 
 export async function contractorLeaderboard(range: TimeRange): Promise<ContractorSummary[]> {
-  const contractors = await getActiveContractors()
-  const activeIds   = contractors.map(c => c.id)
+  const contractors  = await getActiveContractors()
+  const activeIds    = contractors.map(c => c.id)
+  const retainerIds  = contractors.filter(c => c.commission_model === 'retainer').map(c => c.id)
   const backlogCutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+  const fromDate     = range.from.toISOString().slice(0, 10)
+  const toDate       = range.to.toISOString().slice(0, 10)
 
-  const [{ data: leads }, { data: projects }, { data: allLeads }, { data: backlogLeads }] = await Promise.all([
+  const [{ data: leads }, { data: projects }, { data: allLeads }, { data: backlogLeads }, invoiceResult] = await Promise.all([
     db()
       .from('leads')
       .select('contractor_id, canonical_stage, monday_updated_at')
@@ -607,7 +631,17 @@ export async function contractorLeaderboard(range: TimeRange): Promise<Contracto
       .eq('canonical_stage', 'new')
       .lt('monday_updated_at', backlogCutoff)
       .limit(5000),
+    retainerIds.length > 0
+      ? db()
+          .from('retainer_invoices')
+          .select('contractor_id, fee_amount')
+          .in('contractor_id', retainerIds)
+          .gte('invoice_date', fromDate)
+          .lte('invoice_date', toDate)
+      : Promise.resolve({ data: [] as { contractor_id: string; fee_amount: number }[] }),
   ])
+
+  const retainerInvoices = ((invoiceResult as { data: { contractor_id: string; fee_amount: number }[] | null }).data ?? [])
 
   return contractors.map(c => {
     const cLeads    = (leads    ?? []).filter(l => l.contractor_id === c.id)
@@ -641,14 +675,9 @@ export async function contractorLeaderboard(range: TimeRange): Promise<Contracto
 
     let commBooked = 0
     if (isRetainer) {
-      // Retainer contributes monthly_retainer_fee to revenue.
-      // monthly_ad_budget is pass-through — client's ad spend, not our income.
-      if (c.monthly_retainer_fee) {
-        const months =
-          (range.to.getFullYear() - range.from.getFullYear()) * 12 +
-          (range.to.getMonth() - range.from.getMonth()) + 1
-        commBooked = c.monthly_retainer_fee * months
-      }
+      commBooked = retainerInvoices
+        .filter(i => i.contractor_id === c.id)
+        .reduce((s, i) => s + Number(i.fee_amount), 0)
     } else {
       commBooked = cProjects
         .filter(p => p.commissie_status?.toLowerCase().includes('betaald'))
