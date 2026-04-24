@@ -6,7 +6,7 @@ export async function retainerAtRiskAlerts(): Promise<AlertInput[]> {
 
   const { data, error } = await db
     .from('contractors')
-    .select('id, name, monthly_retainer, retainer_billing')
+    .select('id, name, monthly_retainer_fee, monthly_ad_budget, retainer_billing')
     .eq('commission_model', 'retainer')
     .eq('relationship_status', 'at_risk')
     .eq('active', true)
@@ -19,6 +19,6 @@ export async function retainerAtRiskAlerts(): Promise<AlertInput[]> {
     contractor_id: c.id,
     title:         `Retainer at risk: ${c.name}`,
     body:          `Klantrelatie heeft status "at_risk". Actie vereist om retainer te behouden.`,
-    meta:          { monthly_retainer: c.monthly_retainer, retainer_billing: c.retainer_billing },
+    meta:          { monthly_retainer_fee: c.monthly_retainer_fee, monthly_ad_budget: c.monthly_ad_budget, retainer_billing: c.retainer_billing },
   }))
 }

@@ -280,17 +280,18 @@ function PerformanceTab({ c }: { c: ContractorSummary }) {
 // ── Financieel tab ────────────────────────────────────────────────────────────
 
 interface FinanceData {
-  commission_model:    string | null
-  retainer_billing:    string | null
-  monthly_retainer:    number | null
-  relationship_status: string | null
-  commissionMTD:       number
-  commissionQTD:       number
-  commissionYTD:       number
-  commissionPending:   number
-  pendingCount:        number
-  retainerMTD:         number | null
-  retainerYTD:         number | null
+  commission_model:     string | null
+  retainer_billing:     string | null
+  monthly_retainer_fee: number | null
+  monthly_ad_budget:    number | null
+  relationship_status:  string | null
+  commissionMTD:        number
+  commissionQTD:        number
+  commissionYTD:        number
+  commissionPending:    number
+  pendingCount:         number
+  retainerFeeMTD:       number | null
+  retainerFeeYTD:       number | null
   recent: {
     project_name:     string | null
     aanneemsom:       number | null
@@ -387,16 +388,24 @@ function FinancieelTab({ contractorId }: { contractorId: string }) {
       <div>
         {sectionTitle(isRetainer ? 'Retainer overzicht' : 'Commissie overzicht')}
         {isRetainer ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
             <StatTile
-              label="Retainer / maand"
-              value={fmtEur(data.monthly_retainer)}
-              sub={data.retainer_billing ?? undefined}
+              label="Retainer fee / maand"
+              value={fmtEur(data.monthly_retainer_fee)}
+              sub="onze commissie"
+              highlight={(data.monthly_retainer_fee ?? 0) > 0}
+            />
+            <StatTile
+              label="Ad budget / maand"
+              value={fmtEur(data.monthly_ad_budget)}
+              sub="wordt direct naar Meta doorbelast"
             />
             <StatTile
               label="Gefactureerd YTD"
-              value={fmtEur(data.retainerYTD)}
-              highlight={(data.retainerYTD ?? 0) > 0}
+              value={fmtEur(data.retainerFeeYTD)}
+              sub="fee only — excl. ad budget"
+              highlight={(data.retainerFeeYTD ?? 0) > 0}
+              tooltip="Alleen onze fee × maanden YTD. Ad budget is pass-through en telt niet mee als omzet."
             />
             <StatTile
               label="Relatiestatus"

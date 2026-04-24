@@ -59,27 +59,28 @@ export async function GET(
       date:             p.monday_created_at,
     }))
 
-  // Retainer billing
-  let retainerMTD: number | null = null
-  let retainerYTD: number | null = null
-  if (contractor.commission_model === 'retainer' && contractor.monthly_retainer) {
-    retainerMTD = contractor.monthly_retainer
+  // Retainer fee = our revenue only. monthly_ad_budget is pass-through to Meta.
+  let retainerFeeMTD: number | null = null
+  let retainerFeeYTD: number | null = null
+  if (contractor.commission_model === 'retainer' && contractor.monthly_retainer_fee) {
+    retainerFeeMTD = contractor.monthly_retainer_fee
     const monthsYTD = new Date().getMonth() + 1
-    retainerYTD = contractor.monthly_retainer * monthsYTD
+    retainerFeeYTD = contractor.monthly_retainer_fee * monthsYTD
   }
 
   return NextResponse.json({
-    commission_model:  contractor.commission_model,
-    retainer_billing:  contractor.retainer_billing,
-    monthly_retainer:  contractor.monthly_retainer,
-    relationship_status: contractor.relationship_status,
+    commission_model:     contractor.commission_model,
+    retainer_billing:     contractor.retainer_billing,
+    monthly_retainer_fee: contractor.monthly_retainer_fee,
+    monthly_ad_budget:    contractor.monthly_ad_budget,
+    relationship_status:  contractor.relationship_status,
     commissionMTD:     sumPaid(mtdStart),
     commissionQTD:     sumPaid(qtdStart),
     commissionYTD:     sumPaid(ytdStart),
     commissionPending: pendingTotal,
     pendingCount:      pending.length,
-    retainerMTD,
-    retainerYTD,
+    retainerFeeMTD,
+    retainerFeeYTD,
     recent,
   })
 }

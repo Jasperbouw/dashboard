@@ -21,7 +21,8 @@ export interface ContractorRow {
   active: boolean
   commission_model: 'percentage' | 'flat_fee' | 'retainer' | null
   commission_rate: number | null
-  monthly_retainer: number | null
+  monthly_retainer_fee: number | null  // Bouw Check revenue (our fee)
+  monthly_ad_budget:    number | null  // pass-through to Meta — not our revenue
   retainer_billing: 'prepaid' | 'monthly' | 'quarterly' | null
   relationship_status: 'active' | 'at_risk' | 'winding_down' | null
   service_model: 'full_sales' | 'leads_only' | 'hands_off' | null
@@ -328,12 +329,13 @@ export async function commissionBooked(contractorId: string, range: TimeRange): 
   if (!contractor) return 0
 
   if (contractor.commission_model === 'retainer') {
-    if (!contractor.monthly_retainer) return 0
-    // Count calendar months fully or partially spanned by the range
+    // Retainer contributes monthly_retainer_fee to revenue.
+    // monthly_ad_budget is pass-through — client's ad spend, not our income.
+    if (!contractor.monthly_retainer_fee) return 0
     const months =
       (range.to.getFullYear() - range.from.getFullYear()) * 12 +
       (range.to.getMonth() - range.from.getMonth()) + 1
-    return contractor.monthly_retainer * months
+    return contractor.monthly_retainer_fee * months
   }
 
   const { data } = await db()
@@ -547,9 +549,10 @@ export interface ContractorSummary {
   commission_model:    'percentage' | 'flat_fee' | 'retainer' | null
   service_model:       'full_sales' | 'leads_only' | 'hands_off' | null
   qualification_model: 'pre_qualified' | 'unfiltered' | null
-  relationship_status: 'active' | 'at_risk' | 'winding_down' | null
-  monthly_retainer:    number | null
-  retainer_billing:    'prepaid' | 'monthly' | 'quarterly' | null
+  relationship_status:  'active' | 'at_risk' | 'winding_down' | null
+  monthly_retainer_fee: number | null  // our revenue
+  monthly_ad_budget:    number | null  // pass-through, not revenue
+  retainer_billing:     'prepaid' | 'monthly' | 'quarterly' | null
   target_monthly_leads: number | null
   target_monthly_deals: number | null
   leadsReceived:     number
@@ -638,11 +641,13 @@ export async function contractorLeaderboard(range: TimeRange): Promise<Contracto
 
     let commBooked = 0
     if (isRetainer) {
-      if (c.monthly_retainer) {
+      // Retainer contributes monthly_retainer_fee to revenue.
+      // monthly_ad_budget is pass-through — client's ad spend, not our income.
+      if (c.monthly_retainer_fee) {
         const months =
           (range.to.getFullYear() - range.from.getFullYear()) * 12 +
           (range.to.getMonth() - range.from.getMonth()) + 1
-        commBooked = c.monthly_retainer * months
+        commBooked = c.monthly_retainer_fee * months
       }
     } else {
       commBooked = cProjects
@@ -743,7 +748,8 @@ export async function contractorLeaderboard(range: TimeRange): Promise<Contracto
       service_model:        c.service_model,
       qualification_model:  c.qualification_model,
       relationship_status:  c.relationship_status,
-      monthly_retainer:     c.monthly_retainer,
+      monthly_retainer_fee: c.monthly_retainer_fee,
+      monthly_ad_budget:    c.monthly_ad_budget,
       retainer_billing:     c.retainer_billing,
       target_monthly_leads: c.target_monthly_leads,
       target_monthly_deals: c.target_monthly_deals,
