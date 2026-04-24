@@ -277,6 +277,241 @@ function PerformanceTab({ c }: { c: ContractorSummary }) {
   )
 }
 
+// ── Financieel tab ────────────────────────────────────────────────────────────
+
+interface FinanceData {
+  commission_model:    string | null
+  retainer_billing:    string | null
+  monthly_retainer:    number | null
+  relationship_status: string | null
+  commissionMTD:       number
+  commissionQTD:       number
+  commissionYTD:       number
+  commissionPending:   number
+  pendingCount:        number
+  retainerMTD:         number | null
+  retainerYTD:         number | null
+  recent: {
+    project_name:     string | null
+    aanneemsom:       number | null
+    commissie:        number | null
+    commissie_status: string | null
+    date:             string | null
+  }[]
+}
+
+function StatTile({
+  label, value, sub, highlight,
+}: { label: string; value: string; sub?: string; highlight?: boolean }) {
+  return (
+    <div style={{
+      padding: '12px 14px',
+      background: 'var(--color-surface-raised)',
+      border: '1px solid var(--color-border-subtle)',
+      borderRadius: 'var(--radius-md)',
+    }}>
+      <div style={{
+        fontSize: 'var(--font-size-2xs)', fontWeight: 600,
+        color: 'var(--color-ink-faint)', textTransform: 'uppercase',
+        letterSpacing: '0.06em', marginBottom: 4,
+      }}>
+        {label}
+      </div>
+      <div style={{
+        fontSize: 'var(--font-size-lg)', fontWeight: 600,
+        color: highlight ? 'var(--color-success)' : 'var(--color-ink)',
+        fontVariantNumeric: 'tabular-nums',
+      }}>
+        {value}
+      </div>
+      {sub && (
+        <div style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-ink-faint)', marginTop: 2 }}>
+          {sub}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function fmtDate(iso: string | null) {
+  if (!iso) return '—'
+  return new Date(iso).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+function isPaid(status: string | null) {
+  return !!status?.toLowerCase().includes('betaald')
+}
+
+function FinancieelTab({ contractorId }: { contractorId: string }) {
+  const [data, setData] = useState<FinanceData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    setLoading(true)
+    setError(null)
+    fetch(`/api/contractors/${contractorId}/finance`)
+      .then(r => r.ok ? r.json() : Promise.reject(r.statusText))
+      .then(setData)
+      .catch(e => setError(String(e)))
+      .finally(() => setLoading(false))
+  }, [contractorId])
+
+  if (loading) return (
+    <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--color-ink-faint)', fontSize: 'var(--font-size-sm)' }}>
+      Laden…
+    </div>
+  )
+  if (error || !data) return (
+    <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--color-critical)', fontSize: 'var(--font-size-sm)' }}>
+      Fout bij laden: {error ?? 'onbekend'}
+    </div>
+  )
+
+  const isRetainer = data.commission_model === 'retainer'
+
+  const sectionTitle = (label: string) => (
+    <div style={{
+      fontSize: 'var(--font-size-xs)', fontWeight: 600,
+      color: 'var(--color-ink-faint)', textTransform: 'uppercase',
+      letterSpacing: '0.06em', marginBottom: 12,
+    }}>
+      {label}
+    </div>
+  )
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+
+      {/* Commission cards — adapts per model */}
+      <div>
+        {sectionTitle(isRetainer ? 'Retainer overzicht' : 'Commissie overzicht')}
+        {isRetainer ? (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+            <StatTile
+              label="Retainer / maand"
+              value={fmtEur(data.monthly_retainer)}
+              sub={data.retainer_billing ?? undefined}
+            />
+            <StatTile
+              label="Gefactureerd YTD"
+              value={fmtEur(data.retainerYTD)}
+              highlight={(data.retainerYTD ?? 0) > 0}
+            />
+            <StatTile
+              label="Relatiestatus"
+              value={
+                data.relationship_status === 'at_risk'      ? 'At risk' :
+                data.relationship_status === 'winding_down' ? 'Aflopend' :
+                'Actief'
+              }
+            />
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
+            <StatTile label="MTD" value={fmtEur(data.commissionMTD)} highlight={data.commissionMTD > 0} />
+            <StatTile label="QTD" value={fmtEur(data.commissionQTD)} highlight={data.commissionQTD > 0} />
+            <StatTile label="YTD" value={fmtEur(data.commissionYTD)} highlight={data.commissionYTD > 0} />
+            <StatTile
+              label="Pending"
+              value={fmtEur(data.commissionPending)}
+              sub={data.pendingCount > 0 ? `${data.pendingCount} open ${data.pendingCount === 1 ? 'project' : 'projecten'}` : undefined}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Recent entries table */}
+      <div>
+        {sectionTitle('Recente projecten')}
+        {data.recent.length === 0 ? (
+          <div style={{
+            padding: '20px', textAlign: 'center',
+            color: 'var(--color-ink-faint)', fontSize: 'var(--font-size-sm)',
+            background: 'var(--color-surface-raised)',
+            borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border-subtle)',
+          }}>
+            Geen projecten gevonden
+          </div>
+        ) : (
+          <div style={{
+            background: 'var(--color-surface)',
+            border: '1px solid var(--color-border)',
+            borderRadius: 'var(--radius-md)',
+            overflow: 'hidden',
+          }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  {['Project', 'Aanneemsom', 'Commissie', 'Status', 'Datum'].map(h => (
+                    <th key={h} style={{
+                      padding: '7px 10px', fontSize: 'var(--font-size-2xs)',
+                      fontWeight: 600, color: 'var(--color-ink-faint)',
+                      textTransform: 'uppercase', letterSpacing: '0.06em',
+                      textAlign: h === 'Project' ? 'left' : 'right',
+                      borderBottom: '1px solid var(--color-border)',
+                      whiteSpace: 'nowrap',
+                    }}>
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {data.recent.map((p, i) => {
+                  const paid = isPaid(p.commissie_status)
+                  return (
+                    <tr key={i} style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
+                      <td style={{
+                        padding: '8px 10px', fontSize: 'var(--font-size-xs)',
+                        color: 'var(--color-ink)', maxWidth: 140,
+                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      }}>
+                        {p.project_name || '—'}
+                      </td>
+                      <td style={{
+                        padding: '8px 10px', fontSize: 'var(--font-size-xs)',
+                        color: 'var(--color-ink-muted)', textAlign: 'right',
+                        fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap',
+                      }}>
+                        {fmtEur(p.aanneemsom)}
+                      </td>
+                      <td style={{
+                        padding: '8px 10px', fontSize: 'var(--font-size-xs)',
+                        color: (p.commissie ?? 0) > 0 ? 'var(--color-success)' : 'var(--color-ink-faint)',
+                        textAlign: 'right', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap',
+                      }}>
+                        {fmtEur(p.commissie)}
+                      </td>
+                      <td style={{ padding: '8px 10px', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                        <span style={{
+                          fontSize: 'var(--font-size-2xs)', fontWeight: 600,
+                          color: paid ? 'var(--color-success)' : 'var(--color-ink-faint)',
+                          background: paid ? 'var(--color-success-subtle)' : 'var(--color-surface-raised)',
+                          borderRadius: 'var(--radius-full)', padding: '1px 6px',
+                        }}>
+                          {p.commissie_status ?? '—'}
+                        </span>
+                      </td>
+                      <td style={{
+                        padding: '8px 10px', fontSize: 'var(--font-size-xs)',
+                        color: 'var(--color-ink-faint)', textAlign: 'right', whiteSpace: 'nowrap',
+                      }}>
+                        {fmtDate(p.date)}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+    </div>
+  )
+}
+
 // ── Coming soon placeholder ───────────────────────────────────────────────────
 
 function ComingSoon({ label }: { label: string }) {
@@ -447,7 +682,7 @@ export function ContractorPanel({ contractor, onClose }: Props) {
             {/* Body */}
             <div style={{ flex: 1, overflow: 'auto', padding: '20px' }}>
               {tab === 'performance' && <PerformanceTab c={contractor} />}
-              {tab === 'financieel'  && <ComingSoon label="Financieel" />}
+              {tab === 'financieel'  && <FinancieelTab contractorId={contractor.id} />}
               {tab === 'offertes'    && <ComingSoon label="Offertes & Deals" />}
               {tab === 'info'        && <ComingSoon label="Info & Documenten" />}
               {tab === 'locatie'     && <ComingSoon label="Locatie & Werkgebied" />}
