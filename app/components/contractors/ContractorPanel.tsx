@@ -301,10 +301,10 @@ interface FinanceData {
 }
 
 function StatTile({
-  label, value, sub, highlight,
-}: { label: string; value: string; sub?: string; highlight?: boolean }) {
+  label, value, sub, highlight, tooltip,
+}: { label: string; value: string; sub?: string; highlight?: boolean; tooltip?: string }) {
   return (
-    <div style={{
+    <div title={tooltip} style={{
       padding: '12px 14px',
       background: 'var(--color-surface-raised)',
       border: '1px solid var(--color-border-subtle)',
@@ -409,14 +409,17 @@ function FinancieelTab({ contractorId }: { contractorId: string }) {
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
-            <StatTile label="MTD" value={fmtEur(data.commissionMTD)} highlight={data.commissionMTD > 0} />
-            <StatTile label="QTD" value={fmtEur(data.commissionQTD)} highlight={data.commissionQTD > 0} />
-            <StatTile label="YTD" value={fmtEur(data.commissionYTD)} highlight={data.commissionYTD > 0} />
+            <StatTile label="MTD" value={fmtEur(data.commissionMTD)} highlight={data.commissionMTD > 0}
+              tooltip="Uitbetaalde commissies deze kalendermaand (cash-basis)." />
+            <StatTile label="QTD" value={fmtEur(data.commissionQTD)} highlight={data.commissionQTD > 0}
+              tooltip="Uitbetaalde commissies dit kwartaal (cash-basis)." />
+            <StatTile label="YTD" value={fmtEur(data.commissionYTD)} highlight={data.commissionYTD > 0}
+              tooltip="Alleen uitbetaalde commissies dit jaar. Zie Pending voor verdiend maar nog niet uitbetaald." />
             <StatTile
               label="Pending"
               value={fmtEur(data.commissionPending)}
               sub={data.pendingCount > 0 ? `${data.pendingCount} open ${data.pendingCount === 1 ? 'project' : 'projecten'}` : undefined}
-            />
+              tooltip="Verdiende commissie op gewonnen projecten — nog niet uitbetaald door contractor." />
           </div>
         )}
       </div>
@@ -507,6 +510,285 @@ function FinancieelTab({ contractorId }: { contractorId: string }) {
           </div>
         )}
       </div>
+
+    </div>
+  )
+}
+
+// ── Offertes & Deals tab ─────────────────────────────────────────────────────
+
+interface OffertesData {
+  service_model: string | null
+  is_hands_off:  boolean
+  openQuotes: {
+    id:             string
+    contact_name:   string | null
+    quote_amount:   number | null
+    age_days:       number
+    monday_url:     string
+    current_status: string | null
+  }[]
+  wonProjects: {
+    project_name:     string | null
+    aanneemsom:       number | null
+    commissie:        number | null
+    commissie_status: string | null
+    date:             string | null
+  }[]
+  lostLeads: {
+    contact_name: string | null
+    reason:       string | null
+    date:         string | null
+    monday_url:   string
+  }[]
+}
+
+function ageColor(days: number): string {
+  if (days > 30) return 'var(--color-critical)'
+  if (days > 14) return 'var(--color-warning)'
+  return 'var(--color-ink-muted)'
+}
+
+function OffertesTab({ contractorId }: { contractorId: string }) {
+  const [data, setData] = useState<OffertesData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [showLost, setShowLost] = useState(false)
+
+  useEffect(() => {
+    setLoading(true)
+    setError(null)
+    fetch(`/api/contractors/${contractorId}/offertes`)
+      .then(r => r.ok ? r.json() : Promise.reject(r.statusText))
+      .then(setData)
+      .catch(e => setError(String(e)))
+      .finally(() => setLoading(false))
+  }, [contractorId])
+
+  if (loading) return (
+    <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--color-ink-faint)', fontSize: 'var(--font-size-sm)' }}>
+      Laden…
+    </div>
+  )
+  if (error || !data) return (
+    <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--color-critical)', fontSize: 'var(--font-size-sm)' }}>
+      Fout bij laden: {error ?? 'onbekend'}
+    </div>
+  )
+
+  if (data.is_hands_off) return (
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      height: 160, borderRadius: 'var(--radius-lg)',
+      background: 'var(--color-surface-raised)',
+      border: '1px dashed var(--color-border)',
+      fontSize: 'var(--font-size-sm)', color: 'var(--color-ink-faint)',
+    }}>
+      Offertes n.v.t. voor passieve / retainer klanten
+    </div>
+  )
+
+  const sectionTitle = (label: string, count?: number) => (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12,
+    }}>
+      <span style={{
+        fontSize: 'var(--font-size-xs)', fontWeight: 600,
+        color: 'var(--color-ink-faint)', textTransform: 'uppercase', letterSpacing: '0.06em',
+      }}>
+        {label}
+      </span>
+      {count != null && count > 0 && (
+        <span style={{
+          fontSize: 'var(--font-size-2xs)', fontWeight: 600,
+          color: 'var(--color-ink-muted)',
+          background: 'var(--color-surface-raised)',
+          borderRadius: 'var(--radius-full)', padding: '0 6px',
+          border: '1px solid var(--color-border-subtle)',
+        }}>
+          {count}
+        </span>
+      )}
+    </div>
+  )
+
+  const tableWrap: React.CSSProperties = {
+    background: 'var(--color-surface)',
+    border: '1px solid var(--color-border)',
+    borderRadius: 'var(--radius-md)',
+    overflow: 'hidden',
+  }
+  const thStyle: React.CSSProperties = {
+    padding: '7px 10px', fontSize: 'var(--font-size-2xs)', fontWeight: 600,
+    color: 'var(--color-ink-faint)', textTransform: 'uppercase', letterSpacing: '0.06em',
+    textAlign: 'left', borderBottom: '1px solid var(--color-border)', whiteSpace: 'nowrap',
+  }
+  const tdStyle: React.CSSProperties = {
+    padding: '8px 10px', fontSize: 'var(--font-size-xs)',
+    color: 'var(--color-ink)', borderBottom: '1px solid var(--color-border-subtle)',
+    whiteSpace: 'nowrap',
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+
+      {/* Open quotes */}
+      <div>
+        {sectionTitle('Open offertes', data.openQuotes.length)}
+        {data.openQuotes.length === 0 ? (
+          <div style={{
+            padding: '20px', textAlign: 'center',
+            color: 'var(--color-ink-faint)', fontSize: 'var(--font-size-sm)',
+            background: 'var(--color-surface-raised)',
+            borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border-subtle)',
+          }}>
+            Geen open offertes
+          </div>
+        ) : (
+          <div style={tableWrap}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  <th style={thStyle}>Contact</th>
+                  <th style={{ ...thStyle, textAlign: 'right' }}>Aanneemsom</th>
+                  <th style={{ ...thStyle, textAlign: 'right' }}>Leeftijd</th>
+                  <th style={{ ...thStyle, textAlign: 'center' }}>Link</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.openQuotes.map(q => (
+                  <tr key={q.id}>
+                    <td style={tdStyle}>
+                      <div style={{ fontWeight: 500 }}>{q.contact_name || '—'}</div>
+                    </td>
+                    <td style={{ ...tdStyle, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
+                      {fmtEur(q.quote_amount)}
+                    </td>
+                    <td style={{ ...tdStyle, textAlign: 'right', color: ageColor(q.age_days), fontWeight: q.age_days > 14 ? 600 : 400 }}>
+                      {q.age_days === 0 ? 'Vandaag' : `${q.age_days}d`}
+                    </td>
+                    <td style={{ ...tdStyle, textAlign: 'center' }}>
+                      <a
+                        href={q.monday_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          fontSize: 'var(--font-size-xs)',
+                          color: 'var(--color-info)',
+                          textDecoration: 'none',
+                        }}
+                      >
+                        ↗
+                      </a>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Won projects */}
+      <div>
+        {sectionTitle('Recent gesloten', data.wonProjects.length)}
+        {data.wonProjects.length === 0 ? (
+          <div style={{
+            padding: '20px', textAlign: 'center',
+            color: 'var(--color-ink-faint)', fontSize: 'var(--font-size-sm)',
+            background: 'var(--color-surface-raised)',
+            borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border-subtle)',
+          }}>
+            Geen gesloten deals
+          </div>
+        ) : (
+          <div style={tableWrap}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  <th style={thStyle}>Project</th>
+                  <th style={{ ...thStyle, textAlign: 'right' }}>Aanneemsom</th>
+                  <th style={{ ...thStyle, textAlign: 'right' }}>Commissie</th>
+                  <th style={{ ...thStyle, textAlign: 'right' }}>Datum</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.wonProjects.map((p, i) => (
+                  <tr key={i}>
+                    <td style={{ ...tdStyle, maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {p.project_name || '—'}
+                    </td>
+                    <td style={{ ...tdStyle, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
+                      {fmtEur(p.aanneemsom)}
+                    </td>
+                    <td style={{ ...tdStyle, textAlign: 'right', fontVariantNumeric: 'tabular-nums',
+                      color: (p.commissie ?? 0) > 0 ? 'var(--color-success)' : 'var(--color-ink-faint)' }}>
+                      {fmtEur(p.commissie)}
+                    </td>
+                    <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--color-ink-faint)' }}>
+                      {fmtDate(p.date)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Lost deals — collapsible */}
+      {data.lostLeads.length > 0 && (
+        <div>
+          <button
+            onClick={() => setShowLost(v => !v)}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+              display: 'flex', alignItems: 'center', gap: 8, marginBottom: showLost ? 12 : 0,
+            }}
+          >
+            <span style={{
+              fontSize: 'var(--font-size-xs)', fontWeight: 600,
+              color: 'var(--color-ink-faint)', textTransform: 'uppercase', letterSpacing: '0.06em',
+            }}>
+              {showLost ? '▾' : '▸'} Verloren ({data.lostLeads.length})
+            </span>
+          </button>
+          {showLost && (
+            <div style={tableWrap}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr>
+                    <th style={thStyle}>Contact</th>
+                    <th style={thStyle}>Reden</th>
+                    <th style={{ ...thStyle, textAlign: 'right' }}>Datum</th>
+                    <th style={{ ...thStyle, textAlign: 'center' }}>Link</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.lostLeads.map((l, i) => (
+                    <tr key={i}>
+                      <td style={{ ...tdStyle, fontWeight: 500 }}>{l.contact_name || '—'}</td>
+                      <td style={{ ...tdStyle, color: 'var(--color-ink-muted)', maxWidth: 160,
+                        overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {l.reason || '—'}
+                      </td>
+                      <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--color-ink-faint)' }}>
+                        {fmtDate(l.date)}
+                      </td>
+                      <td style={{ ...tdStyle, textAlign: 'center' }}>
+                        <a href={l.monday_url} target="_blank" rel="noopener noreferrer"
+                          style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-info)', textDecoration: 'none' }}>
+                          ↗
+                        </a>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
 
     </div>
   )
@@ -683,7 +965,7 @@ export function ContractorPanel({ contractor, onClose }: Props) {
             <div style={{ flex: 1, overflow: 'auto', padding: '20px' }}>
               {tab === 'performance' && <PerformanceTab c={contractor} />}
               {tab === 'financieel'  && <FinancieelTab contractorId={contractor.id} />}
-              {tab === 'offertes'    && <ComingSoon label="Offertes & Deals" />}
+              {tab === 'offertes'    && <OffertesTab contractorId={contractor.id} />}
               {tab === 'info'        && <ComingSoon label="Info & Documenten" />}
               {tab === 'locatie'     && <ComingSoon label="Locatie & Werkgebied" />}
             </div>
