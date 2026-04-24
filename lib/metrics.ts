@@ -135,15 +135,29 @@ async function avgDaysBetweenTransitionsCore(
   toStatuses: string[],
   range: TimeRange,
 ): Promise<number | null> {
-  let q = db()
-    .from('lead_status_changes')
-    .select(contractorIds.length ? 'lead_id, changed_at, leads!inner(contractor_id)' : 'lead_id, changed_at')
-    .in('to_status', fromStatuses)
-    .gte('changed_at', range.from.toISOString())
-    .lte('changed_at', range.to.toISOString())
-  if (contractorIds.length === 1) q = (q as any).eq('leads.contractor_id', contractorIds[0])
-  else if (contractorIds.length > 1) q = (q as any).in('leads.contractor_id', contractorIds)
-  const { data: fromChanges } = await q
+  // Two static select paths so TypeScript can infer return types
+  let fromChanges: { lead_id: string; changed_at: string }[] | null
+
+  if (contractorIds.length > 0) {
+    let q = db()
+      .from('lead_status_changes')
+      .select('lead_id, changed_at, leads!inner(contractor_id)')
+      .in('to_status', fromStatuses)
+      .gte('changed_at', range.from.toISOString())
+      .lte('changed_at', range.to.toISOString())
+    if (contractorIds.length === 1) q = (q as any).eq('leads.contractor_id', contractorIds[0])
+    else q = (q as any).in('leads.contractor_id', contractorIds)
+    const { data } = await q
+    fromChanges = (data as { lead_id: string; changed_at: string }[] | null)
+  } else {
+    const { data } = await db()
+      .from('lead_status_changes')
+      .select('lead_id, changed_at')
+      .in('to_status', fromStatuses)
+      .gte('changed_at', range.from.toISOString())
+      .lte('changed_at', range.to.toISOString())
+    fromChanges = data
+  }
 
   if (!fromChanges?.length) return null
   const leadIds = [...new Set(fromChanges.map(c => c.lead_id))]
