@@ -59,13 +59,34 @@ export async function GET(
       date:             p.monday_created_at,
     }))
 
-  // Retainer fee = our revenue only. monthly_ad_budget is pass-through to Meta.
+  // Retainer fee = our revenue only, sourced from actual invoices sent.
+  // monthly_ad_budget is pass-through to Meta — never counted as revenue.
   let retainerFeeMTD: number | null = null
+  let retainerFeeQTD: number | null = null
   let retainerFeeYTD: number | null = null
-  if (contractor.commission_model === 'retainer' && contractor.monthly_retainer_fee) {
-    retainerFeeMTD = contractor.monthly_retainer_fee
-    const monthsYTD = new Date().getMonth() + 1
-    retainerFeeYTD = contractor.monthly_retainer_fee * monthsYTD
+  if (contractor.commission_model === 'retainer') {
+    const now = new Date()
+    const year = now.getFullYear()
+    const mtdFirst = `${year}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
+    const qtdFirst = (() => {
+      const q = Math.floor(now.getMonth() / 3) * 3
+      return `${year}-${String(q + 1).padStart(2, '0')}-01`
+    })()
+    const ytdFirst = `${year}-01-01`
+
+    const { data: invoices } = await db
+      .from('retainer_invoices')
+      .select('invoice_date, fee_amount')
+      .eq('contractor_id', id)
+      .gte('invoice_date', ytdFirst)
+
+    const inv = invoices ?? []
+    const sumFee = (from: string) =>
+      inv.filter(i => i.invoice_date >= from).reduce((s, i) => s + Number(i.fee_amount), 0)
+
+    retainerFeeMTD = sumFee(mtdFirst)
+    retainerFeeQTD = sumFee(qtdFirst)
+    retainerFeeYTD = sumFee(ytdFirst)
   }
 
   return NextResponse.json({
@@ -80,6 +101,7 @@ export async function GET(
     commissionPending: pendingTotal,
     pendingCount:      pending.length,
     retainerFeeMTD,
+    retainerFeeQTD,
     retainerFeeYTD,
     recent,
   })

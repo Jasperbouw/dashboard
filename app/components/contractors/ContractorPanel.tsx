@@ -291,6 +291,7 @@ interface FinanceData {
   commissionPending:    number
   pendingCount:         number
   retainerFeeMTD:       number | null
+  retainerFeeQTD:       number | null
   retainerFeeYTD:       number | null
   recent: {
     project_name:     string | null
@@ -405,7 +406,7 @@ function FinancieelTab({ contractorId }: { contractorId: string }) {
               value={fmtEur(data.retainerFeeYTD)}
               sub="fee only — excl. ad budget"
               highlight={(data.retainerFeeYTD ?? 0) > 0}
-              tooltip="Alleen onze fee × maanden YTD. Ad budget is pass-through en telt niet mee als omzet."
+              tooltip="Som van verstuurde facturen dit jaar (fee only). Ad budget is pass-through en telt niet mee als omzet."
             />
             <StatTile
               label="Relatiestatus"
