@@ -324,30 +324,28 @@ export async function pipelineValue(contractorId: string): Promise<number> {
   return 0
 }
 
+// Revenue types that count as our income (excludes ad_budget which is pass-through)
+export const INCOME_TYPES_BY_MODEL: Record<string, string[]> = {
+  retainer:   ['retainer_fee'],
+  percentage: ['commission_percentage'],
+  flat_fee:   ['commission_flat'],
+}
+export const ALL_INCOME_TYPES = ['retainer_fee', 'commission_percentage', 'commission_flat', 'other']
+
 export async function commissionBooked(contractorId: string, range: TimeRange): Promise<number> {
   const contractor = await getContractor(contractorId)
   if (!contractor) return 0
 
-  if (contractor.commission_model === 'retainer') {
-    // Use actual invoices — not months × rate, which overstates mid-year starters.
-    const { data } = await db()
-      .from('retainer_invoices')
-      .select('fee_amount')
-      .eq('contractor_id', contractorId)
-      .gte('invoice_date', range.from.toISOString().slice(0, 10))
-      .lte('invoice_date', range.to.toISOString().slice(0, 10))
-    return (data ?? []).reduce((s, i) => s + Number((i as { fee_amount: number }).fee_amount), 0)
-  }
-
+  const types = INCOME_TYPES_BY_MODEL[contractor.commission_model ?? ''] ?? ALL_INCOME_TYPES
   const { data } = await db()
-    .from('projects')
-    .select('commissie, commissie_status')
+    .from('revenue_entries')
+    .select('amount')
     .eq('contractor_id', contractorId)
-    .gte('monday_created_at', range.from.toISOString())
-    .lte('monday_created_at', range.to.toISOString())
-  return (data ?? [])
-    .filter(p => p.commissie_status?.toLowerCase().includes('betaald'))
-    .reduce((s, p) => s + (p.commissie ?? 0), 0)
+    .in('type', types)
+    .eq('payment_status', 'paid')
+    .gte('entry_date', range.from.toISOString().slice(0, 10))
+    .lte('entry_date', range.to.toISOString().slice(0, 10))
+  return (data ?? []).reduce((s, e) => s + Number((e as { amount: number }).amount), 0)
 }
 
 export async function commissionPending(contractorId: string): Promise<number> {
@@ -495,36 +493,20 @@ export async function totalPipelineValue(): Promise<number> {
 //   Project with commissie_status = 'betaald' this month → PAID this month
 export async function totalCommissionBooked(range: TimeRange): Promise<number> {
   const contractors = await getActiveContractors()
-  const activeIds    = contractors.map(c => c.id)
-  const retainerIds  = contractors.filter(c => c.commission_model === 'retainer').map(c => c.id)
-  const fromDate     = range.from.toISOString().slice(0, 10)
-  const toDate       = range.to.toISOString().slice(0, 10)
+  const activeIds   = contractors.map(c => c.id)
+  const fromDate    = range.from.toISOString().slice(0, 10)
+  const toDate      = range.to.toISOString().slice(0, 10)
 
-  const [{ data: projectData }, invoiceResult] = await Promise.all([
-    db()
-      .from('projects')
-      .select('commissie, commissie_status')
-      .in('contractor_id', activeIds)
-      .gte('monday_created_at', range.from.toISOString())
-      .lte('monday_created_at', range.to.toISOString()),
-    retainerIds.length > 0
-      ? db()
-          .from('retainer_invoices')
-          .select('fee_amount')
-          .in('contractor_id', retainerIds)
-          .gte('invoice_date', fromDate)
-          .lte('invoice_date', toDate)
-      : Promise.resolve({ data: [] as { fee_amount: number }[] }),
-  ])
+  const { data } = await db()
+    .from('revenue_entries')
+    .select('amount')
+    .in('contractor_id', activeIds)
+    .in('type', ALL_INCOME_TYPES)
+    .eq('payment_status', 'paid')
+    .gte('entry_date', fromDate)
+    .lte('entry_date', toDate)
 
-  const projectCommission = (projectData ?? [])
-    .filter(p => p.commissie_status?.toLowerCase().includes('betaald'))
-    .reduce((s, p) => s + (p.commissie ?? 0), 0)
-
-  const retainerFees = ((invoiceResult as { data: { fee_amount: number }[] | null }).data ?? [])
-    .reduce((s, i) => s + Number(i.fee_amount), 0)
-
-  return projectCommission + retainerFees
+  return (data ?? []).reduce((s, e) => s + Number((e as { amount: number }).amount), 0)
 }
 
 export async function totalCommissionPending(): Promise<number> {
@@ -603,12 +585,11 @@ export interface ContractorSummary {
 }
 
 export async function contractorLeaderboard(range: TimeRange): Promise<ContractorSummary[]> {
-  const contractors  = await getActiveContractors()
-  const activeIds    = contractors.map(c => c.id)
-  const retainerIds  = contractors.filter(c => c.commission_model === 'retainer').map(c => c.id)
+  const contractors   = await getActiveContractors()
+  const activeIds     = contractors.map(c => c.id)
   const backlogCutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
-  const fromDate     = range.from.toISOString().slice(0, 10)
-  const toDate       = range.to.toISOString().slice(0, 10)
+  const fromDate      = range.from.toISOString().slice(0, 10)
+  const toDate        = range.to.toISOString().slice(0, 10)
 
   const [{ data: leads }, { data: projects }, { data: allLeads }, { data: backlogLeads }, invoiceResult] = await Promise.all([
     db()
@@ -634,17 +615,18 @@ export async function contractorLeaderboard(range: TimeRange): Promise<Contracto
       .eq('canonical_stage', 'new')
       .lt('monday_updated_at', backlogCutoff)
       .limit(5000),
-    retainerIds.length > 0
-      ? db()
-          .from('retainer_invoices')
-          .select('contractor_id, fee_amount')
-          .in('contractor_id', retainerIds)
-          .gte('invoice_date', fromDate)
-          .lte('invoice_date', toDate)
-      : Promise.resolve({ data: [] as { contractor_id: string; fee_amount: number }[] }),
+    db()
+      .from('revenue_entries')
+      .select('contractor_id, amount, type')
+      .in('contractor_id', activeIds)
+      .in('type', ALL_INCOME_TYPES)
+      .eq('payment_status', 'paid')
+      .gte('entry_date', fromDate)
+      .lte('entry_date', toDate),
   ])
 
-  const retainerInvoices = ((invoiceResult as { data: { contractor_id: string; fee_amount: number }[] | null }).data ?? [])
+  type RevRow = { contractor_id: string; amount: number; type: string }
+  const revenueEntries = ((invoiceResult as { data: RevRow[] | null }).data ?? [])
 
   return contractors.map(c => {
     const cLeads    = (leads    ?? []).filter(l => l.contractor_id === c.id)
@@ -676,16 +658,9 @@ export async function contractorLeaderboard(range: TimeRange): Promise<Contracto
       ? null
       : Math.round(dealsWithAmount.reduce((s, p) => s + (p.aanneemsom ?? 0), 0) / dealsWithAmount.length)
 
-    let commBooked = 0
-    if (isRetainer) {
-      commBooked = retainerInvoices
-        .filter(i => i.contractor_id === c.id)
-        .reduce((s, i) => s + Number(i.fee_amount), 0)
-    } else {
-      commBooked = cProjects
-        .filter(p => p.commissie_status?.toLowerCase().includes('betaald'))
-        .reduce((s, p) => s + (p.commissie ?? 0), 0)
-    }
+    const commBooked = revenueEntries
+      .filter(e => e.contractor_id === c.id)
+      .reduce((s, e) => s + Number(e.amount), 0)
 
     const commPending = isRetainer ? 0 : cProjects
       .filter(p => p.commissie && p.commissie > 0 && !p.commissie_status?.toLowerCase().includes('betaald'))

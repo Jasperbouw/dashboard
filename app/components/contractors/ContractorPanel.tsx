@@ -345,12 +345,220 @@ function isPaid(status: string | null) {
   return !!status?.toLowerCase().includes('betaald')
 }
 
+const ENTRY_TYPE_LABELS: Record<string, string> = {
+  ad_budget:             'Ad budget (pass-through)',
+  retainer_fee:          'Retainerfee',
+  commission_percentage: 'Commissie (percentage)',
+  commission_flat:       'Commissie (vast bedrag)',
+  other:                 'Overig',
+}
+const ENTRY_NICHES = ['bouw', 'daken', 'dakkapel', 'extras', 'zwembad', 'nieuwbouw', 'pergola']
+
+interface EntryForm {
+  type:             string
+  entry_date:       string
+  period_start:     string
+  period_end:       string
+  niche:            string
+  amount:           string
+  ad_budget_amount: string
+  description:      string
+  invoice_number:   string
+  payment_status:   string
+  notes:            string
+}
+
+function emptyForm(defaultType = ''): EntryForm {
+  const today = new Date().toISOString().slice(0, 10)
+  return {
+    type: defaultType, entry_date: today, period_start: '', period_end: '',
+    niche: '', amount: '', ad_budget_amount: '0', description: '',
+    invoice_number: '', payment_status: 'paid', notes: '',
+  }
+}
+
+function RevenueEntryModal({
+  contractorId,
+  defaultType,
+  onClose,
+  onSaved,
+}: {
+  contractorId: string
+  defaultType?: string
+  onClose: () => void
+  onSaved: () => void
+}) {
+  const [form, setForm] = useState<EntryForm>(emptyForm(defaultType))
+  const [saving, setSaving] = useState(false)
+  const [err, setErr] = useState<string | null>(null)
+
+  function set(field: keyof EntryForm, value: string) {
+    setForm(prev => {
+      const next = { ...prev, [field]: value }
+      // Auto-fill ad_budget_amount when type = ad_budget
+      if (field === 'type' && value === 'ad_budget') next.ad_budget_amount = next.amount
+      if (field === 'amount' && prev.type === 'ad_budget') next.ad_budget_amount = value
+      return next
+    })
+  }
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!form.amount || !form.entry_date || !form.type) { setErr('Datum, type en bedrag zijn verplicht'); return }
+    setSaving(true)
+    setErr(null)
+    const res = await fetch(`/api/contractors/${contractorId}/revenue`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(form),
+    })
+    setSaving(false)
+    if (!res.ok) { const j = await res.json(); setErr(j.error ?? 'Opslaan mislukt'); return }
+    onSaved()
+    onClose()
+  }
+
+  const labelStyle: React.CSSProperties = {
+    fontSize: 'var(--font-size-xs)', fontWeight: 500, color: 'var(--color-ink-faint)',
+    display: 'block', marginBottom: 4,
+  }
+  const inputStyle: React.CSSProperties = {
+    width: '100%', boxSizing: 'border-box',
+    background: 'var(--color-surface-raised)', border: '1px solid var(--color-border-subtle)',
+    borderRadius: 'var(--radius-sm)', padding: '7px 10px',
+    fontSize: 'var(--font-size-sm)', color: 'var(--color-ink)', fontFamily: 'inherit',
+  }
+  const fieldStyle: React.CSSProperties = { display: 'flex', flexDirection: 'column', gap: 4 }
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 2000,
+        background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+          borderRadius: 'var(--radius-lg)', padding: 24, width: 480,
+          maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 24px 48px rgba(0,0,0,0.4)',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <span style={{ fontWeight: 600, fontSize: 'var(--font-size-md)', color: 'var(--color-ink)' }}>
+            Nieuwe revenue entry
+          </span>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: 'var(--color-ink-faint)', lineHeight: 1 }}>×</button>
+        </div>
+
+        <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div style={fieldStyle}>
+              <label style={labelStyle}>Type *</label>
+              <select value={form.type} onChange={e => set('type', e.target.value)} style={inputStyle} required>
+                <option value="">— kies type —</option>
+                {Object.entries(ENTRY_TYPE_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+              </select>
+            </div>
+            <div style={fieldStyle}>
+              <label style={labelStyle}>Datum *</label>
+              <input type="date" value={form.entry_date} onChange={e => set('entry_date', e.target.value)} style={inputStyle} required />
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div style={fieldStyle}>
+              <label style={labelStyle}>Bedrag (€) *</label>
+              <input type="number" step="0.01" min="0" value={form.amount} onChange={e => set('amount', e.target.value)} style={inputStyle} required placeholder="0.00" />
+            </div>
+            <div style={fieldStyle}>
+              <label style={labelStyle}>Niche</label>
+              <select value={form.niche} onChange={e => set('niche', e.target.value)} style={inputStyle}>
+                <option value="">— optioneel —</option>
+                {ENTRY_NICHES.map(n => <option key={n} value={n}>{n}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div style={fieldStyle}>
+              <label style={labelStyle}>Ad budget deel (€)</label>
+              <input type="number" step="0.01" min="0" value={form.ad_budget_amount} onChange={e => set('ad_budget_amount', e.target.value)} style={inputStyle} placeholder="0" />
+            </div>
+            <div style={fieldStyle}>
+              <label style={labelStyle}>Betaalstatus</label>
+              <select value={form.payment_status} onChange={e => set('payment_status', e.target.value)} style={inputStyle}>
+                <option value="paid">Betaald</option>
+                <option value="open">Open</option>
+                <option value="overdue">Te laat</option>
+              </select>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div style={fieldStyle}>
+              <label style={labelStyle}>Periode van</label>
+              <input type="date" value={form.period_start} onChange={e => set('period_start', e.target.value)} style={inputStyle} />
+            </div>
+            <div style={fieldStyle}>
+              <label style={labelStyle}>Periode t/m</label>
+              <input type="date" value={form.period_end} onChange={e => set('period_end', e.target.value)} style={inputStyle} />
+            </div>
+          </div>
+
+          <div style={fieldStyle}>
+            <label style={labelStyle}>Omschrijving</label>
+            <input type="text" value={form.description} onChange={e => set('description', e.target.value)} style={inputStyle} placeholder="Bijv. 'April factuur — Hollands Prefab bouw'" />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div style={fieldStyle}>
+              <label style={labelStyle}>Factuurnummer</label>
+              <input type="text" value={form.invoice_number} onChange={e => set('invoice_number', e.target.value)} style={inputStyle} placeholder="2026-042" />
+            </div>
+            <div style={fieldStyle}>
+              <label style={labelStyle}>Notities</label>
+              <input type="text" value={form.notes} onChange={e => set('notes', e.target.value)} style={inputStyle} placeholder="Intern" />
+            </div>
+          </div>
+
+          {err && (
+            <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-critical)', padding: '6px 10px', background: 'var(--color-critical-subtle)', borderRadius: 'var(--radius-sm)' }}>
+              {err}
+            </div>
+          )}
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 4 }}>
+            <button type="button" onClick={onClose} style={{ ...inputStyle, width: 'auto', cursor: 'pointer', padding: '8px 16px' }}>
+              Annuleren
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              style={{
+                padding: '8px 20px', background: 'var(--color-accent)', color: '#fff',
+                border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer',
+                fontSize: 'var(--font-size-sm)', fontWeight: 500, opacity: saving ? 0.7 : 1,
+              }}
+            >
+              {saving ? 'Bezig…' : 'Opslaan'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 function FinancieelTab({ contractorId }: { contractorId: string }) {
   const [data, setData] = useState<FinanceData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [modalOpen, setModalOpen] = useState(false)
 
-  useEffect(() => {
+  function loadData() {
     setLoading(true)
     setError(null)
     fetch(`/api/contractors/${contractorId}/finance`)
@@ -358,6 +566,10 @@ function FinancieelTab({ contractorId }: { contractorId: string }) {
       .then(setData)
       .catch(e => setError(String(e)))
       .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    loadData()
   }, [contractorId])
 
   if (loading) return (
@@ -384,11 +596,34 @@ function FinancieelTab({ contractorId }: { contractorId: string }) {
   )
 
   return (
+    <>
+    {modalOpen && (
+      <RevenueEntryModal
+        contractorId={contractorId}
+        defaultType={isRetainer ? 'retainer_fee' : 'commission_percentage'}
+        onClose={() => setModalOpen(false)}
+        onSaved={loadData}
+      />
+    )}
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
       {/* Commission cards — adapts per model */}
       <div>
-        {sectionTitle(isRetainer ? 'Retainer overzicht' : 'Commissie overzicht')}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-ink-faint)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            {isRetainer ? 'Retainer overzicht' : 'Commissie overzicht'}
+          </div>
+          <button
+            onClick={() => setModalOpen(true)}
+            style={{
+              fontSize: 'var(--font-size-xs)', padding: '3px 10px',
+              background: 'var(--color-surface-raised)', border: '1px solid var(--color-border-subtle)',
+              borderRadius: 'var(--radius-sm)', cursor: 'pointer', color: 'var(--color-ink-muted)',
+            }}
+          >
+            + Nieuwe entry
+          </button>
+        </div>
         {isRetainer ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
             <StatTile
@@ -523,6 +758,7 @@ function FinancieelTab({ contractorId }: { contractorId: string }) {
       </div>
 
     </div>
+    </>
   )
 }
 

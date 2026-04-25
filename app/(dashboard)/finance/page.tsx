@@ -1,5 +1,5 @@
 import { serverClient } from '../../../lib/supabase-server'
-import { getActiveContractors } from '../../../lib/metrics'
+import { getActiveContractors, ALL_INCOME_TYPES } from '../../../lib/metrics'
 import { StatCard } from '../../components/ui/StatCard'
 import { FinanceCharts } from '../../components/finance/FinanceCharts'
 
@@ -19,8 +19,7 @@ function startOf(unit: 'month' | 'quarter' | 'year'): Date {
 export default async function FinancePage() {
   const db = serverClient()
   const contractors = await getActiveContractors()
-  const activeIds   = contractors.map(c => c.id)
-  const retainerIds = contractors.filter(c => c.commission_model === 'retainer').map(c => c.id)
+  const activeIds     = contractors.map(c => c.id)
   const contractorMap = new Map(contractors.map(c => [c.id, c]))
 
   const now   = new Date()
@@ -39,107 +38,84 @@ export default async function FinancePage() {
   const ytdDate   = ytdStart.slice(0, 10)
   const sixMoDate = sixMonthsAgo.slice(0, 10)
 
-  type InvoiceRow = { contractor_id: string; fee_amount: number; ad_budget_amount: number; invoice_date: string }
+  type RevRow = { contractor_id: string; amount: number; ad_budget_amount: number; type: string; niche: string | null; entry_date: string }
 
-  const [{ data: paidProjects }, { data: pendingProjects }, invoiceResult] = await Promise.all([
-    db.from('projects')
-      .select('contractor_id, commissie, monday_created_at')
+  const [{ data: revenueRaw }, { data: pendingProjects }] = await Promise.all([
+    db.from('revenue_entries')
+      .select('contractor_id, amount, ad_budget_amount, type, niche, entry_date')
       .in('contractor_id', activeIds)
-      .ilike('commissie_status', '%betaald%')
-      .gte('monday_created_at', sixMonthsAgo),
+      .eq('payment_status', 'paid')
+      .gte('entry_date', sixMoDate),
     db.from('projects')
       .select('contractor_id, commissie')
       .in('contractor_id', activeIds)
       .not('commissie', 'is', null)
       .gt('commissie', 0)
       .not('commissie_status', 'ilike', '%betaald%'),
-    retainerIds.length > 0
-      ? db.from('retainer_invoices')
-          .select('contractor_id, fee_amount, ad_budget_amount, invoice_date')
-          .in('contractor_id', retainerIds)
-          .gte('invoice_date', sixMoDate)
-      : Promise.resolve({ data: [] as InvoiceRow[] }),
   ])
 
-  const paid     = paidProjects ?? []
-  const pending  = pendingProjects ?? []
-  const invoices = ((invoiceResult as { data: InvoiceRow[] | null }).data ?? [])
+  const revenue = (revenueRaw ?? []) as RevRow[]
+  const pending = pendingProjects ?? []
 
-  // Period-sum helpers
-  function projSum(from: string) {
-    return paid.filter(p => p.monday_created_at >= from).reduce((s, p) => s + (p.commissie ?? 0), 0)
-  }
-  function invSum(fromDate: string) {
-    return invoices.filter(i => i.invoice_date >= fromDate).reduce((s, i) => s + Number(i.fee_amount), 0)
+  // Only income types (excludes ad_budget pass-through) for revenue tiles
+  const income = revenue.filter(e => ALL_INCOME_TYPES.includes(e.type))
+
+  function revSum(fromDate: string, rows = income) {
+    return rows.filter(e => e.entry_date >= fromDate).reduce((s, e) => s + Number(e.amount), 0)
   }
 
-  const mtd          = projSum(mtdStart) + invSum(mtdDate)
-  const qtd          = projSum(qtdStart) + invSum(qtdDate)
-  const ytd          = projSum(ytdStart) + invSum(ytdDate)
+  const mtd          = revSum(mtdDate)
+  const qtd          = revSum(qtdDate)
+  const ytd          = revSum(ytdDate)
   const pendingTotal = pending.reduce((s, p) => s + (p.commissie ?? 0), 0)
 
-  // Ad budget pass-through (not our revenue)
-  function adSum(fromDate: string) {
-    return invoices.filter(i => i.invoice_date >= fromDate).reduce((s, i) => s + Number(i.ad_budget_amount), 0)
-  }
-  const adBudgetMTD = adSum(mtdDate)
-  const adBudgetYTD = adSum(ytdDate)
+  // Ad budget pass-through total (shown separately, not counted as our income)
+  const adBudgetMTD = revenue.filter(e => e.type === 'ad_budget' && e.entry_date >= mtdDate)
+    .reduce((s, e) => s + Number(e.ad_budget_amount), 0)
+  const adBudgetYTD = revenue.filter(e => e.type === 'ad_budget' && e.entry_date >= ytdDate)
+    .reduce((s, e) => s + Number(e.ad_budget_amount), 0)
 
   // Revenue by commission model (YTD) — pre-seed all three so €0 rows always appear
   const MODEL_ORDER = ['percentage', 'flat_fee', 'retainer'] as const
   const byModelRaw: Record<string, number> = { percentage: 0, flat_fee: 0, retainer: 0 }
-  for (const p of paid.filter(p => p.monday_created_at >= ytdStart)) {
-    const model = contractorMap.get(p.contractor_id)?.commission_model ?? 'unknown'
-    byModelRaw[model] = (byModelRaw[model] ?? 0) + (p.commissie ?? 0)
-  }
-  for (const i of invoices.filter(i => i.invoice_date >= ytdDate)) {
-    byModelRaw['retainer'] = (byModelRaw['retainer'] ?? 0) + Number(i.fee_amount)
+  for (const e of income.filter(e => e.entry_date >= ytdDate)) {
+    const model = contractorMap.get(e.contractor_id)?.commission_model ?? 'unknown'
+    byModelRaw[model] = (byModelRaw[model] ?? 0) + Number(e.amount)
   }
   const byModel = MODEL_ORDER.map(m => ({
     name: m, label: MODEL_LABELS[m] ?? m, amount: byModelRaw[m] ?? 0,
   }))
 
-  // Revenue by niche (YTD) — pre-seed all active niches so €0 rows always appear
+  // Revenue by niche (YTD) — use entry's niche if set, else contractor niche
   const NICHE_ORDER = ['bouw', 'daken', 'dakkapel', 'extras']
   const byNicheRaw: Record<string, number> = Object.fromEntries(NICHE_ORDER.map(n => [n, 0]))
-  for (const p of paid.filter(p => p.monday_created_at >= ytdStart)) {
-    const niche = contractorMap.get(p.contractor_id)?.niche ?? 'overig'
-    byNicheRaw[niche] = (byNicheRaw[niche] ?? 0) + (p.commissie ?? 0)
-  }
-  for (const i of invoices.filter(i => i.invoice_date >= ytdDate)) {
-    const niche = contractorMap.get(i.contractor_id)?.niche ?? 'overig'
-    byNicheRaw[niche] = (byNicheRaw[niche] ?? 0) + Number(i.fee_amount)
+  for (const e of income.filter(e => e.entry_date >= ytdDate)) {
+    const niche = e.niche ?? contractorMap.get(e.contractor_id)?.niche ?? 'overig'
+    byNicheRaw[niche] = (byNicheRaw[niche] ?? 0) + Number(e.amount)
   }
   const byNiche = NICHE_ORDER
     .map(name => ({ name, label: NICHE_LABELS[name] ?? name, amount: byNicheRaw[name] ?? 0 }))
 
-  // Top 5 contractors by YTD revenue — include all active contractors so €0 rows appear
+  // Top 5 contractors by YTD revenue
   const contRevMap: Record<string, number> = {}
-  for (const p of paid.filter(p => p.monday_created_at >= ytdStart)) {
-    contRevMap[p.contractor_id] = (contRevMap[p.contractor_id] ?? 0) + (p.commissie ?? 0)
-  }
-  for (const i of invoices.filter(i => i.invoice_date >= ytdDate)) {
-    contRevMap[i.contractor_id] = (contRevMap[i.contractor_id] ?? 0) + Number(i.fee_amount)
+  for (const e of income.filter(e => e.entry_date >= ytdDate)) {
+    contRevMap[e.contractor_id] = (contRevMap[e.contractor_id] ?? 0) + Number(e.amount)
   }
   const top5 = contractors
     .map(c => ({ id: c.id, name: c.name, niche: c.niche, model: c.commission_model ?? '', ytd: contRevMap[c.id] ?? 0 }))
     .sort((a, b) => b.ytd - a.ytd)
     .slice(0, 5)
 
-  // 6-month trend — initialise every bucket so empty months show as 0
+  // 6-month trend
   const trendMap: Record<string, number> = {}
   for (let i = 5; i >= 0; i--) {
     const d = new Date(year, month - i, 1)
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
     trendMap[key] = 0
   }
-  for (const p of paid) {
-    const key = (p.monday_created_at as string).slice(0, 7)
-    if (key in trendMap) trendMap[key] += p.commissie ?? 0
-  }
-  for (const i of invoices) {
-    const key = i.invoice_date.slice(0, 7)
-    if (key in trendMap) trendMap[key] += Number(i.fee_amount)
+  for (const e of income) {
+    const key = e.entry_date.slice(0, 7)
+    if (key in trendMap) trendMap[key] += Number(e.amount)
   }
   const trend = Object.entries(trendMap).map(([mo, amount]) => ({
     month: mo,
