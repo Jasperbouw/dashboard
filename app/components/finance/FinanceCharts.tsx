@@ -86,9 +86,9 @@ export function FinanceCharts({ trend, byModel, byNiche, top5, adBudgetMTD, adBu
               axisLine={false} tickLine={false} width={48}
             />
             <RechartTooltip content={<EurTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
-            <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
+            <Bar dataKey="amount" radius={[4, 4, 0, 0]} minPointSize={4}>
               {trend.map((entry) => (
-                <Cell key={entry.month} fill={entry.amount > 0 ? ACCENT : MUTED} fillOpacity={entry.amount > 0 ? 1 : 0.4} />
+                <Cell key={entry.month} fill={entry.amount > 0 ? ACCENT : MUTED} fillOpacity={entry.amount > 0 ? 1 : 0.25} />
               ))}
             </Bar>
           </BarChart>
@@ -106,7 +106,7 @@ export function FinanceCharts({ trend, byModel, byNiche, top5, adBudgetMTD, adBu
         {/* By model */}
         <Card>
           <SectionTitle>Per commissiemodel (YTD)</SectionTitle>
-          <ResponsiveContainer width="100%" height={140}>
+          <ResponsiveContainer width="100%" height={160}>
             <BarChart data={byModel} layout="vertical" barCategoryGap="20%">
               <XAxis
                 type="number" tickFormatter={v => `€${v.toLocaleString('nl-NL')}`}
@@ -119,7 +119,7 @@ export function FinanceCharts({ trend, byModel, byNiche, top5, adBudgetMTD, adBu
                 axisLine={false} tickLine={false}
               />
               <RechartTooltip content={<EurTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
-              <Bar dataKey="amount" fill={ACCENT} radius={[0, 4, 4, 0]} />
+              <Bar dataKey="amount" fill={ACCENT} radius={[0, 4, 4, 0]} minPointSize={4} />
             </BarChart>
           </ResponsiveContainer>
         </Card>
@@ -127,7 +127,7 @@ export function FinanceCharts({ trend, byModel, byNiche, top5, adBudgetMTD, adBu
         {/* By niche */}
         <Card>
           <SectionTitle>Per niche (YTD)</SectionTitle>
-          <ResponsiveContainer width="100%" height={140}>
+          <ResponsiveContainer width="100%" height={160}>
             <BarChart data={byNiche} layout="vertical" barCategoryGap="20%">
               <XAxis
                 type="number" tickFormatter={v => `€${v.toLocaleString('nl-NL')}`}
@@ -140,7 +140,7 @@ export function FinanceCharts({ trend, byModel, byNiche, top5, adBudgetMTD, adBu
                 axisLine={false} tickLine={false}
               />
               <RechartTooltip content={<EurTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
-              <Bar dataKey="amount" fill={SUCCESS} radius={[0, 4, 4, 0]} />
+              <Bar dataKey="amount" fill={SUCCESS} radius={[0, 4, 4, 0]} minPointSize={4} />
             </BarChart>
           </ResponsiveContainer>
         </Card>

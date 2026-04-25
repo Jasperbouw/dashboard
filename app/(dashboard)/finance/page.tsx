@@ -85,8 +85,9 @@ export default async function FinancePage() {
   const adBudgetMTD = adSum(mtdDate)
   const adBudgetYTD = adSum(ytdDate)
 
-  // Revenue by commission model (YTD)
-  const byModelRaw: Record<string, number> = {}
+  // Revenue by commission model (YTD) — pre-seed all three so €0 rows always appear
+  const MODEL_ORDER = ['percentage', 'flat_fee', 'retainer'] as const
+  const byModelRaw: Record<string, number> = { percentage: 0, flat_fee: 0, retainer: 0 }
   for (const p of paid.filter(p => p.monday_created_at >= ytdStart)) {
     const model = contractorMap.get(p.contractor_id)?.commission_model ?? 'unknown'
     byModelRaw[model] = (byModelRaw[model] ?? 0) + (p.commissie ?? 0)
@@ -94,12 +95,13 @@ export default async function FinancePage() {
   for (const i of invoices.filter(i => i.invoice_date >= ytdDate)) {
     byModelRaw['retainer'] = (byModelRaw['retainer'] ?? 0) + Number(i.fee_amount)
   }
-  const byModel = ['percentage', 'flat_fee', 'retainer'].map(m => ({
+  const byModel = MODEL_ORDER.map(m => ({
     name: m, label: MODEL_LABELS[m] ?? m, amount: byModelRaw[m] ?? 0,
   }))
 
-  // Revenue by niche (YTD)
-  const byNicheRaw: Record<string, number> = {}
+  // Revenue by niche (YTD) — pre-seed all active niches so €0 rows always appear
+  const NICHE_ORDER = ['bouw', 'daken', 'dakkapel', 'extras']
+  const byNicheRaw: Record<string, number> = Object.fromEntries(NICHE_ORDER.map(n => [n, 0]))
   for (const p of paid.filter(p => p.monday_created_at >= ytdStart)) {
     const niche = contractorMap.get(p.contractor_id)?.niche ?? 'overig'
     byNicheRaw[niche] = (byNicheRaw[niche] ?? 0) + (p.commissie ?? 0)
@@ -108,11 +110,10 @@ export default async function FinancePage() {
     const niche = contractorMap.get(i.contractor_id)?.niche ?? 'overig'
     byNicheRaw[niche] = (byNicheRaw[niche] ?? 0) + Number(i.fee_amount)
   }
-  const byNiche = Object.entries(byNicheRaw)
-    .map(([name, amount]) => ({ name, label: NICHE_LABELS[name] ?? name, amount }))
-    .sort((a, b) => b.amount - a.amount)
+  const byNiche = NICHE_ORDER
+    .map(name => ({ name, label: NICHE_LABELS[name] ?? name, amount: byNicheRaw[name] ?? 0 }))
 
-  // Top 5 contractors by YTD revenue
+  // Top 5 contractors by YTD revenue — include all active contractors so €0 rows appear
   const contRevMap: Record<string, number> = {}
   for (const p of paid.filter(p => p.monday_created_at >= ytdStart)) {
     contRevMap[p.contractor_id] = (contRevMap[p.contractor_id] ?? 0) + (p.commissie ?? 0)
@@ -120,11 +121,8 @@ export default async function FinancePage() {
   for (const i of invoices.filter(i => i.invoice_date >= ytdDate)) {
     contRevMap[i.contractor_id] = (contRevMap[i.contractor_id] ?? 0) + Number(i.fee_amount)
   }
-  const top5 = Object.entries(contRevMap)
-    .map(([id, ytdRev]) => {
-      const c = contractorMap.get(id)
-      return { id, name: c?.name ?? id, niche: c?.niche ?? '', model: c?.commission_model ?? '', ytd: ytdRev }
-    })
+  const top5 = contractors
+    .map(c => ({ id: c.id, name: c.name, niche: c.niche, model: c.commission_model ?? '', ytd: contRevMap[c.id] ?? 0 }))
     .sort((a, b) => b.ytd - a.ytd)
     .slice(0, 5)
 
