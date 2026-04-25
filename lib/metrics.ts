@@ -574,8 +574,11 @@ export interface ContractorSummary {
   monthly_retainer_fee: number | null  // our revenue
   monthly_ad_budget:    number | null  // pass-through, not revenue
   retainer_billing:     'prepaid' | 'monthly' | 'quarterly' | null
-  target_monthly_leads: number | null
-  target_monthly_deals: number | null
+  commission_rate:       number | null
+  target_monthly_leads:  number | null
+  target_monthly_deals:  number | null
+  target_monthly_revenue: number | null
+  target_commission:     number | null
   leadsReceived:     number
   qualifiedLeads:    number
   qualificationRate: number | null  // null for unfiltered/hands_off
@@ -780,8 +783,11 @@ export async function contractorLeaderboard(range: TimeRange): Promise<Contracto
       monthly_retainer_fee: c.monthly_retainer_fee,
       monthly_ad_budget:    c.monthly_ad_budget,
       retainer_billing:     c.retainer_billing,
-      target_monthly_leads: c.target_monthly_leads,
-      target_monthly_deals: c.target_monthly_deals,
+      commission_rate:       c.commission_rate,
+      target_monthly_leads:  c.target_monthly_leads,
+      target_monthly_deals:  c.target_monthly_deals,
+      target_monthly_revenue: c.target_monthly_revenue,
+      target_commission:     c.target_commission,
       leadsReceived:        total,
       qualifiedLeads:       qualified,
       qualificationRate:    qualRate,

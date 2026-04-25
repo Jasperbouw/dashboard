@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { ContractorSummary } from '../../../lib/metrics'
+import { supabase } from '../../../lib/supabase'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -804,6 +805,270 @@ function OffertesTab({ contractorId }: { contractorId: string }) {
   )
 }
 
+// ── Info & Documenten tab ─────────────────────────────────────────────────────
+
+function CollapsibleSection({
+  title, defaultOpen = true, children, action,
+}: {
+  title: string
+  defaultOpen?: boolean
+  children: React.ReactNode
+  action?: React.ReactNode
+}) {
+  const [open, setOpen] = useState(defaultOpen)
+  return (
+    <div style={{ borderBottom: '1px solid var(--color-border-subtle)', paddingBottom: open ? 16 : 0 }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          width: '100%', background: 'none', border: 'none', cursor: 'pointer',
+          padding: '14px 0', gap: 8,
+        }}
+      >
+        <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-ink-faint)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+          {title}
+        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {action}
+          <span style={{ fontSize: 10, color: 'var(--color-ink-faint)', transform: open ? 'rotate(180deg)' : undefined, display: 'inline-block', transition: 'transform 0.15s' }}>▼</span>
+        </div>
+      </button>
+      {open && <div style={{ paddingBottom: 4 }}>{children}</div>}
+    </div>
+  )
+}
+
+function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: 8, padding: '5px 0', fontSize: 'var(--font-size-sm)' }}>
+      <span style={{ color: 'var(--color-ink-faint)' }}>{label}</span>
+      <span style={{ color: 'var(--color-ink)', fontWeight: 500 }}>{value ?? <span style={{ color: 'var(--color-ink-faint)' }}>—</span>}</span>
+    </div>
+  )
+}
+
+function GhostButton({ children, disabled }: { children: React.ReactNode; disabled?: boolean }) {
+  return (
+    <button
+      disabled={disabled}
+      style={{
+        fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)',
+        background: 'none', border: '1px solid var(--color-border-subtle)',
+        borderRadius: 'var(--radius-sm)', padding: '3px 10px', cursor: disabled ? 'default' : 'pointer',
+        opacity: disabled ? 0.5 : 1,
+      }}
+    >
+      {children}
+    </button>
+  )
+}
+
+const REL_LABELS: Record<string, string> = {
+  active:       'Actief',
+  at_risk:      'At risk',
+  winding_down: 'Aflopend',
+}
+
+function formatCommissionDetail(c: ContractorSummary): string {
+  if (c.commission_model === 'percentage' && c.commission_rate != null) {
+    const pct = c.commission_rate < 1 ? c.commission_rate * 100 : c.commission_rate
+    return `${pct.toFixed(1)}% van aanneemsom`
+  }
+  if (c.commission_model === 'flat_fee' && c.commission_rate != null) return `€${c.commission_rate.toLocaleString('nl-NL')} per deal`
+  if (c.commission_model === 'retainer') {
+    const parts: string[] = []
+    if (c.monthly_retainer_fee) parts.push(`€${c.monthly_retainer_fee.toLocaleString('nl-NL')} fee/mnd`)
+    if (c.monthly_ad_budget)    parts.push(`€${c.monthly_ad_budget.toLocaleString('nl-NL')} ad budget/mnd`)
+    return parts.join(' · ') || 'Retainer'
+  }
+  return '—'
+}
+
+interface InfoData {
+  created_at: string | null
+  location:   string | null
+  contracts:  { id: string }[]
+}
+
+const KV_NOTES_PREFIX = 'contractor-notes-'
+
+function InfoTab({ contractor }: { contractor: ContractorSummary }) {
+  const [info, setInfo]           = useState<InfoData | null>(null)
+  const [notes, setNotes]         = useState<string>('')
+  const [notesDirty, setDirty]    = useState(false)
+  const [notesSaving, setSaving]  = useState(false)
+  const [notesSaved, setSaved]    = useState(false)
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    fetch(`/api/contractors/${contractor.id}/info`)
+      .then(r => r.json())
+      .then(setInfo)
+      .catch(() => setInfo({ created_at: null, location: null, contracts: [] }))
+
+    supabase.from('kv_store').select('value').eq('key', `${KV_NOTES_PREFIX}${contractor.id}`).single()
+      .then(({ data }) => { if (data?.value) setNotes(data.value) })
+  }, [contractor.id])
+
+  function handleNotesChange(v: string) {
+    setNotes(v)
+    setDirty(true)
+    setSaved(false)
+  }
+
+  async function saveNotes() {
+    if (!notesDirty) return
+    setSaving(true)
+    await supabase.from('kv_store').upsert(
+      { key: `${KV_NOTES_PREFIX}${contractor.id}`, value: notes },
+      { onConflict: 'key' },
+    )
+    setSaving(false)
+    setDirty(false)
+    setSaved(true)
+    if (saveTimer.current) clearTimeout(saveTimer.current)
+    saveTimer.current = setTimeout(() => setSaved(false), 2500)
+  }
+
+  const naamSince = info?.created_at
+    ? new Date(info.created_at).toLocaleDateString('nl-NL', { month: 'long', year: 'numeric' })
+    : null
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+
+      {/* Profiel */}
+      <CollapsibleSection title="Profiel" defaultOpen>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+          <InfoRow label="Naam"          value={contractor.name} />
+          <InfoRow label="Niche"         value={contractor.niche} />
+          <InfoRow label="Klant sinds"   value={naamSince} />
+          <InfoRow label="Locatie"       value={info?.location} />
+          <InfoRow label="Servicemodel"  value={SERVICE_LABEL[contractor.service_model ?? ''] ?? contractor.service_model} />
+          <InfoRow label="Kwalificatie"  value={QUAL_LABEL[contractor.qualification_model ?? ''] ?? contractor.qualification_model} />
+          <InfoRow label="Relatiestatus" value={REL_LABELS[contractor.relationship_status ?? ''] ?? contractor.relationship_status} />
+          <InfoRow label="Commissiemodel" value={MODEL_LABEL[contractor.commission_model ?? ''] ?? contractor.commission_model} />
+          <InfoRow label="Commissie"     value={formatCommissionDetail(contractor)} />
+        </div>
+        {(contractor.target_monthly_leads || contractor.target_monthly_revenue || contractor.target_commission) && (
+          <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--color-border-subtle)' }}>
+            <div style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 600, color: 'var(--color-ink-faint)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>
+              Doelen / maand
+            </div>
+            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+              {contractor.target_monthly_leads != null && (
+                <div>
+                  <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: 'var(--color-ink)' }}>
+                    {contractor.target_monthly_leads}
+                  </div>
+                  <div style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-ink-faint)' }}>leads</div>
+                </div>
+              )}
+              {contractor.target_monthly_revenue != null && (
+                <div>
+                  <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: 'var(--color-ink)' }}>
+                    €{(contractor.target_monthly_revenue / 1000).toFixed(0)}k
+                  </div>
+                  <div style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-ink-faint)' }}>aanneemsom</div>
+                </div>
+              )}
+              {contractor.target_commission != null && (
+                <div>
+                  <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: 'var(--color-ink)' }}>
+                    €{(contractor.target_commission / 1000).toFixed(0)}k
+                  </div>
+                  <div style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-ink-faint)' }}>commissie</div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </CollapsibleSection>
+
+      {/* SOP & ICP */}
+      <CollapsibleSection
+        title="SOP & ICP"
+        defaultOpen={false}
+        action={<GhostButton disabled>+ SOP toevoegen</GhostButton>}
+      >
+        <div style={{
+          padding: '16px', background: 'var(--color-surface-raised)',
+          border: '1px dashed var(--color-border)', borderRadius: 'var(--radius-md)',
+          fontSize: 'var(--font-size-sm)', color: 'var(--color-ink-faint)', textAlign: 'center',
+        }}>
+          Geen SOPs gedefinieerd voor deze contractor
+        </div>
+      </CollapsibleSection>
+
+      {/* Contracten */}
+      <CollapsibleSection
+        title="Contracten"
+        defaultOpen={false}
+        action={<GhostButton disabled>Genereer contract</GhostButton>}
+      >
+        {info?.contracts.length ? (
+          <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-ink)' }}>
+            {info.contracts.length} contract{info.contracts.length !== 1 ? 'en' : ''} gevonden
+          </div>
+        ) : (
+          <div style={{
+            padding: '16px', background: 'var(--color-surface-raised)',
+            border: '1px dashed var(--color-border)', borderRadius: 'var(--radius-md)',
+            fontSize: 'var(--font-size-sm)', color: 'var(--color-ink-faint)', textAlign: 'center',
+          }}>
+            Nog geen contracten gegenereerd
+          </div>
+        )}
+      </CollapsibleSection>
+
+      {/* Notities */}
+      <CollapsibleSection title="Notities" defaultOpen>
+        <textarea
+          value={notes}
+          onChange={e => handleNotesChange(e.target.value)}
+          onBlur={saveNotes}
+          placeholder="Bijv. 'Owner Frank, prefereert WhatsApp'. Wordt automatisch opgeslagen."
+          rows={5}
+          style={{
+            width: '100%', boxSizing: 'border-box',
+            background: 'var(--color-surface-raised)',
+            border: '1px solid var(--color-border-subtle)',
+            borderRadius: 'var(--radius-md)',
+            padding: '10px 12px',
+            fontSize: 'var(--font-size-sm)',
+            color: 'var(--color-ink)',
+            resize: 'vertical',
+            fontFamily: 'inherit',
+            lineHeight: 1.6,
+            outline: 'none',
+          }}
+        />
+        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 8, marginTop: 6 }}>
+          {notesSaved && (
+            <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)' }}>Opgeslagen</span>
+          )}
+          <button
+            onClick={saveNotes}
+            disabled={!notesDirty || notesSaving}
+            style={{
+              fontSize: 'var(--font-size-xs)', padding: '4px 12px',
+              background: notesDirty ? 'var(--color-accent)' : 'var(--color-surface-raised)',
+              color: notesDirty ? '#fff' : 'var(--color-ink-faint)',
+              border: '1px solid var(--color-border-subtle)',
+              borderRadius: 'var(--radius-sm)', cursor: notesDirty ? 'pointer' : 'default',
+              transition: 'background 0.15s, color 0.15s',
+            }}
+          >
+            {notesSaving ? 'Bezig…' : 'Opslaan'}
+          </button>
+        </div>
+      </CollapsibleSection>
+
+    </div>
+  )
+}
+
 // ── Coming soon placeholder ───────────────────────────────────────────────────
 
 function ComingSoon({ label }: { label: string }) {
@@ -976,7 +1241,7 @@ export function ContractorPanel({ contractor, onClose }: Props) {
               {tab === 'performance' && <PerformanceTab c={contractor} />}
               {tab === 'financieel'  && <FinancieelTab contractorId={contractor.id} />}
               {tab === 'offertes'    && <OffertesTab contractorId={contractor.id} />}
-              {tab === 'info'        && <ComingSoon label="Info & Documenten" />}
+              {tab === 'info'        && <InfoTab contractor={contractor} />}
               {tab === 'locatie'     && <ComingSoon label="Locatie & Werkgebied" />}
             </div>
           </>
