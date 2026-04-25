@@ -1124,7 +1124,375 @@ function formatCommissionDetail(c: ContractorSummary): string {
 interface InfoData {
   created_at: string | null
   location:   string | null
-  contracts:  { id: string }[]
+}
+
+interface ContractorDocument {
+  id:               string
+  document_type:    string
+  title:            string
+  file_size_bytes:  number | null
+  mime_type:        string | null
+  uploaded_at:      string
+  notes:            string | null
+  status:           string
+  download_url:     string | null
+}
+
+function fmtFileSize(bytes: number | null | undefined): string {
+  if (!bytes) return ''
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
+function fmtUploadDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+const DOC_TYPE_OPTIONS = [
+  { value: 'contract_signed', label: 'Contract (ondertekend)' },
+  { value: 'contract',        label: 'Contract (verzonden)'   },
+  { value: 'intake',          label: 'Intake'                 },
+  { value: 'addendum',        label: 'Addendum'               },
+  { value: 'other',           label: 'Overig'                 },
+]
+
+const ALLOWED_UPLOAD_MIME = new Set([
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'image/jpeg',
+  'image/png',
+])
+
+function DocumentUploader({
+  contractorId, defaultType = 'contract_signed', onUploaded,
+}: {
+  contractorId: string
+  defaultType?: string
+  onUploaded: () => void
+}) {
+  const [dragging, setDragging]   = useState(false)
+  const [file, setFile]           = useState<File | null>(null)
+  const [docType, setDocType]     = useState(defaultType)
+  const [title, setTitle]         = useState('')
+  const [uploading, setUploading] = useState(false)
+  const [error, setError]         = useState<string | null>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  function selectFile(f: File) {
+    if (!ALLOWED_UPLOAD_MIME.has(f.type)) {
+      setError('Bestandstype niet toegestaan (PDF, DOCX, DOC, JPG, PNG)')
+      return
+    }
+    if (f.size > 10 * 1024 * 1024) {
+      setError('Bestand is te groot (max 10 MB)')
+      return
+    }
+    setError(null)
+    setFile(f)
+    setTitle(f.name.replace(/\.[^.]+$/, '').replace(/[_-]/g, ' '))
+  }
+
+  function onDrop(e: React.DragEvent) {
+    e.preventDefault()
+    setDragging(false)
+    const f = e.dataTransfer.files[0]
+    if (f) selectFile(f)
+  }
+
+  async function upload() {
+    if (!file) return
+    setUploading(true)
+    setError(null)
+    const fd = new FormData()
+    fd.append('file', file)
+    fd.append('document_type', docType)
+    fd.append('title', title || file.name)
+    const r = await fetch(`/api/contractors/${contractorId}/documents`, { method: 'POST', body: fd })
+    setUploading(false)
+    if (!r.ok) {
+      const j = await r.json().catch(() => ({}))
+      setError(j.error ?? 'Uploaden mislukt')
+      return
+    }
+    setFile(null)
+    setTitle('')
+    onUploaded()
+  }
+
+  const inputStyle: React.CSSProperties = {
+    fontSize: 'var(--font-size-sm)', padding: '5px 8px',
+    background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+    borderRadius: 'var(--radius-sm)', color: 'var(--color-ink)', width: '100%', boxSizing: 'border-box',
+  }
+  const labelStyle: React.CSSProperties = {
+    fontSize: 'var(--font-size-2xs)', fontWeight: 600,
+    color: 'var(--color-ink-faint)', textTransform: 'uppercase', letterSpacing: '0.06em',
+  }
+
+  if (file) {
+    return (
+      <div style={{
+        padding: '12px 14px', background: 'var(--color-surface-raised)',
+        border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)',
+        display: 'flex', flexDirection: 'column', gap: 10,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 500, color: 'var(--color-ink)' }}>{file.name}</div>
+            <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)' }}>{fmtFileSize(file.size)}</div>
+          </div>
+          <button onClick={() => { setFile(null); setError(null) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-ink-faint)', fontSize: 14, padding: '2px 4px' }}>✕</button>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <label style={labelStyle}>Type</label>
+          <select value={docType} onChange={e => setDocType(e.target.value)} style={inputStyle}>
+            {DOC_TYPE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+          </select>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <label style={labelStyle}>Titel</label>
+          <input value={title} onChange={e => setTitle(e.target.value)} style={inputStyle} />
+        </div>
+
+        {error && <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-critical)' }}>{error}</div>}
+
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button
+            onClick={upload} disabled={uploading}
+            style={{
+              fontSize: 'var(--font-size-xs)', padding: '6px 14px',
+              background: 'var(--color-accent)', color: '#fff',
+              border: 'none', borderRadius: 'var(--radius-sm)',
+              cursor: uploading ? 'default' : 'pointer', opacity: uploading ? 0.7 : 1,
+            }}
+          >
+            {uploading ? 'Uploaden…' : 'Uploaden'}
+          </button>
+          <button
+            onClick={() => { setFile(null); setError(null) }}
+            style={{
+              fontSize: 'var(--font-size-xs)', padding: '6px 12px',
+              background: 'none', border: '1px solid var(--color-border)',
+              borderRadius: 'var(--radius-sm)', cursor: 'pointer', color: 'var(--color-ink-muted)',
+            }}
+          >
+            Annuleren
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div
+      onDragOver={e => { e.preventDefault(); setDragging(true) }}
+      onDragLeave={() => setDragging(false)}
+      onDrop={onDrop}
+      onClick={() => inputRef.current?.click()}
+      style={{
+        padding: '20px 16px', textAlign: 'center', cursor: 'pointer',
+        background: dragging ? 'var(--color-surface-raised)' : 'transparent',
+        border: `1.5px dashed ${dragging ? 'var(--color-accent)' : 'var(--color-border)'}`,
+        borderRadius: 'var(--radius-md)',
+        transition: 'background 0.15s, border-color 0.15s',
+      }}
+    >
+      <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-ink-muted)', lineHeight: 1.5 }}>
+        Sleep een document hier of{' '}
+        <span style={{ color: 'var(--color-accent)', fontWeight: 500 }}>klik om te uploaden</span>
+      </div>
+      <div style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-ink-faint)', marginTop: 4 }}>
+        PDF, DOCX, JPG, PNG — max 10 MB
+      </div>
+      {error && <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-critical)', marginTop: 6 }}>{error}</div>}
+      <input
+        ref={inputRef} type="file" accept=".pdf,.docx,.doc,.jpg,.jpeg,.png"
+        style={{ display: 'none' }}
+        onChange={e => { const f = e.target.files?.[0]; if (f) selectFile(f); e.target.value = '' }}
+      />
+    </div>
+  )
+}
+
+function ActiveDocCard({ doc, onArchive }: { doc: ContractorDocument; onArchive: () => void }) {
+  const isSigned    = doc.document_type === 'contract_signed'
+  const statusLabel = isSigned ? 'Ondertekend' : 'In behandeling'
+  const statusColor = isSigned ? 'var(--color-success)' : 'var(--color-warning)'
+
+  return (
+    <div style={{
+      padding: '12px 14px', background: 'var(--color-surface-raised)',
+      border: '1px solid var(--color-border-subtle)', borderRadius: 'var(--radius-md)',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <span style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 600, color: 'var(--color-ink-faint)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            Actief contract
+          </span>
+          <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 500, color: 'var(--color-ink)' }}>
+            {doc.title}
+          </span>
+          <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)' }}>
+            {fmtUploadDate(doc.uploaded_at)}
+            {doc.mime_type?.includes('pdf') ? ' · PDF' : ''}
+            {doc.file_size_bytes ? ` · ${fmtFileSize(doc.file_size_bytes)}` : ''}
+          </span>
+        </div>
+        <span style={{
+          fontSize: 'var(--font-size-2xs)', fontWeight: 600,
+          color: statusColor, background: `${statusColor}22`,
+          padding: '2px 8px', borderRadius: 'var(--radius-full)', flexShrink: 0, whiteSpace: 'nowrap',
+        }}>
+          {statusLabel}
+        </span>
+      </div>
+      <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+        {doc.download_url && (
+          <a
+            href={doc.download_url} target="_blank" rel="noopener noreferrer"
+            style={{
+              fontSize: 'var(--font-size-xs)', padding: '4px 10px',
+              background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+              borderRadius: 'var(--radius-sm)', color: 'var(--color-ink)', textDecoration: 'none',
+            }}
+          >
+            Download
+          </a>
+        )}
+        <button
+          onClick={onArchive}
+          style={{
+            fontSize: 'var(--font-size-xs)', padding: '4px 10px',
+            background: 'none', border: '1px solid var(--color-border-subtle)',
+            borderRadius: 'var(--radius-sm)', cursor: 'pointer', color: 'var(--color-ink-faint)',
+          }}
+        >
+          Archiveren
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function ContractSection({ contractorId }: { contractorId: string }) {
+  const [docs, setDocs]               = useState<ContractorDocument[]>([])
+  const [loading, setLoading]         = useState(true)
+  const [archiveOpen, setArchiveOpen] = useState(false)
+  const [showUploader, setShowUploader] = useState(false)
+
+  async function loadDocs() {
+    setLoading(true)
+    const r = await fetch(`/api/contractors/${contractorId}/documents`)
+    if (r.ok) setDocs(await r.json())
+    setLoading(false)
+  }
+
+  useEffect(() => { loadDocs() }, [contractorId])
+
+  if (loading) {
+    return <div style={{ padding: '8px 0', fontSize: 'var(--font-size-sm)', color: 'var(--color-ink-faint)' }}>Laden…</div>
+  }
+
+  const activeSigned   = docs.find(d => d.status === 'active' && d.document_type === 'contract_signed')
+  const activeContract = docs.find(d => d.status === 'active' && d.document_type === 'contract')
+  const activeDoc      = activeSigned ?? activeContract
+  const archived       = docs.filter(d => d.status === 'archived')
+  const hasSignedActive = !!activeSigned
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+
+      {/* Active contract card */}
+      {activeDoc && (
+        <ActiveDocCard
+          doc={activeDoc}
+          onArchive={async () => {
+            await fetch(`/api/contractors/${contractorId}/documents/${activeDoc.id}`, { method: 'DELETE' })
+            loadDocs()
+          }}
+        />
+      )}
+
+      {/* Upload zone — always visible if no signed contract; toggle if signed exists */}
+      {!hasSignedActive ? (
+        <DocumentUploader
+          contractorId={contractorId}
+          defaultType={activeDoc ? 'contract_signed' : 'contract'}
+          onUploaded={loadDocs}
+        />
+      ) : (
+        <>
+          <button
+            onClick={() => setShowUploader(o => !o)}
+            style={{
+              alignSelf: 'flex-start', fontSize: 'var(--font-size-xs)', padding: '5px 12px',
+              background: 'none', border: '1px solid var(--color-border)',
+              borderRadius: 'var(--radius-sm)', cursor: 'pointer', color: 'var(--color-ink-muted)',
+            }}
+          >
+            {showUploader ? 'Annuleren' : '+ Nieuw document uploaden'}
+          </button>
+          {showUploader && (
+            <DocumentUploader
+              contractorId={contractorId}
+              defaultType="contract_signed"
+              onUploaded={() => { setShowUploader(false); loadDocs() }}
+            />
+          )}
+        </>
+      )}
+
+      {/* Archived versions */}
+      {archived.length > 0 && (
+        <div>
+          <button
+            onClick={() => setArchiveOpen(o => !o)}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0',
+              display: 'flex', alignItems: 'center', gap: 6,
+              fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)',
+            }}
+          >
+            <span style={{ display: 'inline-block', transform: archiveOpen ? 'rotate(90deg)' : undefined, transition: 'transform 0.15s', fontSize: 9 }}>▶</span>
+            Vorige versies ({archived.length})
+          </button>
+          {archiveOpen && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 6 }}>
+              {archived.map(doc => (
+                <div key={doc.id} style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '6px 10px', background: 'var(--color-surface-raised)',
+                  borderRadius: 'var(--radius-sm)', opacity: 0.6,
+                }}>
+                  <div>
+                    <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink)', fontWeight: 500 }}>{doc.title}</div>
+                    <div style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-ink-faint)' }}>{fmtUploadDate(doc.uploaded_at)}</div>
+                  </div>
+                  {doc.download_url && (
+                    <a
+                      href={doc.download_url} target="_blank" rel="noopener noreferrer"
+                      style={{
+                        fontSize: 'var(--font-size-2xs)', padding: '3px 8px',
+                        background: 'none', border: '1px solid var(--color-border-subtle)',
+                        borderRadius: 'var(--radius-sm)', color: 'var(--color-ink-muted)', textDecoration: 'none',
+                      }}
+                    >
+                      Download
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+    </div>
+  )
 }
 
 const KV_NOTES_PREFIX = 'contractor-notes-'
@@ -1141,7 +1509,7 @@ function InfoTab({ contractor }: { contractor: ContractorSummary }) {
     fetch(`/api/contractors/${contractor.id}/info`)
       .then(r => r.json())
       .then(setInfo)
-      .catch(() => setInfo({ created_at: null, location: null, contracts: [] }))
+      .catch(() => setInfo({ created_at: null, location: null }))
 
     supabase.from('kv_store').select('value').eq('key', `${KV_NOTES_PREFIX}${contractor.id}`).single()
       .then(({ data }) => { if (data?.value) setNotes(data.value) })
@@ -1238,24 +1606,8 @@ function InfoTab({ contractor }: { contractor: ContractorSummary }) {
       </CollapsibleSection>
 
       {/* Contracten */}
-      <CollapsibleSection
-        title="Contracten"
-        defaultOpen={false}
-        action={<GhostButton disabled>Genereer contract</GhostButton>}
-      >
-        {info?.contracts.length ? (
-          <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-ink)' }}>
-            {info.contracts.length} contract{info.contracts.length !== 1 ? 'en' : ''} gevonden
-          </div>
-        ) : (
-          <div style={{
-            padding: '16px', background: 'var(--color-surface-raised)',
-            border: '1px dashed var(--color-border)', borderRadius: 'var(--radius-md)',
-            fontSize: 'var(--font-size-sm)', color: 'var(--color-ink-faint)', textAlign: 'center',
-          }}>
-            Nog geen contracten gegenereerd
-          </div>
-        )}
+      <CollapsibleSection title="Contracten" defaultOpen>
+        <ContractSection contractorId={contractor.id} />
       </CollapsibleSection>
 
       {/* Notities */}

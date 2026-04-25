@@ -1,5 +1,12 @@
+'use client'
+
 import { NavItems } from './NavItems'
 import { SidebarClock } from './SidebarClock'
+
+async function logout() {
+  await fetch('/api/auth/logout', { method: 'POST' })
+  window.location.href = '/login'
+}
 
 export function Sidebar() {
   return (
@@ -66,8 +73,27 @@ export function Sidebar() {
         borderTop:   '1px solid var(--color-border-subtle)',
         flexShrink:  0,
       }}>
-        <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 500, color: 'var(--color-ink)' }}>
-          Jasper van Heyningen
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+          <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 500, color: 'var(--color-ink)' }}>
+            Jasper van Heyningen
+          </div>
+          <button
+            onClick={logout}
+            style={{
+              background:   'none',
+              border:       'none',
+              cursor:       'pointer',
+              fontSize:     'var(--font-size-2xs)',
+              color:        'var(--color-ink-faint)',
+              padding:      '2px 6px',
+              borderRadius: 'var(--radius-sm)',
+              flexShrink:   0,
+              lineHeight:   1.4,
+            }}
+            title="Uitloggen"
+          >
+            Uitloggen
+          </button>
         </div>
         <SidebarClock />
       </div>
