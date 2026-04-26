@@ -38,11 +38,13 @@ export default async function FinancePage() {
   const ytdDate   = ytdStart.slice(0, 10)
   const sixMoDate = sixMonthsAgo.slice(0, 10)
 
-  type RevRow = { contractor_id: string; amount: number; ad_budget_amount: number; type: string; niche: string | null; entry_date: string }
+  type RevRow = { contractor_id: string; amount: number; type: string; niche: string | null; entry_date: string }
 
-  const [{ data: revenueRaw }, { data: pendingProjects }] = await Promise.all([
+  const mtdYM    = `${year}-${String(month + 1).padStart(2, '0')}-01`
+
+  const [{ data: revenueRaw }, { data: pendingProjects }, { data: metaSpendRow }] = await Promise.all([
     db.from('revenue_entries')
-      .select('contractor_id, amount, ad_budget_amount, type, niche, entry_date')
+      .select('contractor_id, amount, type, niche, entry_date')
       .in('contractor_id', activeIds)
       .eq('payment_status', 'paid')
       .gte('entry_date', sixMoDate),
@@ -52,6 +54,10 @@ export default async function FinancePage() {
       .not('commissie', 'is', null)
       .gt('commissie', 0)
       .not('commissie_status', 'ilike', '%betaald%'),
+    db.from('meta_spend_monthly')
+      .select('amount_eur')
+      .eq('year_month', mtdYM)
+      .maybeSingle(),
   ])
 
   const revenue = (revenueRaw ?? []) as RevRow[]
@@ -69,11 +75,15 @@ export default async function FinancePage() {
   const ytd          = revSum(ytdDate)
   const pendingTotal = pending.reduce((s, p) => s + (p.commissie ?? 0), 0)
 
-  // Ad budget pass-through total (shown separately, not counted as our income)
+  // Ad budget pass-through total (shown separately; in new schema amount = budget amount)
   const adBudgetMTD = revenue.filter(e => e.type === 'ad_budget' && e.entry_date >= mtdDate)
-    .reduce((s, e) => s + Number(e.ad_budget_amount), 0)
+    .reduce((s, e) => s + Number(e.amount), 0)
   const adBudgetYTD = revenue.filter(e => e.type === 'ad_budget' && e.entry_date >= ytdDate)
-    .reduce((s, e) => s + Number(e.ad_budget_amount), 0)
+    .reduce((s, e) => s + Number(e.amount), 0)
+
+  // Meta spend P&L
+  const metaSpendMTD = Number(metaSpendRow?.amount_eur ?? 0)
+  const adPnL        = adBudgetMTD - metaSpendMTD   // positive = surplus, negative = deficit
 
   // Revenue by commission model (YTD) — pre-seed all three so €0 rows always appear
   const MODEL_ORDER = ['percentage', 'flat_fee', 'retainer'] as const
@@ -164,6 +174,49 @@ export default async function FinancePage() {
           prefix="€"
           subtext={`${pending.length} project${pending.length !== 1 ? 'en' : ''} nog niet ontvangen`}
         />
+      </div>
+
+      {/* Ad spend P&L tile */}
+      <div style={{
+        display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 32,
+        background: 'var(--color-surface)',
+        border: '1px solid var(--color-border-subtle)',
+        borderRadius: 'var(--radius-xl)',
+        overflow: 'hidden',
+      }}>
+        {[
+          { label: 'Ad Budget ontvangen MTD', value: adBudgetMTD, color: 'var(--color-ink)' },
+          { label: 'Meta spend MTD', value: metaSpendMTD, color: 'var(--color-ink)' },
+          {
+            label: adPnL >= 0 ? 'Surplus MTD' : 'Tekort MTD',
+            value: Math.abs(adPnL),
+            color: adPnL >= 0 ? '#3fb950' : '#f85149',
+          },
+        ].map((item, i) => (
+          <div key={i} style={{
+            padding: '18px 20px',
+            borderRight: i < 2 ? '1px solid var(--color-border-subtle)' : undefined,
+          }}>
+            <div style={{
+              fontSize: 'var(--font-size-2xs)', fontWeight: 600,
+              color: 'var(--color-ink-faint)', textTransform: 'uppercase',
+              letterSpacing: '0.07em', marginBottom: 6,
+            }}>
+              {item.label}
+            </div>
+            <div style={{
+              fontSize: 'var(--font-size-2xl)', fontWeight: 600,
+              color: item.color, fontVariantNumeric: 'tabular-nums',
+            }}>
+              {adPnL < 0 && i === 2 ? '−' : ''}€{item.value.toLocaleString('nl-NL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+            </div>
+            {i === 2 && (
+              <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)', marginTop: 4 }}>
+                Ad budget − Meta spend
+              </div>
+            )}
+          </div>
+        ))}
       </div>
 
       {/* Charts + tables */}

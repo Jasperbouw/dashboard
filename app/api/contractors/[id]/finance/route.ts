@@ -36,7 +36,7 @@ export async function GET(
       .eq('contractor_id', id)
       .order('monday_created_at', { ascending: false }),
     db.from('revenue_entries')
-      .select('type, amount, ad_budget_amount, entry_date')
+      .select('type, amount, entry_date')
       .eq('contractor_id', id)
       .eq('payment_status', 'paid')
       .gte('entry_date', ytdFirst),
@@ -46,7 +46,7 @@ export async function GET(
   if (!contractor) return NextResponse.json({ error: 'not found' }, { status: 404 })
 
   const all     = projects ?? []
-  const revenue = (revenueRaw ?? []) as { type: string; amount: number; ad_budget_amount: number; entry_date: string }[]
+  const revenue = (revenueRaw ?? []) as { type: string; amount: number; entry_date: string }[]
 
   // Revenue from revenue_entries — includes all paid income types
   const incomeTypes = INCOME_TYPES_BY_MODEL[contractor.commission_model ?? ''] ?? ALL_INCOME_TYPES

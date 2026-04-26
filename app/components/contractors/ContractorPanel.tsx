@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ContractorSummary } from '../../../lib/metrics'
 import { supabase } from '../../../lib/supabase'
+import { LocatieTab } from './LocatieTab'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -1054,12 +1055,15 @@ function CollapsibleSection({
   const [open, setOpen] = useState(defaultOpen)
   return (
     <div style={{ borderBottom: '1px solid var(--color-border-subtle)', paddingBottom: open ? 16 : 0 }}>
-      <button
+      <div
+        role="button"
+        tabIndex={0}
         onClick={() => setOpen(o => !o)}
+        onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen(o => !o) } }}
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          width: '100%', background: 'none', border: 'none', cursor: 'pointer',
-          padding: '14px 0', gap: 8,
+          width: '100%', cursor: 'pointer', padding: '14px 0', gap: 8,
+          userSelect: 'none',
         }}
       >
         <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-ink-faint)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
@@ -1069,7 +1073,7 @@ function CollapsibleSection({
           {action}
           <span style={{ fontSize: 10, color: 'var(--color-ink-faint)', transform: open ? 'rotate(180deg)' : undefined, display: 'inline-block', transition: 'transform 0.15s' }}>▼</span>
         </div>
-      </button>
+      </div>
       {open && <div style={{ paddingBottom: 4 }}>{children}</div>}
     </div>
   )
@@ -1830,7 +1834,7 @@ export function ContractorPanel({ contractor, onClose }: Props) {
               {tab === 'financieel'  && <FinancieelTab contractorId={contractor.id} />}
               {tab === 'offertes'    && <OffertesTab contractorId={contractor.id} />}
               {tab === 'info'        && <InfoTab contractor={contractor} />}
-              {tab === 'locatie'     && <ComingSoon label="Locatie & Werkgebied" />}
+              {tab === 'locatie'     && <LocatieTab contractorId={contractor.id} contractorName={contractor.name} />}
             </div>
           </>
         )}
