@@ -613,7 +613,7 @@ export async function contractorLeaderboard(range: TimeRange): Promise<Contracto
       .in('contractor_id', activeIds),
     db()
       .from('leads')
-      .select('contractor_id, canonical_stage, monday_updated_at, received_at')
+      .select('contractor_id, canonical_stage, monday_updated_at, monday_created_at')
       .in('contractor_id', activeIds)
       .limit(5000),
     db()
@@ -706,17 +706,17 @@ export async function contractorLeaderboard(range: TimeRange): Promise<Contracto
     const quoteAllTime = cAllLeads.filter(l => l.canonical_stage === 'quote_sent' || l.canonical_stage === 'won').length
     const closeRateAllTime = quoteAllTime > 0 ? (wonAllTime / quoteAllTime) * 100 : 0
 
-    // How long has this contractor been active (days since first received lead)
+    // How long has this contractor been active (days since first lead created)
     const firstLeadDate = cAllLeads.reduce<string | null>((min, l) => {
-      if (!l.received_at) return min
-      return min === null || l.received_at < min ? l.received_at : min
+      if (!l.monday_created_at) return min
+      return min === null || l.monday_created_at < min ? l.monday_created_at : min
     }, null)
     const daysActive = firstLeadDate
       ? Math.floor((Date.now() - new Date(firstLeadDate).getTime()) / 86_400_000)
       : 0
 
-    // Leads received in the last 30 days (for inactief check)
-    const recentLeads = cAllLeads.filter(l => l.received_at && l.received_at >= last30dCutoff).length
+    // Leads created in the last 30 days (for inactief check)
+    const recentLeads = cAllLeads.filter(l => l.monday_created_at && l.monday_created_at >= last30dCutoff).length
 
     // Health decision tree — first match wins
     let health: ContractorHealth
@@ -1126,15 +1126,19 @@ export interface StageDistribution {
 }
 
 // range is optional — when provided, filters by monday_created_at for "active period" view.
+// Includes both contractor board leads (active contractors only) and general board leads
+// (contractor_id IS NULL, resolved by board niche).
 export async function currentStageDistribution(range?: TimeRange): Promise<StageDistribution> {
-  const contractors = await getActiveContractors()
-  const activeIds   = contractors.map(c => c.id)
-  const nicheById   = new Map(contractors.map(c => [c.id, c.niche ?? 'onbekend']))
+  const [contractors, { data: boardConfigs }] = await Promise.all([
+    getActiveContractors(),
+    db().from('boards_config').select('id, niche'),
+  ])
+  const nicheById  = new Map(contractors.map(c => [c.id, c.niche ?? 'onbekend']))
+  const boardNiche = new Map<number, string>((boardConfigs ?? []).filter(b => b.niche).map(b => [b.id, b.niche]))
 
   let q = db()
     .from('leads')
-    .select('contractor_id, canonical_stage')
-    .in('contractor_id', activeIds)
+    .select('contractor_id, canonical_stage, board_id')
     .limit(5000)
 
   if (range) {
@@ -1150,9 +1154,13 @@ export async function currentStageDistribution(range?: TimeRange): Promise<Stage
   const byNiche: Record<string, Record<string, number>> = {}
 
   for (const l of data ?? []) {
+    const niche: string | null = l.contractor_id
+      ? (nicheById.get(l.contractor_id) ?? null)
+      : (boardNiche.get(l.board_id)     ?? null)
+    if (!niche) continue
+
     const stage = l.canonical_stage ?? 'unknown'
     if (stage in counts) counts[stage]++
-    const niche = nicheById.get(l.contractor_id!) ?? 'onbekend'
     if (!byNiche[niche]) byNiche[niche] = Object.fromEntries(stages.map(s => [s, 0]))
     if (stage in byNiche[niche]) byNiche[niche][stage]++
   }

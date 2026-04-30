@@ -12,6 +12,13 @@ const NICHE_LABEL: Record<string, string> = {
   bouw: 'Bouw', dakkapel: 'Dakkapel', daken: 'Daken', extras: 'Extras',
 }
 
+const NICHE_COLOR: Record<string, { color: string; bg: string }> = {
+  bouw:     { color: 'var(--color-info)',    bg: 'var(--color-info-subtle)'    },
+  daken:    { color: 'var(--color-success)', bg: 'var(--color-success-subtle)' },
+  dakkapel: { color: 'var(--color-quote)',   bg: 'var(--color-quote-subtle)'   },
+  extras:   { color: 'var(--color-warning)', bg: 'var(--color-warning-subtle)' },
+}
+
 const HEALTH_META: Record<ContractorHealth, { label: string; color: string; bg: string; order: number }> = {
   critical:           { label: 'Kritiek',          color: 'var(--color-critical)',  bg: 'var(--color-critical-subtle)',  order: 0 },
   warning:            { label: 'Let op',            color: 'var(--color-warning)',   bg: 'var(--color-warning-subtle)',   order: 1 },
@@ -272,18 +279,19 @@ export function ContractorsTable({ contractors }: Props) {
                   onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'var(--color-surface-raised)' }}
                   onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = 'transparent' }}
                 >
-                  {/* Name + niche — neutral badge, no semantic color */}
+                  {/* Name + niche */}
                   <td style={td}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span style={{ fontWeight: 500, color: 'var(--color-ink)' }}>{c.name}</span>
                       <span style={{
                         fontSize:     'var(--font-size-2xs)',
                         fontWeight:   500,
-                        color:        'var(--color-ink-muted)',
-                        background:   'var(--color-surface-raised)',
+                        color:        NICHE_COLOR[c.niche]?.color ?? 'var(--color-ink-muted)',
+                        background:   NICHE_COLOR[c.niche]?.bg    ?? 'var(--color-surface-raised)',
                         borderRadius: 'var(--radius-full)',
                         padding:      '1px 6px',
-                        border:       '1px solid var(--color-border-subtle)',
+                        border:       `1px solid ${NICHE_COLOR[c.niche]?.color ?? 'var(--color-border-subtle)'}`,
+                        opacity:      0.85,
                       }}>
                         {NICHE_LABEL[c.niche] ?? c.niche}
                       </span>

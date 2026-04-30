@@ -37,14 +37,16 @@ function Card({ children, style }: { children: React.ReactNode; style?: React.CS
 type TrendItem  = { month: string; label: string; amount: number }
 type ModelItem  = { name: string; label: string; amount: number }
 type NicheItem  = { name: string; label: string; amount: number }
-type Top5Item   = { id: string; name: string; niche: string; model: string; ytd: number }
+type Top5Item   = { id: string; name: string; niche: string; model: string; amount: number }
 
 interface Props {
-  trend:   TrendItem[]
-  byModel: ModelItem[]
-  byNiche: NicheItem[]
-  top5:    Top5Item[]
-  ytd:     number
+  trend:         TrendItem[]
+  byModel:       ModelItem[]
+  byNiche:       NicheItem[]
+  top5:          Top5Item[]
+  ytd:           number
+  selectedMonth: string  // YYYY-MM — highlighted bar in trend chart
+  periodLabel:   string  // e.g. "Apr 2026" — used in section titles
 }
 
 function EurTooltip({ active, payload, label }: { active?: boolean; payload?: { value: number }[]; label?: string }) {
@@ -61,7 +63,7 @@ function EurTooltip({ active, payload, label }: { active?: boolean; payload?: { 
   )
 }
 
-export function FinanceCharts({ trend, byModel, byNiche, top5, ytd }: Props) {
+export function FinanceCharts({ trend, byModel, byNiche, top5, ytd, selectedMonth, periodLabel }: Props) {
   const hasRevenue = ytd > 0 || trend.some(t => t.amount > 0)
 
   return (
@@ -84,9 +86,16 @@ export function FinanceCharts({ trend, byModel, byNiche, top5, ytd }: Props) {
             />
             <RechartTooltip content={<EurTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
             <Bar dataKey="amount" radius={[4, 4, 0, 0]} minPointSize={4}>
-              {trend.map((entry) => (
-                <Cell key={entry.month} fill={entry.amount > 0 ? ACCENT : MUTED} fillOpacity={entry.amount > 0 ? 1 : 0.25} />
-              ))}
+              {trend.map((entry) => {
+                const isSelected = entry.month === selectedMonth
+                return (
+                  <Cell
+                    key={entry.month}
+                    fill={entry.amount > 0 ? ACCENT : MUTED}
+                    fillOpacity={entry.amount > 0 ? (isSelected ? 1 : 0.4) : 0.15}
+                  />
+                )
+              })}
             </Bar>
           </BarChart>
         </ResponsiveContainer>
@@ -102,7 +111,7 @@ export function FinanceCharts({ trend, byModel, byNiche, top5, ytd }: Props) {
 
         {/* By model */}
         <Card>
-          <SectionTitle>Per commissiemodel (YTD)</SectionTitle>
+          <SectionTitle>Per commissiemodel — {periodLabel}</SectionTitle>
           <ResponsiveContainer width="100%" height={160}>
             <BarChart data={byModel} layout="vertical" barCategoryGap="20%">
               <XAxis
@@ -123,7 +132,7 @@ export function FinanceCharts({ trend, byModel, byNiche, top5, ytd }: Props) {
 
         {/* By niche */}
         <Card>
-          <SectionTitle>Per niche (YTD)</SectionTitle>
+          <SectionTitle>Per niche — {periodLabel}</SectionTitle>
           <ResponsiveContainer width="100%" height={160}>
             <BarChart data={byNiche} layout="vertical" barCategoryGap="20%">
               <XAxis
@@ -145,16 +154,16 @@ export function FinanceCharts({ trend, byModel, byNiche, top5, ytd }: Props) {
 
       {/* Bottom row: top 5 */}
       <Card>
-        <SectionTitle>Top aannemers YTD</SectionTitle>
+        <SectionTitle>Top aannemers — {periodLabel}</SectionTitle>
         {top5.length === 0 ? (
           <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-ink-faint)' }}>Geen data</p>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr>
-                {['Aannemer', 'Niche', 'Model', 'YTD'].map(h => (
+                {['Aannemer', 'Niche', 'Model', periodLabel].map(h => (
                   <th key={h} style={{
-                    textAlign: h === 'YTD' ? 'right' : 'left',
+                    textAlign: h === periodLabel ? 'right' : 'left',
                     fontSize: 'var(--font-size-2xs)', fontWeight: 600,
                     color: 'var(--color-ink-faint)', textTransform: 'uppercase',
                     letterSpacing: '0.06em', paddingBottom: 10, borderBottom: '1px solid var(--color-border-subtle)',
@@ -179,10 +188,10 @@ export function FinanceCharts({ trend, byModel, byNiche, top5, ytd }: Props) {
                   <td style={{
                     padding: '10px 0', textAlign: 'right',
                     fontSize: 'var(--font-size-sm)', fontWeight: 600,
-                    color: row.ytd > 0 ? 'var(--color-success)' : 'var(--color-ink-faint)',
+                    color: row.amount > 0 ? 'var(--color-success)' : 'var(--color-ink-faint)',
                     fontVariantNumeric: 'tabular-nums',
                   }}>
-                    {fmtEur(row.ytd)}
+                    {fmtEur(row.amount)}
                   </td>
                 </tr>
               ))}

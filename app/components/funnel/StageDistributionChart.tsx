@@ -119,7 +119,7 @@ export function StageDistributionChart({ distribution }: Props) {
         marginTop: 12, fontSize: 'var(--font-size-2xs)',
         color: 'var(--color-ink-faint)',
       }}>
-        Momentopname — {total} leads{activeNiche ? ` in ${NICHE_LABELS[activeNiche]}` : ''} · gefilterd op actieve contractors
+        Momentopname — {total} leads{activeNiche ? ` in ${NICHE_LABELS[activeNiche]}` : ''} · actieve contractors + algemene boards
       </div>
     </div>
   )

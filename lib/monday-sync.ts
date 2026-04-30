@@ -50,6 +50,7 @@ const STAGE_MAP: Record<string, string> = {
   'in afwachting bevestiging':                         'contacted',
   // inspection
   'inspectie gepland':                                 'inspection',
+  'afspraak gepland':                                  'inspection',
   // quote_sent
   'offerte verzonden':                                 'quote_sent',
   'offerte verstuurd':                                 'quote_sent',
@@ -64,6 +65,8 @@ const STAGE_MAP: Record<string, string> = {
   'niet bereikbaar':                                   'lost',
   'niet bereikbaar/geinteresseerd/al voorzien':        'lost',
   'niet bereikbaar/geïnteresseerd/al voorzien':        'lost',
+  'niet bereikbaar/al voorzien':                       'lost',
+  'offerte afgewezen':                                 'lost',
   'niet geïnteresseerd':                               'lost',
   'geïnteresseerd':                                    'lost',
   'al voorzien':                                       'lost',
