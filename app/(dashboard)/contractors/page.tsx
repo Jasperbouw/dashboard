@@ -1,7 +1,7 @@
 import { contractorLeaderboard, currentMonth } from '../../../lib/metrics'
 import { ContractorsTable } from '../../components/contractors/ContractorsTable'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 30
 
 export default async function ContractorsPage() {
   // Last 30 days for leads/qual/close rate; commission uses current month

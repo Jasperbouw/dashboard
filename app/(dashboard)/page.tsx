@@ -9,7 +9,7 @@ import { AlertsFeed } from '../components/today/AlertsFeed'
 import { MomentumChart } from '../components/today/MomentumChart'
 import { LastSynced } from '../components/today/LastSynced'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 30
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (

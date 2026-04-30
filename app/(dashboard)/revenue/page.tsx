@@ -1,6 +1,10 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import useSWR from 'swr'
+
+const fetcher  = (url: string) => fetch(url).then(r => r.json())
+const SWR_OPTS = { revalidateOnFocus: false, dedupingInterval: 30_000 } as const
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -540,10 +544,23 @@ function MetaSpendSection() {
 // ── Main page ────────────────────────────────────────────────────────────────
 
 export default function RevenuePage() {
-  const [entries, setEntries]             = useState<RevenueEntry[]>([])
-  const [contractors, setContractors]     = useState<ContractorOption[]>([])
-  const [niches, setNiches]               = useState<string[]>([])
-  const [loading, setLoading]             = useState(true)
+  const ytdFrom = periodFromDate('ytd')
+
+  const { data: rawEntries,     isLoading,    mutate: mutateEntries } =
+    useSWR<RevenueEntry[]>(`/api/revenue?from_date=${ytdFrom}`, fetcher, SWR_OPTS)
+  const { data: rawContractors } =
+    useSWR<ContractorOption[]>('/api/contractors', fetcher, SWR_OPTS)
+  const { data: rawNiches } =
+    useSWR<string[]>('/api/revenue/niches', fetcher, SWR_OPTS)
+
+  const entries     = Array.isArray(rawEntries) ? rawEntries : []
+  const niches      = Array.isArray(rawNiches)  ? rawNiches  : []
+  const contractors = Array.isArray(rawContractors)
+    ? rawContractors.map((c: { id: string; name: string; niche: string }) => ({
+        id: c.id, name: c.name, niche: c.niche,
+      }))
+    : []
+  const loading = isLoading
 
   // Filters
   const [filterContractor, setFilterContractor] = useState('')
@@ -563,32 +580,6 @@ export default function RevenuePage() {
   // Action menus
   const [openMenu, setOpenMenu] = useState<string | null>(null)
 
-  async function loadData() {
-    setLoading(true)
-    const from = periodFromDate('ytd')
-    const [entriesRes, contractorsRes, nichesRes] = await Promise.all([
-      fetch(`/api/revenue?from_date=${from}`),
-      fetch('/api/contractors'),
-      fetch('/api/revenue/niches'),
-    ])
-    const [entriesData, contractorsData, nichesData] = await Promise.all([
-      entriesRes.ok ? entriesRes.json() : [],
-      contractorsRes.ok ? contractorsRes.json() : [],
-      nichesRes.ok ? nichesRes.json() : [],
-    ])
-    setEntries(entriesData)
-    // contractors API returns leaderboard — map to simple options
-    if (Array.isArray(contractorsData)) {
-      setContractors(contractorsData.map((c: { id: string; name: string; niche: string }) => ({
-        id: c.id, name: c.name, niche: c.niche,
-      })))
-    }
-    setNiches(nichesData)
-    setLoading(false)
-  }
-
-  useEffect(() => { loadData() }, [])
-
   // Close menu on outside click
   useEffect(() => {
     function handler() { setOpenMenu(null) }
@@ -599,7 +590,7 @@ export default function RevenuePage() {
   async function deleteEntry(id: string) {
     if (!confirm('Entry verwijderen?')) return
     await fetch(`/api/revenue/${id}`, { method: 'DELETE' })
-    setEntries(es => es.filter(e => e.id !== id))
+    mutateEntries(prev => (prev ?? []).filter(e => e.id !== id), false)
   }
 
   // ── Stats ──────────────────────────────────────────────────────────────────
@@ -610,11 +601,12 @@ export default function RevenuePage() {
   const qtdStr = `${y}-${String(Math.floor(m / 3) * 3 + 1).padStart(2, '0')}-01`
   const ytdStr = `${y}-01-01`
 
-  const paid = entries.filter(e => e.payment_status === 'paid')
-  const mtd  = paid.filter(e => e.entry_date >= mtdStr).reduce((s, e) => s + Number(e.amount), 0)
-  const qtd  = paid.filter(e => e.entry_date >= qtdStr).reduce((s, e) => s + Number(e.amount), 0)
-  const ytd  = paid.filter(e => e.entry_date >= ytdStr).reduce((s, e) => s + Number(e.amount), 0)
-  const ytdCount = entries.filter(e => e.entry_date >= ytdStr).length
+  const ytdCount  = entries.filter(e => e.entry_date >= ytdStr).length
+  const mtdCount  = entries.filter(e => e.entry_date >= mtdStr).length
+  const openCount = entries.filter(e => e.payment_status === 'open' || e.payment_status === 'overdue').length
+  const lastEntry = entries.length > 0
+    ? entries.reduce((a, b) => a.entry_date > b.entry_date ? a : b).entry_date
+    : null
 
   // ── Filtered + sorted ──────────────────────────────────────────────────────
   const fromDate = periodFromDate(filterPeriod)
@@ -689,10 +681,10 @@ export default function RevenuePage() {
       {/* Hero stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 28 }}>
         {[
-          { label: 'MTD', value: mtd, meta: 'Betaald deze maand' },
-          { label: 'QTD', value: qtd, meta: 'Dit kwartaal' },
-          { label: 'YTD', value: ytd, meta: `${y} totaal betaald` },
-          { label: 'Entries YTD', value: ytdCount, meta: 'Aantal entries dit jaar', raw: true },
+          { label: 'Entries dit jaar',  value: ytdCount,  meta: `${y} totaal` },
+          { label: 'Entries deze maand', value: mtdCount, meta: 'Lopende maand' },
+          { label: 'Open / unpaid',     value: openCount, meta: 'Open of te laat', warn: openCount > 0 },
+          { label: 'Laatste invoer',    value: lastEntry ? fmtDate(lastEntry) : '—', meta: 'Meest recente entry', str: true },
         ].map(s => (
           <div key={s.label} style={{
             padding: '16px', background: 'var(--color-surface)',
@@ -701,8 +693,12 @@ export default function RevenuePage() {
             <div style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 600, color: 'var(--color-ink-faint)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>
               {s.label}
             </div>
-            <div style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 600, color: 'var(--color-ink)', fontVariantNumeric: 'tabular-nums' }}>
-              {s.raw ? s.value : fmtEur(s.value as number)}
+            <div style={{
+              fontSize: s.str ? 'var(--font-size-xl)' : 'var(--font-size-2xl)',
+              fontWeight: 600, fontVariantNumeric: 'tabular-nums',
+              color: s.warn ? 'var(--color-warning)' : 'var(--color-ink)',
+            }}>
+              {s.str ? s.value : s.value}
             </div>
             <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)', marginTop: 4 }}>{s.meta}</div>
           </div>
@@ -900,19 +896,19 @@ export default function RevenuePage() {
           editEntry={editEntry}
           defaultContractorId={defaultCont}
           onSaved={saved => {
-            setEntries(es => {
-              const idx = es.findIndex(e => e.id === saved.id)
-              if (idx >= 0) { const n = [...es]; n[idx] = saved; return n }
-              return [saved, ...es]
-            })
+            mutateEntries(prev => {
+              const list = prev ?? []
+              const idx  = list.findIndex(e => e.id === saved.id)
+              if (idx >= 0) { const n = [...list]; n[idx] = saved; return n }
+              return [saved, ...list]
+            }, false)
             setModalOpen(false)
             setEditEntry(null)
           }}
           onSaveAndNew={contractorId => {
-            loadData()
+            mutateEntries()  // revalidate after bulk add
             setEditEntry(null)
             setDefaultCont(contractorId)
-            // Modal stays open — re-render with fresh state
             setModalOpen(false)
             setTimeout(() => setModalOpen(true), 0)
           }}

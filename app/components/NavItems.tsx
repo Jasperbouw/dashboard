@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, TrendingUp, Building2,
-  Wallet, Image, Banknote,
+  Wallet, Banknote, Users,
 } from 'lucide-react'
 
 const NAV = [
@@ -13,7 +13,7 @@ const NAV = [
   { href: '/contractors', label: 'Contractors', Icon: Building2       },
   { href: '/finance',     label: 'Finance',     Icon: Wallet          },
   { href: '/revenue',     label: 'Omzet',       Icon: Banknote        },
-  { href: '/creatives',   label: 'Creatives',   Icon: Image           },
+  { href: '/team',        label: 'Team',        Icon: Users           },
 ]
 
 export function NavItems() {

@@ -1,9 +1,15 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import useSWR from 'swr'
 import type { ContractorSummary } from '../../../lib/metrics'
 import { supabase } from '../../../lib/supabase'
 import { LocatieTab } from './LocatieTab'
+import { PakkettanTab } from './PakkettanTab'
+
+const fetcher = (url: string) =>
+  fetch(url).then(r => { if (!r.ok) throw new Error(r.statusText); return r.json() })
+const SWR_OPTS = { revalidateOnFocus: false, dedupingInterval: 30_000 } as const
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -51,11 +57,12 @@ const QUAL_LABEL: Record<string, string> = {
 
 // ── Tabs ─────────────────────────────────────────────────────────────────────
 
-type Tab = 'performance' | 'financieel' | 'offertes' | 'info' | 'locatie'
+type Tab = 'performance' | 'financieel' | 'pakketten' | 'offertes' | 'info' | 'locatie'
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'performance', label: 'Performance' },
   { id: 'financieel',  label: 'Financieel'  },
+  { id: 'pakketten',   label: 'Pakketten'   },
   { id: 'offertes',    label: 'Offertes'    },
   { id: 'info',        label: 'Info'        },
   { id: 'locatie',     label: 'Locatie'     },
@@ -554,33 +561,19 @@ function RevenueEntryModal({
 }
 
 function FinancieelTab({ contractorId }: { contractorId: string }) {
-  const [data, setData] = useState<FinanceData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { data, error, isLoading, mutate } = useSWR<FinanceData>(
+    `/api/contractors/${contractorId}/finance`, fetcher, SWR_OPTS,
+  )
   const [modalOpen, setModalOpen] = useState(false)
 
-  function loadData() {
-    setLoading(true)
-    setError(null)
-    fetch(`/api/contractors/${contractorId}/finance`)
-      .then(r => r.ok ? r.json() : Promise.reject(r.statusText))
-      .then(setData)
-      .catch(e => setError(String(e)))
-      .finally(() => setLoading(false))
-  }
-
-  useEffect(() => {
-    loadData()
-  }, [contractorId])
-
-  if (loading) return (
+  if (isLoading) return (
     <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--color-ink-faint)', fontSize: 'var(--font-size-sm)' }}>
       Laden…
     </div>
   )
   if (error || !data) return (
     <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--color-critical)', fontSize: 'var(--font-size-sm)' }}>
-      Fout bij laden: {error ?? 'onbekend'}
+      Fout bij laden: {error?.message ?? 'onbekend'}
     </div>
   )
 
@@ -603,7 +596,7 @@ function FinancieelTab({ contractorId }: { contractorId: string }) {
         contractorId={contractorId}
         defaultType={isRetainer ? 'retainer_fee' : 'commission_percentage'}
         onClose={() => setModalOpen(false)}
-        onSaved={loadData}
+        onSaved={() => mutate()}
       />
     )}
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -798,29 +791,19 @@ function ageColor(days: number): string {
 }
 
 function OffertesTab({ contractorId }: { contractorId: string }) {
-  const [data, setData] = useState<OffertesData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { data, error, isLoading } = useSWR<OffertesData>(
+    `/api/contractors/${contractorId}/offertes`, fetcher, SWR_OPTS,
+  )
   const [showLost, setShowLost] = useState(false)
 
-  useEffect(() => {
-    setLoading(true)
-    setError(null)
-    fetch(`/api/contractors/${contractorId}/offertes`)
-      .then(r => r.ok ? r.json() : Promise.reject(r.statusText))
-      .then(setData)
-      .catch(e => setError(String(e)))
-      .finally(() => setLoading(false))
-  }, [contractorId])
-
-  if (loading) return (
+  if (isLoading) return (
     <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--color-ink-faint)', fontSize: 'var(--font-size-sm)' }}>
       Laden…
     </div>
   )
   if (error || !data) return (
     <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--color-critical)', fontSize: 'var(--font-size-sm)' }}>
-      Fout bij laden: {error ?? 'onbekend'}
+      Fout bij laden: {error?.message ?? 'onbekend'}
     </div>
   )
 
@@ -1502,7 +1485,9 @@ function ContractSection({ contractorId }: { contractorId: string }) {
 const KV_NOTES_PREFIX = 'contractor-notes-'
 
 function InfoTab({ contractor }: { contractor: ContractorSummary }) {
-  const [info, setInfo]           = useState<InfoData | null>(null)
+  const { data: info } = useSWR<InfoData>(
+    `/api/contractors/${contractor.id}/info`, fetcher, SWR_OPTS,
+  )
   const [notes, setNotes]         = useState<string>('')
   const [notesDirty, setDirty]    = useState(false)
   const [notesSaving, setSaving]  = useState(false)
@@ -1510,11 +1495,6 @@ function InfoTab({ contractor }: { contractor: ContractorSummary }) {
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
-    fetch(`/api/contractors/${contractor.id}/info`)
-      .then(r => r.json())
-      .then(setInfo)
-      .catch(() => setInfo({ created_at: null, location: null }))
-
     supabase.from('kv_store').select('value').eq('key', `${KV_NOTES_PREFIX}${contractor.id}`).single()
       .then(({ data }) => { if (data?.value) setNotes(data.value) })
   }, [contractor.id])
@@ -1832,6 +1812,7 @@ export function ContractorPanel({ contractor, onClose }: Props) {
             <div style={{ flex: 1, overflow: 'auto', padding: '20px' }}>
               {tab === 'performance' && <PerformanceTab c={contractor} />}
               {tab === 'financieel'  && <FinancieelTab contractorId={contractor.id} />}
+              {tab === 'pakketten'   && <PakkettanTab contractorId={contractor.id} />}
               {tab === 'offertes'    && <OffertesTab contractorId={contractor.id} />}
               {tab === 'info'        && <InfoTab contractor={contractor} />}
               {tab === 'locatie'     && <LocatieTab contractorId={contractor.id} contractorName={contractor.name} />}

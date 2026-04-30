@@ -233,12 +233,13 @@ export function ContractorsTable({ contractors }: Props) {
               <th style={{ ...th, textAlign: 'right' }} onClick={() => toggleSort('commissionBooked')}>Comm. MTD{arrow('commissionBooked')}</th>
               <th style={{ ...th, textAlign: 'right' }} onClick={() => toggleSort('backlogDebt')}>Backlog{arrow('backlogDebt')}</th>
               <th style={{ ...th, textAlign: 'right', cursor: 'default' }} onClick={() => toggleSort('lastActivity')} title="Wanneer het board voor het laatst is bijgewerkt (inclusief onze syncs en Zapier). Contractor-activiteit specifiek volgt in een later fase.">Laatste board-update{arrow('lastActivity')}</th>
+              <th style={{ ...th, cursor: 'default' }}>Pakketten</th>
             </tr>
           </thead>
           <tbody>
             {sorted.length === 0 && (
               <tr>
-                <td colSpan={10} style={{ ...td, textAlign: 'center', color: 'var(--color-ink-faint)', padding: '32px' }}>
+                <td colSpan={11} style={{ ...td, textAlign: 'center', color: 'var(--color-ink-faint)', padding: '32px' }}>
                   Geen contractors gevonden
                 </td>
               </tr>
@@ -341,6 +342,31 @@ export function ContractorsTable({ contractors }: Props) {
                   {/* Last activity */}
                   <td style={{ ...tdNum, color: 'var(--color-ink-muted)' }}>
                     {fmtAge(c.lastActivity)}
+                  </td>
+
+                  {/* Active packs */}
+                  <td style={{ ...td, minWidth: 110 }}>
+                    {c.activePacks.count === 0 ? (
+                      <Dash />
+                    ) : c.activePacks.count > 1 ? (
+                      <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-muted)' }}>
+                        {c.activePacks.count} actieve pakketten
+                      </span>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink)', fontVariantNumeric: 'tabular-nums' }}>
+                          {c.activePacks.used} / {c.activePacks.promised} · {c.activePacks.pct}%
+                        </span>
+                        <div style={{ height: 3, borderRadius: 2, background: 'var(--color-surface-raised)', overflow: 'hidden', width: 64 }}>
+                          <div style={{
+                            height: '100%',
+                            width: `${Math.min(100, c.activePacks.pct ?? 0)}%`,
+                            background: (c.activePacks.pct ?? 0) >= 80 ? 'var(--color-warning)' : 'var(--color-accent)',
+                            borderRadius: 2,
+                          }} />
+                        </div>
+                      </div>
+                    )}
                   </td>
                 </tr>
               )

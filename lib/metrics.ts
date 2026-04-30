@@ -582,6 +582,14 @@ export interface ContractorSummary {
     new: number; contacted: number; inspection: number; quote_sent: number
     won: number; lost: number
   }
+  // Active lead packs summary
+  activePacks: {
+    count:    number
+    pct?:     number   // only when count === 1
+    used?:    number
+    promised?: number
+    niche?:   string
+  }
 }
 
 export async function contractorLeaderboard(range: TimeRange): Promise<ContractorSummary[]> {
@@ -591,7 +599,7 @@ export async function contractorLeaderboard(range: TimeRange): Promise<Contracto
   const fromDate      = range.from.toISOString().slice(0, 10)
   const toDate        = range.to.toISOString().slice(0, 10)
 
-  const [{ data: leads }, { data: projects }, { data: allLeads }, { data: backlogLeads }, invoiceResult] = await Promise.all([
+  const [{ data: leads }, { data: projects }, { data: allLeads }, { data: backlogLeads }, invoiceResult, { data: activePacks }] = await Promise.all([
     db()
       .from('leads')
       .select('contractor_id, canonical_stage, monday_updated_at')
@@ -623,6 +631,11 @@ export async function contractorLeaderboard(range: TimeRange): Promise<Contracto
       .eq('payment_status', 'paid')
       .gte('entry_date', fromDate)
       .lte('entry_date', toDate),
+    db()
+      .from('lead_packs')
+      .select('id, contractor_id, niche, pack_type, units_promised, units_used')
+      .in('contractor_id', activeIds)
+      .eq('status', 'active'),
   ])
 
   type RevRow = { contractor_id: string; amount: number; type: string }
@@ -747,6 +760,21 @@ export async function contractorLeaderboard(range: TimeRange): Promise<Contracto
       health = 'on-track'
     }
 
+    const cPacks = (activePacks ?? []).filter(p => p.contractor_id === c.id)
+    const packSummary = cPacks.length === 0
+      ? { count: 0 }
+      : cPacks.length === 1
+        ? {
+            count:    1,
+            pct:      cPacks[0].units_promised > 0
+                        ? Math.round((cPacks[0].units_used / cPacks[0].units_promised) * 100)
+                        : 0,
+            used:     Number(cPacks[0].units_used),
+            promised: Number(cPacks[0].units_promised),
+            niche:    cPacks[0].niche,
+          }
+        : { count: cPacks.length }
+
     return {
       id:                   c.id,
       name:                 c.name,
@@ -774,6 +802,7 @@ export async function contractorLeaderboard(range: TimeRange): Promise<Contracto
       backlogDebt:          cBacklog.length,
       lastActivity,
       health,
+      activePacks:          packSummary,
       periodStages: {
         new:        cLeads.filter(l => l.canonical_stage === 'new').length,
         contacted:  cLeads.filter(l => l.canonical_stage === 'contacted').length,

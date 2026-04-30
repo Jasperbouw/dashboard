@@ -3,7 +3,7 @@ import { getActiveContractors, ALL_INCOME_TYPES } from '../../../lib/metrics'
 import { StatCard } from '../../components/ui/StatCard'
 import { FinanceCharts } from '../../components/finance/FinanceCharts'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 30
 
 const NL_MONTHS = ['Jan', 'Feb', 'Mrt', 'Apr', 'Mei', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec']
 const MODEL_LABELS: Record<string, string> = { percentage: 'Percentage', flat_fee: 'Vast bedrag', retainer: 'Retainer' }
@@ -225,9 +225,6 @@ export default async function FinancePage() {
         byModel={byModel}
         byNiche={byNiche}
         top5={top5}
-        adBudgetMTD={adBudgetMTD}
-        adBudgetYTD={adBudgetYTD}
-        netMTD={mtd}
         ytd={ytd}
       />
     </div>

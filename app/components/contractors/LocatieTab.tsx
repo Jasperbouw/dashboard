@@ -1,7 +1,12 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import useSWR from 'swr'
+
+const fetcher = (url: string) =>
+  fetch(url).then(r => { if (!r.ok) throw new Error(r.statusText); return r.json() })
+const SWR_OPTS = { revalidateOnFocus: false, dedupingInterval: 30_000 } as const
 
 const MapView = dynamic(() => import('./MapView'), {
   ssr:     false,
@@ -66,8 +71,9 @@ interface Props {
 }
 
 export function LocatieTab({ contractorId, contractorName }: Props) {
-  const [loc, setLoc]   = useState<LocationData | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { data: loc, isLoading: loading, mutate } = useSWR<LocationData>(
+    `/api/contractors/${contractorId}/location`, fetcher, SWR_OPTS,
+  )
 
   // Address form
   const [addrForm, setAddrForm] = useState({
@@ -84,25 +90,21 @@ export function LocatieTab({ contractorId, contractorName }: Props) {
   const [wkError,  setWkError]    = useState('')
   const [wkSaved,  setWkSaved]    = useState(false)
 
-  async function loadLocation() {
-    setLoading(true)
-    const r = await fetch(`/api/contractors/${contractorId}/location`)
-    if (r.ok) {
-      const d: LocationData = await r.json()
-      setLoc(d)
-      setAddrForm({
-        street_address: d.street_address ?? '',
-        postal_code:    d.postal_code    ?? '',
-        city:           d.city           ?? '',
-        country:        d.country        ?? 'NL',
-      })
-      setRadius(String(d.service_radius_km ?? 50))
-      setProvinces(d.service_provinces ?? [])
-    }
-    setLoading(false)
-  }
-
-  useEffect(() => { loadLocation() }, [contractorId])
+  // Seed form fields once per contractorId when data first arrives;
+  // skip on background revalidations so user edits aren't wiped.
+  const seededFor = useRef<string | null>(null)
+  useEffect(() => {
+    if (!loc || seededFor.current === contractorId) return
+    seededFor.current = contractorId
+    setAddrForm({
+      street_address: loc.street_address ?? '',
+      postal_code:    loc.postal_code    ?? '',
+      city:           loc.city           ?? '',
+      country:        loc.country        ?? 'NL',
+    })
+    setRadius(String(loc.service_radius_km ?? 50))
+    setProvinces(loc.service_provinces ?? [])
+  }, [loc, contractorId])
 
   async function saveAddress() {
     setAddrSaving(true); setAddrError(''); setAddrSaved(false)
@@ -117,7 +119,7 @@ export function LocatieTab({ contractorId, contractorName }: Props) {
       setAddrError(j.error ?? 'Opslaan mislukt'); return
     }
     const updated: LocationData = await r.json()
-    setLoc(prev => prev ? { ...prev, ...updated } : updated)
+    mutate(updated, false)
     setAddrSaved(true)
     setTimeout(() => setAddrSaved(false), 2500)
   }
@@ -135,7 +137,7 @@ export function LocatieTab({ contractorId, contractorName }: Props) {
       setWkError(j.error ?? 'Opslaan mislukt'); return
     }
     const updated: LocationData = await r.json()
-    setLoc(prev => prev ? { ...prev, ...updated } : updated)
+    mutate(updated, false)
     setWkSaved(true)
     setTimeout(() => setWkSaved(false), 2500)
   }
