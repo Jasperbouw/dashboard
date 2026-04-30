@@ -1364,76 +1364,294 @@ function ActiveDocCard({ doc, onArchive }: { doc: ContractorDocument; onArchive:
   )
 }
 
-function ContractSection({ contractorId }: { contractorId: string }) {
-  const [docs, setDocs]               = useState<ContractorDocument[]>([])
-  const [loading, setLoading]         = useState(true)
-  const [archiveOpen, setArchiveOpen] = useState(false)
-  const [showUploader, setShowUploader] = useState(false)
+interface GeneratedContract {
+  id:                      string
+  title:                   string
+  file_path:               string
+  kvk_nummer:              string | null
+  vestigingsadres:         string | null
+  vertegenwoordiger_naam:  string | null
+  commissie_percentage:    number | null
+  datum:                   string | null
+  generated_at:            string
+  status:                  string
+  url:                     string | null
+}
 
-  async function loadDocs() {
+function GenerateModal({
+  contractor, onClose, onGenerated,
+}: {
+  contractor: ContractorSummary
+  onClose: () => void
+  onGenerated: (contract: GeneratedContract) => void
+}) {
+  const defaultPct = contractor.commission_model === 'percentage' && contractor.commission_rate
+    ? Math.round(contractor.commission_rate * 100)
+    : 5
+  const todayIso = new Date().toISOString().slice(0, 10)
+
+  const [kvk,       setKvk]       = useState('')
+  const [adres,     setAdres]     = useState('')
+  const [naam,      setNaam]      = useState('')
+  const [functie,   setFunctie]   = useState('')
+  const [pct,       setPct]       = useState(String(defaultPct))
+  const [datum,     setDatum]     = useState(todayIso)
+  const [saving,    setSaving]    = useState(false)
+  const [err,       setErr]       = useState<string | null>(null)
+
+  async function generate() {
+    setSaving(true)
+    setErr(null)
+    const r = await fetch(`/api/contractors/${contractor.id}/contracts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        kvk_nummer:               kvk,
+        vestigingsadres:          adres,
+        vertegenwoordiger_naam:   naam,
+        vertegenwoordiger_functie: functie,
+        commissie_percentage:     Number(pct),
+        datum,
+      }),
+    })
+    if (!r.ok) {
+      const j = await r.json().catch(() => ({}))
+      setErr(j.error ?? 'Onbekende fout')
+      setSaving(false)
+      return
+    }
+    const contract = await r.json()
+    onGenerated(contract)
+  }
+
+  const inputStyle: React.CSSProperties = {
+    width: '100%', boxSizing: 'border-box',
+    background: 'var(--color-surface-raised)',
+    border: '1px solid var(--color-border-subtle)',
+    borderRadius: 'var(--radius-md)',
+    padding: '7px 10px',
+    fontSize: 'var(--font-size-sm)',
+    color: 'var(--color-ink)',
+    fontFamily: 'inherit',
+    outline: 'none',
+  }
+  const labelStyle: React.CSSProperties = {
+    fontSize: 'var(--font-size-2xs)', fontWeight: 600,
+    color: 'var(--color-ink-faint)', textTransform: 'uppercase',
+    letterSpacing: '0.06em', marginBottom: 4, display: 'block',
+  }
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 9999,
+      background: 'rgba(0,0,0,0.5)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      padding: 24,
+    }} onClick={e => { if (e.target === e.currentTarget) onClose() }}>
+      <div style={{
+        background: 'var(--color-surface)', border: '1px solid var(--color-border)',
+        borderRadius: 'var(--radius-xl)', padding: 28, width: '100%', maxWidth: 480,
+        display: 'flex', flexDirection: 'column', gap: 16,
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ fontSize: 'var(--font-size-base)', fontWeight: 600, color: 'var(--color-ink)' }}>
+            Contract genereren
+          </div>
+          <button onClick={onClose} style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            fontSize: 18, color: 'var(--color-ink-faint)', lineHeight: 1,
+          }}>×</button>
+        </div>
+
+        <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-muted)', marginTop: -8 }}>
+          Standaard samenwerkingsovereenkomst voor <strong>{contractor.name}</strong>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div style={{ gridColumn: '1/-1' }}>
+            <label style={labelStyle}>KvK-nummer</label>
+            <input style={inputStyle} value={kvk} onChange={e => setKvk(e.target.value)} placeholder="12345678" />
+          </div>
+          <div style={{ gridColumn: '1/-1' }}>
+            <label style={labelStyle}>Vestigingsadres</label>
+            <input style={inputStyle} value={adres} onChange={e => setAdres(e.target.value)} placeholder="Straatnaam 1, 1234 AB Stad" />
+          </div>
+          <div>
+            <label style={labelStyle}>Naam vertegenwoordiger</label>
+            <input style={inputStyle} value={naam} onChange={e => setNaam(e.target.value)} placeholder="Jan de Vries" />
+          </div>
+          <div>
+            <label style={labelStyle}>Functie</label>
+            <input style={inputStyle} value={functie} onChange={e => setFunctie(e.target.value)} placeholder="Directeur" />
+          </div>
+          <div>
+            <label style={labelStyle}>Commissie (%)</label>
+            <input style={inputStyle} type="number" min={1} max={50} step={0.5}
+              value={pct} onChange={e => setPct(e.target.value)} />
+          </div>
+          <div>
+            <label style={labelStyle}>Datum</label>
+            <input style={inputStyle} type="date" value={datum} onChange={e => setDatum(e.target.value)} />
+          </div>
+        </div>
+
+        {err && (
+          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-critical)', background: 'var(--color-critical-subtle)', borderRadius: 'var(--radius-sm)', padding: '6px 10px' }}>
+            {err}
+          </div>
+        )}
+
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+          <button onClick={onClose} style={{
+            fontSize: 'var(--font-size-sm)', padding: '7px 16px',
+            background: 'none', border: '1px solid var(--color-border)',
+            borderRadius: 'var(--radius-sm)', cursor: 'pointer', color: 'var(--color-ink-muted)',
+          }}>Annuleren</button>
+          <button
+            onClick={generate}
+            disabled={saving}
+            style={{
+              fontSize: 'var(--font-size-sm)', padding: '7px 16px',
+              background: 'var(--color-accent)', color: '#fff', border: 'none',
+              borderRadius: 'var(--radius-sm)', cursor: saving ? 'default' : 'pointer',
+              opacity: saving ? 0.7 : 1,
+            }}
+          >
+            {saving ? 'Genereren…' : 'Genereer contract'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ContractSection({ contractorId, contractor }: { contractorId: string; contractor: ContractorSummary }) {
+  const [docs, setDocs]                           = useState<ContractorDocument[]>([])
+  const [generated, setGenerated]                 = useState<GeneratedContract[]>([])
+  const [loading, setLoading]                     = useState(true)
+  const [archiveOpen, setArchiveOpen]             = useState(false)
+  const [showUploader, setShowUploader]           = useState(false)
+  const [showGenerateModal, setShowGenerateModal] = useState(false)
+
+  async function loadAll() {
     setLoading(true)
-    const r = await fetch(`/api/contractors/${contractorId}/documents`)
-    if (r.ok) setDocs(await r.json())
+    const [docsRes, genRes] = await Promise.all([
+      fetch(`/api/contractors/${contractorId}/documents`),
+      fetch(`/api/contractors/${contractorId}/contracts`),
+    ])
+    if (docsRes.ok) setDocs(await docsRes.json())
+    if (genRes.ok)  setGenerated(await genRes.json())
     setLoading(false)
   }
 
-  useEffect(() => { loadDocs() }, [contractorId])
+  useEffect(() => { loadAll() }, [contractorId])
 
   if (loading) {
     return <div style={{ padding: '8px 0', fontSize: 'var(--font-size-sm)', color: 'var(--color-ink-faint)' }}>Laden…</div>
   }
 
-  const activeSigned   = docs.find(d => d.status === 'active' && d.document_type === 'contract_signed')
-  const activeContract = docs.find(d => d.status === 'active' && d.document_type === 'contract')
-  const activeDoc      = activeSigned ?? activeContract
-  const archived       = docs.filter(d => d.status === 'archived')
+  const activeSigned    = docs.find(d => d.status === 'active' && d.document_type === 'contract_signed')
+  const activeContract  = docs.find(d => d.status === 'active' && d.document_type === 'contract')
+  const activeDoc       = activeSigned ?? activeContract
+  const archivedDocs    = docs.filter(d => d.status === 'archived')
+  const activeGenerated = generated.filter(c => c.status === 'active')
+  const archivedGen     = generated.filter(c => c.status === 'archived')
   const hasSignedActive = !!activeSigned
+  const totalArchived   = archivedDocs.length + archivedGen.length
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
 
-      {/* Active contract card */}
+      {/* Generated contracts */}
+      {activeGenerated.map(c => (
+        <div key={c.id} style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+          padding: '10px 12px', background: 'var(--color-surface-raised)',
+          border: '1px solid var(--color-border-subtle)', borderRadius: 'var(--radius-md)',
+        }}>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink)', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{
+                fontSize: 10, fontWeight: 700, letterSpacing: '0.05em',
+                padding: '1px 5px', borderRadius: 3,
+                background: 'var(--color-info-subtle)', color: 'var(--color-info)',
+              }}>GEN</span>
+              {c.title}
+            </div>
+            <div style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-ink-faint)', marginTop: 2 }}>
+              {fmtUploadDate(c.generated_at)}
+              {c.commissie_percentage != null && ` · ${c.commissie_percentage}% commissie`}
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+            {c.url && (
+              <a href={c.url} target="_blank" rel="noopener noreferrer" style={{
+                fontSize: 'var(--font-size-2xs)', padding: '4px 10px',
+                background: 'var(--color-accent)', color: '#fff',
+                borderRadius: 'var(--radius-sm)', textDecoration: 'none', fontWeight: 500,
+              }}>Openen</a>
+            )}
+            <button
+              onClick={async () => {
+                await fetch(`/api/contractors/${contractorId}/contracts/${c.id}`, { method: 'DELETE' })
+                loadAll()
+              }}
+              style={{
+                fontSize: 'var(--font-size-2xs)', padding: '4px 10px',
+                background: 'none', border: '1px solid var(--color-border-subtle)',
+                borderRadius: 'var(--radius-sm)', cursor: 'pointer', color: 'var(--color-ink-faint)',
+              }}
+            >Archiveer</button>
+          </div>
+        </div>
+      ))}
+
+      {/* Active uploaded contract card */}
       {activeDoc && (
         <ActiveDocCard
           doc={activeDoc}
           onArchive={async () => {
             await fetch(`/api/contractors/${contractorId}/documents/${activeDoc.id}`, { method: 'DELETE' })
-            loadDocs()
+            loadAll()
           }}
         />
       )}
 
-      {/* Upload zone — always visible if no signed contract; toggle if signed exists */}
-      {!hasSignedActive ? (
+      {/* Action buttons row */}
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button
+          onClick={() => setShowGenerateModal(true)}
+          style={{
+            fontSize: 'var(--font-size-xs)', padding: '5px 12px',
+            background: 'var(--color-accent)', color: '#fff', border: 'none',
+            borderRadius: 'var(--radius-sm)', cursor: 'pointer',
+          }}
+        >
+          + Contract genereren
+        </button>
+        <button
+          onClick={() => setShowUploader(o => !o)}
+          style={{
+            fontSize: 'var(--font-size-xs)', padding: '5px 12px',
+            background: 'none', border: '1px solid var(--color-border)',
+            borderRadius: 'var(--radius-sm)', cursor: 'pointer', color: 'var(--color-ink-muted)',
+          }}
+        >
+          {showUploader ? 'Annuleren' : '+ Document uploaden'}
+        </button>
+      </div>
+
+      {/* Upload zone */}
+      {showUploader && (
         <DocumentUploader
           contractorId={contractorId}
-          defaultType={activeDoc ? 'contract_signed' : 'contract'}
-          onUploaded={loadDocs}
+          defaultType={hasSignedActive ? 'contract_signed' : (activeDoc ? 'contract_signed' : 'contract')}
+          onUploaded={() => { setShowUploader(false); loadAll() }}
         />
-      ) : (
-        <>
-          <button
-            onClick={() => setShowUploader(o => !o)}
-            style={{
-              alignSelf: 'flex-start', fontSize: 'var(--font-size-xs)', padding: '5px 12px',
-              background: 'none', border: '1px solid var(--color-border)',
-              borderRadius: 'var(--radius-sm)', cursor: 'pointer', color: 'var(--color-ink-muted)',
-            }}
-          >
-            {showUploader ? 'Annuleren' : '+ Nieuw document uploaden'}
-          </button>
-          {showUploader && (
-            <DocumentUploader
-              contractorId={contractorId}
-              defaultType="contract_signed"
-              onUploaded={() => { setShowUploader(false); loadDocs() }}
-            />
-          )}
-        </>
       )}
 
       {/* Archived versions */}
-      {archived.length > 0 && (
+      {totalArchived > 0 && (
         <div>
           <button
             onClick={() => setArchiveOpen(o => !o)}
@@ -1444,11 +1662,30 @@ function ContractSection({ contractorId }: { contractorId: string }) {
             }}
           >
             <span style={{ display: 'inline-block', transform: archiveOpen ? 'rotate(90deg)' : undefined, transition: 'transform 0.15s', fontSize: 9 }}>▶</span>
-            Vorige versies ({archived.length})
+            Archief ({totalArchived})
           </button>
           {archiveOpen && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 6 }}>
-              {archived.map(doc => (
+              {archivedGen.map(c => (
+                <div key={c.id} style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '6px 10px', background: 'var(--color-surface-raised)',
+                  borderRadius: 'var(--radius-sm)', opacity: 0.6,
+                }}>
+                  <div>
+                    <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink)', fontWeight: 500 }}>{c.title}</div>
+                    <div style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-ink-faint)' }}>{fmtUploadDate(c.generated_at)}</div>
+                  </div>
+                  {c.url && (
+                    <a href={c.url} target="_blank" rel="noopener noreferrer" style={{
+                      fontSize: 'var(--font-size-2xs)', padding: '3px 8px',
+                      background: 'none', border: '1px solid var(--color-border-subtle)',
+                      borderRadius: 'var(--radius-sm)', color: 'var(--color-ink-muted)', textDecoration: 'none',
+                    }}>Openen</a>
+                  )}
+                </div>
+              ))}
+              {archivedDocs.map(doc => (
                 <div key={doc.id} style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                   padding: '6px 10px', background: 'var(--color-surface-raised)',
@@ -1459,16 +1696,11 @@ function ContractSection({ contractorId }: { contractorId: string }) {
                     <div style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-ink-faint)' }}>{fmtUploadDate(doc.uploaded_at)}</div>
                   </div>
                   {doc.download_url && (
-                    <a
-                      href={doc.download_url} target="_blank" rel="noopener noreferrer"
-                      style={{
-                        fontSize: 'var(--font-size-2xs)', padding: '3px 8px',
-                        background: 'none', border: '1px solid var(--color-border-subtle)',
-                        borderRadius: 'var(--radius-sm)', color: 'var(--color-ink-muted)', textDecoration: 'none',
-                      }}
-                    >
-                      Download
-                    </a>
+                    <a href={doc.download_url} target="_blank" rel="noopener noreferrer" style={{
+                      fontSize: 'var(--font-size-2xs)', padding: '3px 8px',
+                      background: 'none', border: '1px solid var(--color-border-subtle)',
+                      borderRadius: 'var(--radius-sm)', color: 'var(--color-ink-muted)', textDecoration: 'none',
+                    }}>Download</a>
                   )}
                 </div>
               ))}
@@ -1477,6 +1709,16 @@ function ContractSection({ contractorId }: { contractorId: string }) {
         </div>
       )}
 
+      {showGenerateModal && (
+        <GenerateModal
+          contractor={contractor}
+          onClose={() => setShowGenerateModal(false)}
+          onGenerated={(c) => {
+            setGenerated(prev => [c, ...prev])
+            setShowGenerateModal(false)
+          }}
+        />
+      )}
     </div>
   )
 }
@@ -1590,7 +1832,7 @@ function InfoTab({ contractor }: { contractor: ContractorSummary }) {
 
       {/* Contracten */}
       <CollapsibleSection title="Contracten" defaultOpen>
-        <ContractSection contractorId={contractor.id} />
+        <ContractSection contractorId={contractor.id} contractor={contractor} />
       </CollapsibleSection>
 
       {/* Notities */}
