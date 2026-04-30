@@ -57,13 +57,12 @@ const QUAL_LABEL: Record<string, string> = {
 
 // ── Tabs ─────────────────────────────────────────────────────────────────────
 
-type Tab = 'performance' | 'financieel' | 'pakketten' | 'offertes' | 'info' | 'locatie'
+type Tab = 'performance' | 'financieel' | 'pakketten' | 'info' | 'locatie'
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'performance', label: 'Performance' },
   { id: 'financieel',  label: 'Financieel'  },
   { id: 'pakketten',   label: 'Pakketten'   },
-  { id: 'offertes',    label: 'Offertes'    },
   { id: 'info',        label: 'Info'        },
   { id: 'locatie',     label: 'Locatie'     },
 ]
@@ -1813,7 +1812,6 @@ export function ContractorPanel({ contractor, onClose }: Props) {
               {tab === 'performance' && <PerformanceTab c={contractor} />}
               {tab === 'financieel'  && <FinancieelTab contractorId={contractor.id} />}
               {tab === 'pakketten'   && <PakkettanTab contractorId={contractor.id} />}
-              {tab === 'offertes'    && <OffertesTab contractorId={contractor.id} />}
               {tab === 'info'        && <InfoTab contractor={contractor} />}
               {tab === 'locatie'     && <LocatieTab contractorId={contractor.id} contractorName={contractor.name} />}
             </div>

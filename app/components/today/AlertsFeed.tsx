@@ -192,27 +192,6 @@ export function AlertsFeed({ initialAlerts }: Props) {
                       {formatAge(alert.issue_started_at ?? alert.triggered_at)}
                     </span>
 
-                    {actionUrl && (
-                      <a
-                        href={actionUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{
-                          fontSize:      'var(--font-size-xs)',
-                          color:         'var(--color-info)',
-                          textDecoration: 'none',
-                          padding:       '2px 8px',
-                          borderRadius:  'var(--radius-sm)',
-                          border:        '1px solid var(--color-border)',
-                          background:    'transparent',
-                          cursor:        'pointer',
-                          whiteSpace:    'nowrap',
-                        }}
-                      >
-                        Bekijk →
-                      </a>
-                    )}
-
                     <button
                       onClick={() => dismiss(alert.id)}
                       disabled={isDismissing}

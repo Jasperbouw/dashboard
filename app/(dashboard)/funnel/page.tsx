@@ -14,7 +14,7 @@ import { NicheBreakdown }         from '../../components/funnel/NicheBreakdown'
 import { CampaignTable }          from '../../components/funnel/CampaignTable'
 import { DoorlooptijdenStrip }    from '../../components/funnel/DoorlooptijdenStrip'
 
-export const revalidate = 30
+export const dynamic = 'force-dynamic'
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (

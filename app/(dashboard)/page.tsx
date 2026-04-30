@@ -1,12 +1,11 @@
 import {
-  todayBundle, leadsThisWeek, weeklyMomentum, qualificationStats,
+  todayBundle, leadsThisWeek, qualificationStats,
   openOffertesStats, currentMonth, contractorLeaderboard,
 } from '../../lib/metrics'
 import { getActiveAlerts } from '../../lib/alerts/queries'
 import { serverClient } from '../../lib/supabase-server'
 import { StatCard } from '../components/ui/StatCard'
 import { AlertsFeed } from '../components/today/AlertsFeed'
-import { MomentumChart } from '../components/today/MomentumChart'
 import { LastSynced } from '../components/today/LastSynced'
 
 export const revalidate = 30
@@ -46,13 +45,12 @@ export default async function TodayPage() {
     .limit(1)
     .single()
 
-  const [week, qualStats, offertesStats, bundle, alerts, momentum, leaderboard] = await Promise.all([
+  const [week, qualStats, offertesStats, bundle, alerts, leaderboard] = await Promise.all([
     leadsThisWeek(),
     qualificationStats(),
     openOffertesStats(),
     todayBundle(),
     getActiveAlerts({ limit: 100 }),
-    weeklyMomentum(8),
     contractorLeaderboard(range),
   ])
 
@@ -139,7 +137,6 @@ export default async function TodayPage() {
           delta={week.trend}
           deltaLabel="vs vorige week"
           previousValue={week.previous}
-          sparkline={momentum.slice(-6).map(w => w.count)}
           badges={[...leadBadges, ...nicheBadges]}
         />
 
@@ -204,60 +201,6 @@ export default async function TodayPage() {
         <AlertsFeed initialAlerts={alerts} />
       </div>
 
-      {/* ── Momentum chart ── */}
-      <div>
-        <div style={{ marginBottom: 16 }}>
-          <SectionTitle>Weekmomentum — afgelopen 8 weken</SectionTitle>
-        </div>
-        <div style={{
-          background:   'var(--color-surface)',
-          border:       '1px solid var(--color-border)',
-          borderRadius: 'var(--radius-lg)',
-          padding:      '20px 20px 16px',
-        }}>
-          <MomentumChart data={momentum} />
-          <div style={{
-            display:    'flex',
-            gap:        24,
-            marginTop:  16,
-            paddingTop: 12,
-            borderTop:  '1px solid var(--color-border-subtle)',
-          }}>
-            {[
-              { label: 'CPL', value: null },
-              { label: 'CPQL', value: null },
-              { label: 'Kosten per inspectie', value: null },
-            ].map(({ label, value }) => (
-              <div key={label}>
-                <div style={{
-                  fontSize:      'var(--font-size-2xs)',
-                  color:         'var(--color-ink-faint)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.06em',
-                }}>
-                  {label}
-                </div>
-                <div style={{
-                  fontSize:           'var(--font-size-md)',
-                  color:              'var(--color-ink-faint)',
-                  fontVariantNumeric: 'tabular-nums',
-                  marginTop:          2,
-                }}>
-                  {value ?? '—'}
-                </div>
-              </div>
-            ))}
-            <div style={{
-              marginLeft: 'auto',
-              fontSize:   'var(--font-size-xs)',
-              color:      'var(--color-ink-faint)',
-              alignSelf:  'flex-end',
-            }}>
-              Meta niet gekoppeld
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   )
 }

@@ -1220,6 +1220,7 @@ export async function campaignPerformance(range?: TimeRange, niche?: string): Pr
 
   for (const l of leads ?? []) {
     const tag = l.campaign_tag!
+    if (!tag || tag.length < 3 || tag.includes('@') || /hotmail|gmail|outlook|yahoo/i.test(tag)) continue
     const leadNiche = l.contractor_id
       ? (contractorNiche.get(l.contractor_id) ?? null)
       : (boardNiche.get(l.board_id) ?? null)
