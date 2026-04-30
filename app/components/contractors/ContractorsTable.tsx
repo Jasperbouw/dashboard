@@ -19,6 +19,10 @@ const NICHE_COLOR: Record<string, { color: string; bg: string }> = {
   extras:   { color: 'var(--color-warning)', bg: 'var(--color-warning-subtle)' },
 }
 
+const NICHE_SORT_ORDER: Record<string, number> = {
+  bouw: 0, daken: 1, dakkapel: 2, extras: 3,
+}
+
 const HEALTH_META: Record<ContractorHealth, { label: string; color: string; bg: string; order: number }> = {
   critical:           { label: 'Kritiek',          color: 'var(--color-critical)',  bg: 'var(--color-critical-subtle)',  order: 0 },
   warning:            { label: 'Let op',            color: 'var(--color-warning)',   bg: 'var(--color-warning-subtle)',   order: 1 },
@@ -88,7 +92,7 @@ function Pill({ label, color, bg, title }: { label: string; color: string; bg: s
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 type SortKey =
-  | 'health' | 'leadsReceived' | 'qualificationRate'
+  | 'niche' | 'health' | 'leadsReceived' | 'qualificationRate'
   | 'closeRate' | 'avgDealSize' | 'commissionBooked'
   | 'lastActivity'
 
@@ -99,8 +103,8 @@ interface Props {
 }
 
 export function ContractorsTable({ contractors }: Props) {
-  const [sortKey, setSortKey]       = useState<SortKey>('commissionBooked')
-  const [sortDir, setSortDir]       = useState<'asc' | 'desc'>('desc')
+  const [sortKey, setSortKey]       = useState<SortKey>('niche')
+  const [sortDir, setSortDir]       = useState<'asc' | 'desc'>('asc')
   const [nicheFilter, setNiche]     = useState<string | null>(null)
   const [serviceFilter, setService] = useState<string | null>(null)
   const [modelFilter, setModel]     = useState<string | null>(null)
@@ -118,7 +122,7 @@ export function ContractorsTable({ contractors }: Props) {
 
   function toggleSort(key: SortKey) {
     if (sortKey === key) setSortDir(d => d === 'desc' ? 'asc' : 'desc')
-    else { setSortKey(key); setSortDir(key === 'health' || key === 'lastActivity' ? 'asc' : 'desc') }
+    else { setSortKey(key); setSortDir(key === 'niche' || key === 'health' || key === 'lastActivity' ? 'asc' : 'desc') }
   }
 
   const sorted = useMemo(() => {
@@ -132,13 +136,13 @@ export function ContractorsTable({ contractors }: Props) {
       .sort((a, b) => {
         let av: number | string, bv: number | string
         switch (sortKey) {
+          case 'niche':             av = NICHE_SORT_ORDER[a.niche] ?? 99; bv = NICHE_SORT_ORDER[b.niche] ?? 99; break
           case 'health':            av = HEALTH_META[a.health].order; bv = HEALTH_META[b.health].order; break
           case 'leadsReceived':     av = a.leadsReceived;    bv = b.leadsReceived;    break
           case 'qualificationRate': av = a.qualificationRate ?? -1; bv = b.qualificationRate ?? -1; break
           case 'closeRate':         av = a.closeRate ?? -1;  bv = b.closeRate ?? -1;  break
           case 'avgDealSize':       av = a.avgDealSize ?? -1; bv = b.avgDealSize ?? -1; break
           case 'commissionBooked':  av = a.commissionBooked; bv = b.commissionBooked; break
-
           case 'lastActivity':      av = a.lastActivity ?? ''; bv = b.lastActivity ?? ''; break
           default: av = 0; bv = 0
         }
@@ -147,8 +151,13 @@ export function ContractorsTable({ contractors }: Props) {
           : (sortDir === 'asc' ? (av as number) - (bv as number) : (bv as number) - (av as number))
         if (primary !== 0) return primary
 
-        // Stable tiebreaker for commissionBooked (default sort):
-        // secondary = commissionPending desc, tertiary = leadsReceived desc
+        // Secondary sorts
+        if (sortKey === 'niche') {
+          // Within niche: critical first, then by leads desc
+          const byHealth = HEALTH_META[a.health].order - HEALTH_META[b.health].order
+          if (byHealth !== 0) return byHealth
+          return b.leadsReceived - a.leadsReceived
+        }
         if (sortKey === 'commissionBooked') {
           const byPending = b.commissionPending - a.commissionPending
           if (byPending !== 0) return byPending
