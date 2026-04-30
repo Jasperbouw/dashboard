@@ -34,9 +34,9 @@ const HEALTH_META: Record<ContractorHealth, { label: string; color: string; bg: 
 
 const HEALTH_TOOLTIP: Record<ContractorHealth, string> = {
   critical:           'Handmatig gemarkeerd als at-risk relatie',
-  warning:            '60+ dagen actief, 5+ offertes verzonden, close rate <15%',
-  'on-track':         '60+ dagen actief, ≥1 deal gewonnen, close rate >15%',
-  active:             'Actieve relatie — performance metrics nog niet beoordelend',
+  warning:            '60+ dagen actief, 10+ leads, 5+ offertes (≥1 ouder dan 30d), close rate <15%',
+  'on-track':         '60+ dagen actief, 10+ leads, ≥1 deal gewonnen, close rate >15%',
+  active:             'Actieve relatie — pipeline niet volledig zichtbaar (leads-only) of onvoldoende data',
   'insufficient-data':'Eerste lead minder dan 60 dagen geleden — te vroeg om te oordelen',
   idle:               'Geen leads ontvangen in laatste 30 dagen',
 }

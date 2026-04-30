@@ -718,22 +718,34 @@ export async function contractorLeaderboard(range: TimeRange): Promise<Contracto
     // Leads created in the last 30 days (for inactief check)
     const recentLeads = cAllLeads.filter(l => l.monday_created_at && l.monday_created_at >= last30dCutoff).length
 
+    // At least one quote_sent lead >30 days old — guards Let op against active pipelines
+    const oldQuoteCutoff = new Date(Date.now() - 30 * 86_400_000).toISOString()
+    const hasStaleQuote  = cAllLeads.some(
+      l => l.canonical_stage === 'quote_sent' && l.monday_created_at && l.monday_created_at < oldQuoteCutoff
+    )
+
+    // Performing and Let op are only meaningful for full_sales contractors who track
+    // their pipeline through quote_sent → won. leads_only boards have no quote_sent
+    // stage, so close rate is artificially 100% (won/won), making Performing fire
+    // incorrectly. Skip both checks for leads_only.
+    const canEvaluateClosing = !isLeadsOnly
+
     // Health decision tree — first match wins
     let health: ContractorHealth
     if (recentLeads === 0) {
-      health = 'idle'                  // Inactief: no leads in last 30 days
+      health = 'idle'              // Inactief: no leads in last 30 days
     } else if (c.relationship_status === 'at_risk') {
-      health = 'critical'              // Kritiek: manual at_risk flag
+      health = 'critical'          // Kritiek: manual at_risk flag
     } else if (isHandsOff) {
-      health = 'active'                // Lopend: hands_off service model
-    } else if (daysActive < 60) {
-      health = 'insufficient-data'     // Onvoldoende data: <60 days since first lead
-    } else if (wonAllTime >= 1 && closeRateAllTime > 15) {
-      health = 'on-track'              // Performing: proven closer
-    } else if (quoteAllTime >= 5 && closeRateAllTime < 15) {
-      health = 'warning'               // Let op: consistent low close rate
+      health = 'active'            // Lopend: hands_off, no pipeline visibility
+    } else if (daysActive < 60 || cAllLeads.length < 10) {
+      health = 'insufficient-data' // Onvoldoende data: too new or too few leads
+    } else if (canEvaluateClosing && wonAllTime >= 1 && closeRateAllTime > 15) {
+      health = 'on-track'          // Performing: proven closer with real pipeline data
+    } else if (canEvaluateClosing && quoteAllTime >= 5 && hasStaleQuote && closeRateAllTime < 15) {
+      health = 'warning'           // Let op: stale quotes + consistently low close rate
     } else {
-      health = 'active'                // Lopend: fallback
+      health = 'active'            // Lopend: fallback
     }
 
     const cPacks = (activePacks ?? []).filter(p => p.contractor_id === c.id)
