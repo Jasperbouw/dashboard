@@ -46,50 +46,51 @@ function Card({ children, style }: { children: React.ReactNode; style?: React.CS
 }
 
 interface Props {
-  searchParams: Promise<{ from?: string; to?: string; snap?: string }>
+  searchParams: Promise<{ from?: string; to?: string }>
 }
 
-function last90dRange(): TimeRange {
-  const now  = new Date()
-  const from = new Date(now.getTime() - 90 * 86_400_000)
-  return { from, to: now }
+function isoDate(d: Date) { return d.toISOString().slice(0, 10) }
+
+function periodLabel(from: string, to: string): string {
+  const now   = new Date()
+  const today = isoDate(now)
+
+  const thisMonthFrom = isoDate(new Date(now.getFullYear(), now.getMonth(), 1))
+  const thisMonthTo   = isoDate(new Date(now.getFullYear(), now.getMonth() + 1, 0))
+  const lastMonthFrom = isoDate(new Date(now.getFullYear(), now.getMonth() - 1, 1))
+  const lastMonthTo   = isoDate(new Date(now.getFullYear(), now.getMonth(), 0))
+  const last30From    = isoDate(new Date(now.getTime() - 30 * 86_400_000))
+  const last90From    = isoDate(new Date(now.getTime() - 90 * 86_400_000))
+  const ytdFrom       = `${now.getFullYear()}-01-01`
+
+  if (from === thisMonthFrom && to === thisMonthTo) return 'Deze maand'
+  if (from === lastMonthFrom && to === lastMonthTo) return 'Vorige maand'
+  if (from === last30From    && to === today)       return 'Laatste 30 dagen'
+  if (from === last90From    && to === today)       return 'Laatste 90 dagen'
+  if (from === ytdFrom       && to === today)       return 'Dit jaar'
+  return `${from} t/m ${to}`
 }
 
 export default async function FunnelPage({ searchParams }: Props) {
   const params = await searchParams
 
-  // Conversion funnel date range (DateRangePicker-driven)
-  const def     = currentMonth()
+  const def      = currentMonth()
   const fromDate = params.from ? new Date(params.from) : def.from
   const toDate   = params.to   ? new Date(params.to)   : def.to
   const fromStr  = params.from ?? def.from.toISOString().slice(0, 10)
   const toStr    = params.to   ?? def.to.toISOString().slice(0, 10)
-  const funnelRange = { from: fromDate, to: toDate }
-
-  // Snapshot filter (huidige verdeling / niche / campaigns)
-  const snapAll      = params.snap === 'all'
-  const snapshotRange: TimeRange | undefined = snapAll ? undefined : last90dRange()
-  const snapLabel    = snapAll ? 'Alle tijd' : 'Laatste 90 dagen'
+  const range: TimeRange = { from: fromDate, to: toDate }
 
   const [distribution, campaigns, niches, funnel, doorlooptijden] = await Promise.all([
-    currentStageDistribution(snapshotRange),
-    campaignPerformance(snapshotRange),
-    nichePerformance(snapshotRange),
-    funnelTransitions(funnelRange),
-    doorlooptijdenAggregate(funnelRange),
+    currentStageDistribution(range),
+    campaignPerformance(range),
+    nichePerformance(range),
+    funnelTransitions(range),
+    doorlooptijdenAggregate(range),
   ])
 
-  const snapshotTotal = Object.values(distribution.counts).reduce((s, v) => s + v, 0)
-
-  // Build URLs for the snapshot toggle (preserve existing params)
-  function snapUrl(val: string) {
-    const base = new URLSearchParams({
-      ...(params.from ? { from: params.from } : {}),
-      ...(params.to   ? { to: params.to }     : {}),
-      snap: val,
-    })
-    return `/funnel?${base.toString()}`
-  }
+  const totalLeads = Object.values(distribution.counts).reduce((s, v) => s + v, 0)
+  const label      = periodLabel(fromStr, toStr)
 
   return (
     <div style={{ padding: '32px 36px', maxWidth: 1280 }}>
@@ -124,46 +125,6 @@ export default async function FunnelPage({ searchParams }: Props) {
         <DateRangePicker from={fromStr} to={toStr} />
       </div>
 
-      {/* ── Snapshot toggle ── */}
-      <div style={{
-        display:      'flex',
-        alignItems:   'center',
-        gap:          8,
-        marginBottom: 24,
-      }}>
-        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)' }}>
-          Verdeling, niches &amp; campagnes:
-        </span>
-        {[
-          { label: 'Laatste 90d', val: '90d' },
-          { label: 'Alle tijd',   val: 'all' },
-        ].map(opt => {
-          const active = snapAll ? opt.val === 'all' : opt.val === '90d'
-          return (
-            <a
-              key={opt.val}
-              href={snapUrl(opt.val)}
-              style={{
-                fontSize:     'var(--font-size-xs)',
-                padding:      '3px 10px',
-                borderRadius: 'var(--radius-full)',
-                border:       '1px solid',
-                borderColor:  active ? 'var(--color-info)' : 'var(--color-border)',
-                background:   active ? 'var(--color-info-subtle)' : 'transparent',
-                color:        active ? 'var(--color-info)' : 'var(--color-ink-muted)',
-                textDecoration: 'none',
-                whiteSpace:   'nowrap',
-              }}
-            >
-              {opt.label}
-            </a>
-          )
-        })}
-        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)' }}>
-          — {snapshotTotal} leads ({snapLabel})
-        </span>
-      </div>
-
       {/* ── Doorlooptijden strip ── */}
       <div style={{ marginBottom: 28 }}>
         <div style={{ marginBottom: 12 }}>
@@ -194,19 +155,21 @@ export default async function FunnelPage({ searchParams }: Props) {
         </Card>
       </div>
 
+      {/* ── Niche + campaign section header ── */}
+      <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <SectionTitle>Verdeling, niches &amp; campagnes</SectionTitle>
+        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)' }}>
+          — {totalLeads} leads ({label})
+        </span>
+      </div>
+
       {/* ── Niche breakdown ── */}
       <div style={{ marginBottom: 28 }}>
-        <div style={{ marginBottom: 12 }}>
-          <SectionTitle>Per niche</SectionTitle>
-        </div>
         <NicheBreakdown niches={niches} />
       </div>
 
       {/* ── Campaign table ── */}
       <div>
-        <div style={{ marginBottom: 12 }}>
-          <SectionTitle>Campagnetabel</SectionTitle>
-        </div>
         <CampaignTable campaigns={campaigns} />
       </div>
 
