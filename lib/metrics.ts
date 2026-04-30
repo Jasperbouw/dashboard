@@ -537,13 +537,12 @@ export async function unroutedLeads(range: TimeRange): Promise<number> {
 // Fetches all data in 2 queries and computes per-contractor metrics in JS.
 
 export type ContractorHealth =
-  | 'on-track'        // full_sales, metrics positive, sufficient sample
-  | 'warning'         // metrics approaching bad thresholds
-  | 'critical'        // at_risk, or metrics clearly bad with sufficient sample
-  | 'idle'            // 0 leads in period (dormant)
-  | 'active'          // leads flowing but no computable metrics (unfiltered / leads_only / retainer)
-  | 'insufficient-data' // active but <5 leads in period — too early to evaluate
-  | 'winding-down'    // relationship_status = winding_down
+  | 'on-track'          // 60+ days active, ≥1 won deal, close rate >15%  → Performing
+  | 'warning'           // 60+ days active, 5+ quotes, close rate <15%    → Let op
+  | 'critical'          // manual at_risk flag                             → Kritiek
+  | 'idle'              // no leads received in last 30 days               → Inactief
+  | 'active'            // hands_off model or fallback with leads          → Lopend
+  | 'insufficient-data' // <60 days since first lead received              → Onvoldoende data
 
 export interface ContractorSummary {
   id: string
@@ -569,7 +568,7 @@ export interface ContractorSummary {
   commissionBooked:  number
   commissionPending: number
   pipelineValueEst:  number
-  backlogDebt:       number         // 'new' leads >30d with no Monday activity
+  backlogDebt:       number         // open-stage leads >14d with no Monday activity
   lastActivity:      string | null  // ISO string of most recent lead update
   health:            ContractorHealth
   // Stage counts — period cohort (leads that entered in the date range)
@@ -593,11 +592,12 @@ export interface ContractorSummary {
 }
 
 export async function contractorLeaderboard(range: TimeRange): Promise<ContractorSummary[]> {
-  const contractors   = await getActiveContractors()
-  const activeIds     = contractors.map(c => c.id)
-  const backlogCutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
-  const fromDate      = range.from.toISOString().slice(0, 10)
-  const toDate        = range.to.toISOString().slice(0, 10)
+  const contractors    = await getActiveContractors()
+  const activeIds      = contractors.map(c => c.id)
+  const backlogCutoff  = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString()
+  const last30dCutoff  = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+  const fromDate       = range.from.toISOString().slice(0, 10)
+  const toDate         = range.to.toISOString().slice(0, 10)
 
   const [{ data: leads }, { data: projects }, { data: allLeads }, { data: backlogLeads }, invoiceResult, { data: activePacks }] = await Promise.all([
     db()
@@ -613,14 +613,14 @@ export async function contractorLeaderboard(range: TimeRange): Promise<Contracto
       .in('contractor_id', activeIds),
     db()
       .from('leads')
-      .select('contractor_id, canonical_stage, monday_updated_at')
+      .select('contractor_id, canonical_stage, monday_updated_at, received_at')
       .in('contractor_id', activeIds)
       .limit(5000),
     db()
       .from('leads')
       .select('contractor_id')
       .in('contractor_id', activeIds)
-      .eq('canonical_stage', 'new')
+      .in('canonical_stage', ['new', 'contacted', 'inspection', 'quote_sent'])
       .lt('monday_updated_at', backlogCutoff)
       .limit(5000),
     db()
@@ -698,66 +698,42 @@ export async function contractorLeaderboard(range: TimeRange): Promise<Contracto
       return !best || l.monday_updated_at > best ? l.monday_updated_at : best
     }, null)
 
-    // Backlog ratio against open (new + contacted) leads in snapshot
-    const openLeads   = cAllLeads.filter(l => l.canonical_stage === 'new' || l.canonical_stage === 'contacted').length
-    const backlogRatio = openLeads > 0 ? cBacklog.length / openLeads : (cBacklog.length > 0 ? 1 : 0)
-
     const qualRate = (isUnfiltered || isHandsOff) ? null
                        : (total > 0 ? Math.round(qualified / total * 1000) / 10 : null)
 
-    // Sample-size gates for status evaluation (display value still shown in table)
-    const qualCritical = total >= 10 && qualRate != null && qualRate < 20
-    const qualWarning  = total >= 10 && qualRate != null && qualRate < 40
-    // closeRateRaw is used for status checks; closeRate (>=5 sample) for display
-    const closeCritical = quoteInPeriod >= 5 && closeRateRaw != null && closeRateRaw < 5
-    const closeWarning  = quoteInPeriod >= 3 && closeRateRaw != null && closeRateRaw < 15
+    // All-time metrics for status evaluation (period metrics used for display only)
+    const wonAllTime   = cAllLeads.filter(l => l.canonical_stage === 'won').length
+    const quoteAllTime = cAllLeads.filter(l => l.canonical_stage === 'quote_sent' || l.canonical_stage === 'won').length
+    const closeRateAllTime = quoteAllTime > 0 ? (wonAllTime / quoteAllTime) * 100 : 0
 
-    // Health decision tree
-    // Priority 1: relationship flags always surface regardless of model
+    // How long has this contractor been active (days since first received lead)
+    const firstLeadDate = cAllLeads.reduce<string | null>((min, l) => {
+      if (!l.received_at) return min
+      return min === null || l.received_at < min ? l.received_at : min
+    }, null)
+    const daysActive = firstLeadDate
+      ? Math.floor((Date.now() - new Date(firstLeadDate).getTime()) / 86_400_000)
+      : 0
+
+    // Leads received in the last 30 days (for inactief check)
+    const recentLeads = cAllLeads.filter(l => l.received_at && l.received_at >= last30dCutoff).length
+
+    // Health decision tree — first match wins
     let health: ContractorHealth
-    if (c.relationship_status === 'at_risk') {
-      health = 'critical'
-    } else if (c.relationship_status === 'winding_down') {
-      health = 'winding-down'
-
-    // Retainer contractors — no performance metrics computable
-    } else if (isRetainer) {
-      health = total === 0 ? 'idle' : 'active'
-
-    // Flat_fee + unfiltered — evaluate on volume vs target only
-    } else if (c.commission_model === 'flat_fee' && isUnfiltered) {
-      if (total === 0) {
-        health = 'idle'
-      } else if (c.target_monthly_leads && c.target_monthly_leads > 0) {
-        const pct = total / c.target_monthly_leads
-        if (pct < 0.3) health = 'critical'
-        else if (pct < 0.6) health = 'warning'
-        else health = 'active'
-      } else {
-        health = 'active'
-      }
-
-    // Dormant
-    } else if (total === 0) {
-      health = 'idle'
-
-    // Insufficient data — too early to evaluate
-    } else if (total < 5) {
-      health = 'insufficient-data'
-
-    // leads_only / hands_off — no qual or close metrics; backlog only
-    } else if (isLeadsOnly || isHandsOff) {
-      if (backlogRatio > 0.5) health = 'critical'
-      else if (backlogRatio > 0.2) health = 'warning'
-      else health = 'active'
-
-    // full_sales pre_qualified — full signal
-    } else if (backlogRatio > 0.5 || qualCritical || closeCritical) {
-      health = 'critical'
-    } else if (backlogRatio > 0.2 || qualWarning || closeWarning) {
-      health = 'warning'
+    if (recentLeads === 0) {
+      health = 'idle'                  // Inactief: no leads in last 30 days
+    } else if (c.relationship_status === 'at_risk') {
+      health = 'critical'              // Kritiek: manual at_risk flag
+    } else if (isHandsOff) {
+      health = 'active'                // Lopend: hands_off service model
+    } else if (daysActive < 60) {
+      health = 'insufficient-data'     // Onvoldoende data: <60 days since first lead
+    } else if (wonAllTime >= 1 && closeRateAllTime > 15) {
+      health = 'on-track'              // Performing: proven closer
+    } else if (quoteAllTime >= 5 && closeRateAllTime < 15) {
+      health = 'warning'               // Let op: consistent low close rate
     } else {
-      health = 'on-track'
+      health = 'active'                // Lopend: fallback
     }
 
     const cPacks = (activePacks ?? []).filter(p => p.contractor_id === c.id)
