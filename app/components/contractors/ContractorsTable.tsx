@@ -16,10 +16,20 @@ const HEALTH_META: Record<ContractorHealth, { label: string; color: string; bg: 
   critical:           { label: 'Kritiek',          color: 'var(--color-critical)',  bg: 'var(--color-critical-subtle)',  order: 0 },
   warning:            { label: 'Let op',            color: 'var(--color-warning)',   bg: 'var(--color-warning-subtle)',   order: 1 },
   'winding-down':     { label: 'Aflopend',          color: 'var(--color-warning)',   bg: 'var(--color-warning-subtle)',   order: 2 },
-  'on-track':         { label: 'Op koers',          color: 'var(--color-success)',   bg: 'var(--color-success-subtle)',   order: 3 },
-  active:             { label: 'Actief',            color: 'var(--color-ink-muted)', bg: 'var(--color-surface-raised)',   order: 4 },
+  'on-track':         { label: 'Performing',        color: 'var(--color-success)',   bg: 'var(--color-success-subtle)',   order: 3 },
+  active:             { label: 'Lopend',            color: 'var(--color-info)',      bg: 'var(--color-info-subtle)',      order: 4 },
   'insufficient-data':{ label: 'Onvoldoende data',  color: 'var(--color-ink-muted)', bg: 'var(--color-surface-raised)',   order: 5 },
   idle:               { label: 'Inactief',          color: 'var(--color-ink-faint)', bg: 'var(--color-surface-raised)',   order: 6 },
+}
+
+const HEALTH_TOOLTIP: Record<ContractorHealth, string> = {
+  critical:           'Een van: at_risk relatie, 5+ offertes met <5% close rate, of backlog >50% van leads',
+  warning:            'Backlog >20% of matige metrics (qual <40% of close <15%)',
+  'winding-down':     'Relatie wordt beëindigd (winding_down status)',
+  'on-track':         'Presteert boven drempelwaarden: >15% close rate, >40% qual rate',
+  active:             'Actief zonder evalueerbare metrics (flat fee / retainer)',
+  'insufficient-data':'Te weinig leads om te beoordelen (minder dan 5)',
+  idle:               'Geen leads ontvangen in de geselecteerde periode',
 }
 
 const MODEL_LABEL: Record<string, string> = {
@@ -49,18 +59,22 @@ function Dash() {
   return <span style={{ color: 'var(--color-ink-faint)' }}>—</span>
 }
 
-function Pill({ label, color, bg }: { label: string; color: string; bg: string }) {
+function Pill({ label, color, bg, title }: { label: string; color: string; bg: string; title?: string }) {
   return (
-    <span style={{
-      display:      'inline-block',
-      fontSize:     'var(--font-size-2xs)',
-      fontWeight:   600,
-      color,
-      background:   bg,
-      borderRadius: 'var(--radius-full)',
-      padding:      '1px 7px',
-      whiteSpace:   'nowrap',
-    }}>
+    <span
+      title={title}
+      style={{
+        display:      'inline-block',
+        fontSize:     'var(--font-size-2xs)',
+        fontWeight:   600,
+        color,
+        background:   bg,
+        borderRadius: 'var(--radius-full)',
+        padding:      '1px 7px',
+        whiteSpace:   'nowrap',
+        cursor:       title ? 'help' : undefined,
+      }}
+    >
       {label}
     </span>
   )
@@ -231,7 +245,7 @@ export function ContractorsTable({ contractors }: Props) {
               <th style={{ ...th, textAlign: 'right' }} onClick={() => toggleSort('closeRate')}>Close%{arrow('closeRate')}</th>
               <th style={{ ...th, textAlign: 'right' }} onClick={() => toggleSort('avgDealSize')}>Gem. deal{arrow('avgDealSize')}</th>
               <th style={{ ...th, textAlign: 'right' }} onClick={() => toggleSort('commissionBooked')}>Comm. MTD{arrow('commissionBooked')}</th>
-              <th style={{ ...th, textAlign: 'right' }} onClick={() => toggleSort('backlogDebt')}>Backlog{arrow('backlogDebt')}</th>
+              <th style={{ ...th, textAlign: 'right' }} onClick={() => toggleSort('backlogDebt')} title="Leads die meer dan 14 dagen in dezelfde stage staan zonder progressie">Backlog{arrow('backlogDebt')}</th>
               <th style={{ ...th, textAlign: 'right', cursor: 'default' }} onClick={() => toggleSort('lastActivity')} title="Wanneer het board voor het laatst is bijgewerkt (inclusief onze syncs en Zapier). Contractor-activiteit specifiek volgt in een later fase.">Laatste board-update{arrow('lastActivity')}</th>
               <th style={{ ...th, cursor: 'default' }}>Pakketten</th>
             </tr>
@@ -288,7 +302,7 @@ export function ContractorsTable({ contractors }: Props) {
 
                   {/* Health */}
                   <td style={td}>
-                    <Pill label={health.label} color={health.color} bg={health.bg} />
+                    <Pill label={health.label} color={health.color} bg={health.bg} title={HEALTH_TOOLTIP[c.health]} />
                   </td>
 
                   {/* Model badges */}
