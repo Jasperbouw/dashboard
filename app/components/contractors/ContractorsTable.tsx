@@ -83,7 +83,7 @@ function Pill({ label, color, bg, title }: { label: string; color: string; bg: s
 type SortKey =
   | 'health' | 'leadsReceived' | 'qualificationRate'
   | 'closeRate' | 'avgDealSize' | 'commissionBooked'
-  | 'backlogDebt' | 'lastActivity'
+  | 'lastActivity'
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
@@ -131,7 +131,7 @@ export function ContractorsTable({ contractors }: Props) {
           case 'closeRate':         av = a.closeRate ?? -1;  bv = b.closeRate ?? -1;  break
           case 'avgDealSize':       av = a.avgDealSize ?? -1; bv = b.avgDealSize ?? -1; break
           case 'commissionBooked':  av = a.commissionBooked; bv = b.commissionBooked; break
-          case 'backlogDebt':       av = a.backlogDebt;      bv = b.backlogDebt;      break
+
           case 'lastActivity':      av = a.lastActivity ?? ''; bv = b.lastActivity ?? ''; break
           default: av = 0; bv = 0
         }
@@ -243,7 +243,7 @@ export function ContractorsTable({ contractors }: Props) {
               <th style={{ ...th, textAlign: 'right' }} onClick={() => toggleSort('closeRate')}>Close%{arrow('closeRate')}</th>
               <th style={{ ...th, textAlign: 'right' }} onClick={() => toggleSort('avgDealSize')}>Gem. deal{arrow('avgDealSize')}</th>
               <th style={{ ...th, textAlign: 'right' }} onClick={() => toggleSort('commissionBooked')}>Comm. MTD{arrow('commissionBooked')}</th>
-              <th style={{ ...th, textAlign: 'right' }} onClick={() => toggleSort('backlogDebt')} title="Leads >14 dagen in dezelfde stage zonder recente activiteit">Backlog{arrow('backlogDebt')}</th>
+
               <th style={{ ...th, textAlign: 'right', cursor: 'default' }} onClick={() => toggleSort('lastActivity')} title="Wanneer het board voor het laatst is bijgewerkt (inclusief onze syncs en Zapier). Contractor-activiteit specifiek volgt in een later fase.">Laatste board-update{arrow('lastActivity')}</th>
               <th style={{ ...th, cursor: 'default' }}>Pakketten</th>
             </tr>
@@ -251,21 +251,13 @@ export function ContractorsTable({ contractors }: Props) {
           <tbody>
             {sorted.length === 0 && (
               <tr>
-                <td colSpan={11} style={{ ...td, textAlign: 'center', color: 'var(--color-ink-faint)', padding: '32px' }}>
+                <td colSpan={10} style={{ ...td, textAlign: 'center', color: 'var(--color-ink-faint)', padding: '32px' }}>
                   Geen contractors gevonden
                 </td>
               </tr>
             )}
             {sorted.map(c => {
               const health = HEALTH_META[c.health]
-              // Backlog ratio: backlogDebt / total open leads (new + contacted stages)
-              // For coloring: use ratio not absolute count
-              const backlogRatio = c.leadsReceived > 0
-                ? c.backlogDebt / Math.max(c.leadsReceived, 1)
-                : 0
-              const backlogColor = backlogRatio > 0.4 ? 'var(--color-critical)'
-                : backlogRatio > 0.15 ? 'var(--color-warning)'
-                : 'var(--color-ink-faint)'
 
               const isSelected = c.id === selectedId
               return (
@@ -344,11 +336,6 @@ export function ContractorsTable({ contractors }: Props) {
                   {/* Commission MTD */}
                   <td style={{ ...tdNum, color: c.commissionBooked > 0 ? 'var(--color-success)' : 'var(--color-ink-faint)' }}>
                     {fmtEur(c.commissionBooked)}
-                  </td>
-
-                  {/* Backlog — color based on ratio vs total leads, not absolute count */}
-                  <td style={{ ...tdNum, color: c.backlogDebt > 0 ? backlogColor : 'var(--color-ink-faint)' }}>
-                    {c.backlogDebt > 0 ? c.backlogDebt : <Dash />}
                   </td>
 
                   {/* Last activity */}
