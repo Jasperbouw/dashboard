@@ -17,15 +17,11 @@ function fmtEur(v: number) {
   return `€${v.toLocaleString('nl-NL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
 }
 
-function targetProgress(actual: number, target: number | null | undefined, isCurrentMonth: boolean, selYear: number, selMonth: number) {
+function targetProgress(actual: number, target: number | null | undefined) {
   if (!target || target <= 0) return null
-  const daysInMonth  = new Date(selYear, selMonth + 1, 0).getDate()
-  const today        = new Date()
-  const dayOfMonth   = isCurrentMonth ? Math.min(today.getDate(), daysInMonth) : daysInMonth
-  const expectedPace = (dayOfMonth / daysInMonth) * target
-  const pct          = Math.round((actual / target) * 100)
-  const color        = actual >= expectedPace ? '#3fb950' : actual >= 0.5 * expectedPace ? '#f59e0b' : '#f85149'
-  return { pct, target, expectedPace, color }
+  const pct   = Math.round((actual / target) * 100)
+  const color = actual >= target ? '#3fb950' : actual > 0 ? '#58a6ff' : '#6e7681'
+  return { pct, target, color }
 }
 
 export default async function FinancePage({ searchParams }: Props) {
@@ -114,9 +110,9 @@ export default async function FinancePage({ searchParams }: Props) {
   // Targets
   const targets = targetsRow as { deal_value_target: number | null; commission_target: number | null; ad_budget_target: number | null } | null
 
-  const dealProgress  = targetProgress(totalDealValue,  targets?.deal_value_target,  isCurrentMonth, selYear, selMonth)
-  const commProgress  = targetProgress(totalCommission,  targets?.commission_target,  isCurrentMonth, selYear, selMonth)
-  const adBudProgress = targetProgress(totalAdBudget,   targets?.ad_budget_target,   isCurrentMonth, selYear, selMonth)
+  const dealProgress  = targetProgress(totalDealValue,  targets?.deal_value_target)
+  const commProgress  = targetProgress(totalCommission, targets?.commission_target)
+  const adBudProgress = targetProgress(totalAdBudget,   targets?.ad_budget_target)
 
   // 6-month trend (commission)
   const trendMap: Record<string, number> = {}
@@ -154,20 +150,18 @@ export default async function FinancePage({ searchParams }: Props) {
     .sort((a, b) => b.amount - a.amount)
     .slice(0, 5)
 
-  type ProgressInfo = { pct: number; target: number; expectedPace: number; color: string } | null
+  type ProgressInfo = { pct: number; target: number; color: string } | null
 
-  function ProgressBar({ prog, actual }: { prog: ProgressInfo; actual: number }) {
+  function ProgressBar({ prog }: { prog: ProgressInfo }) {
     if (!prog) return null
     const fill = Math.min(prog.pct, 100)
-    const behind = actual < prog.expectedPace
     return (
       <div style={{ marginTop: 8 }}>
         <div style={{ height: 4, background: 'var(--color-border-subtle)', borderRadius: 2, overflow: 'hidden' }}>
           <div style={{ width: `${fill}%`, height: '100%', background: prog.color, borderRadius: 2, transition: 'width 0.3s' }} />
         </div>
-        <div style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-ink-faint)', marginTop: 4, display: 'flex', justifyContent: 'space-between' }}>
-          <span style={{ color: prog.color }}>{prog.pct}% van {fmtEur(prog.target)} doel</span>
-          {behind && <span>verwacht: {fmtEur(Math.round(prog.expectedPace))}</span>}
+        <div style={{ fontSize: 'var(--font-size-2xs)', color: prog.color, marginTop: 4 }}>
+          {prog.pct}% van {fmtEur(prog.target)} doel
         </div>
       </div>
     )
@@ -201,7 +195,7 @@ export default async function FinancePage({ searchParams }: Props) {
           <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)', marginTop: 4 }}>
             {dealCount} deal{dealCount !== 1 ? 's' : ''} geland
           </div>
-          <ProgressBar prog={dealProgress} actual={totalDealValue} />
+          <ProgressBar prog={dealProgress} />
         </div>
 
         {/* Card 2: Commission */}
@@ -215,7 +209,7 @@ export default async function FinancePage({ searchParams }: Props) {
           <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)', marginTop: 4 }}>
             Gem. {avgCommPct.toFixed(1)}% commissie
           </div>
-          <ProgressBar prog={commProgress} actual={totalCommission} />
+          <ProgressBar prog={commProgress} />
         </div>
 
         {/* Card 3: Ad budget revenue */}
@@ -229,7 +223,7 @@ export default async function FinancePage({ searchParams }: Props) {
           <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)', marginTop: 4 }}>
             {periodLabel}
           </div>
-          <ProgressBar prog={adBudProgress} actual={totalAdBudget} />
+          <ProgressBar prog={adBudProgress} />
         </div>
 
         {/* Card 4: Meta ad spend + P&L */}

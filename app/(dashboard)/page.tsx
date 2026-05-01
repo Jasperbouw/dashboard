@@ -9,13 +9,6 @@ function fmtEur(v: number) {
   return `€${v.toLocaleString('nl-NL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
 }
 
-function ProgressBar({ pct, color }: { pct: number; color: string }) {
-  return (
-    <div style={{ height: 4, background: 'var(--color-border-subtle)', borderRadius: 2, overflow: 'hidden', marginTop: 10 }}>
-      <div style={{ height: '100%', width: `${Math.min(pct, 100)}%`, background: color, borderRadius: 2, transition: 'width 0.3s' }} />
-    </div>
-  )
-}
 
 interface SnapshotCard {
   label:     string
@@ -25,12 +18,10 @@ interface SnapshotCard {
   prefix?:   string
 }
 
-function MonthCard({ card, dayOfMonth, daysInMonth }: { card: SnapshotCard; dayOfMonth: number; daysInMonth: number }) {
+function MonthCard({ card }: { card: SnapshotCard }) {
   const hasTarget = card.target && card.target > 0
-  const expectedPace = hasTarget ? (dayOfMonth / daysInMonth) * card.target! : 0
-  const pct          = hasTarget ? Math.round((card.actual / card.target!) * 100) : 0
-  const color        = card.actual >= expectedPace ? '#3fb950' : card.actual >= 0.5 * expectedPace ? '#f59e0b' : '#f85149'
-  const projectedEOM = dayOfMonth > 0 ? Math.round((card.actual / dayOfMonth) * daysInMonth) : 0
+  const pct   = hasTarget ? Math.round((card.actual / card.target!) * 100) : 0
+  const color = card.actual >= (card.target ?? Infinity) ? '#3fb950' : card.actual > 0 ? '#58a6ff' : '#6e7681'
 
   return (
     <div style={{
@@ -50,11 +41,18 @@ function MonthCard({ card, dayOfMonth, daysInMonth }: { card: SnapshotCard; dayO
           </span>
         )}
       </div>
-      {hasTarget && <ProgressBar pct={pct} color={color} />}
+      {hasTarget && (
+        <div style={{ marginTop: 10 }}>
+          <div style={{ height: 4, background: 'var(--color-border-subtle)', borderRadius: 2, overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${Math.min(pct, 100)}%`, background: color, borderRadius: 2, transition: 'width 0.3s' }} />
+          </div>
+          <div style={{ fontSize: 'var(--font-size-2xs)', color, marginTop: 4 }}>
+            {pct}% van {fmtEur(card.target!)} doel
+          </div>
+        </div>
+      )}
       <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)', marginTop: 8 }}>
-        {hasTarget && card.actual > 0
-          ? `op pace voor ${fmtEur(projectedEOM)} eind maand`
-          : card.subtitle}
+        {card.subtitle}
       </div>
     </div>
   )
@@ -148,7 +146,7 @@ export default async function TodayPage() {
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
           {cards.map(c => (
-            <MonthCard key={c.label} card={c} dayOfMonth={dayOfMonth} daysInMonth={daysInMonth} />
+            <MonthCard key={c.label} card={c} />
           ))}
         </div>
         <div style={{ marginTop: 14, fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)' }}>
