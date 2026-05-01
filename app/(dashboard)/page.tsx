@@ -1,206 +1,160 @@
-import {
-  todayBundle, leadsThisWeek, qualificationStats,
-  openOffertesStats, currentMonth, contractorLeaderboard,
-} from '../../lib/metrics'
-import { getActiveAlerts } from '../../lib/alerts/queries'
 import { serverClient } from '../../lib/supabase-server'
-import { StatCard } from '../components/ui/StatCard'
-import { AlertsFeed } from '../components/today/AlertsFeed'
 import { LastSynced } from '../components/today/LastSynced'
 
-export const revalidate = 30
+export const dynamic = 'force-dynamic'
 
-function SectionTitle({ children }: { children: React.ReactNode }) {
+const NL_MONTHS = ['Januari', 'Februari', 'Maart', 'April', 'Mei', 'Juni', 'Juli', 'Augustus', 'September', 'Oktober', 'November', 'December']
+
+function fmtEur(v: number) {
+  return `€${v.toLocaleString('nl-NL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
+}
+
+function ProgressBar({ pct, color }: { pct: number; color: string }) {
   return (
-    <h2 style={{
-      fontSize:      'var(--font-size-xs)',
-      fontWeight:    600,
-      color:         'var(--color-ink-faint)',
-      textTransform: 'uppercase',
-      letterSpacing: '0.08em',
-      margin:        0,
-    }}>
-      {children}
-    </h2>
+    <div style={{ height: 4, background: 'var(--color-border-subtle)', borderRadius: 2, overflow: 'hidden', marginTop: 10 }}>
+      <div style={{ height: '100%', width: `${Math.min(pct, 100)}%`, background: color, borderRadius: 2, transition: 'width 0.3s' }} />
+    </div>
   )
 }
 
-// Niche display order + Dutch labels
-const NICHE_ORDER = ['bouw', 'daken', 'dakkapel', 'extras']
-const NICHE_LABEL: Record<string, string> = {
-  bouw:     'Bouw',
-  daken:    'Daken',
-  dakkapel: 'Dakkapel',
-  extras:   'Extras',
+interface SnapshotCard {
+  label:     string
+  actual:    number
+  target:    number | null | undefined
+  subtitle:  string
+  prefix?:   string
+}
+
+function MonthCard({ card, dayOfMonth, daysInMonth }: { card: SnapshotCard; dayOfMonth: number; daysInMonth: number }) {
+  const hasTarget = card.target && card.target > 0
+  const expectedPace = hasTarget ? (dayOfMonth / daysInMonth) * card.target! : 0
+  const pct          = hasTarget ? Math.round((card.actual / card.target!) * 100) : 0
+  const color        = card.actual >= expectedPace ? '#3fb950' : card.actual >= 0.5 * expectedPace ? '#f59e0b' : '#f85149'
+  const projectedEOM = dayOfMonth > 0 ? Math.round((card.actual / dayOfMonth) * daysInMonth) : 0
+
+  return (
+    <div style={{
+      padding: '20px',
+      background: 'var(--color-surface)',
+      border: '1px solid var(--color-border-subtle)',
+      borderRadius: 'var(--radius-lg)',
+    }}>
+      <div style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 600, color: 'var(--color-ink-faint)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>
+        {card.label}
+      </div>
+      <div style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 600, color: 'var(--color-ink)', fontVariantNumeric: 'tabular-nums' }}>
+        {fmtEur(card.actual)}
+        {hasTarget && (
+          <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, color: 'var(--color-ink-muted)', marginLeft: 6 }}>
+            / {fmtEur(card.target!)}
+          </span>
+        )}
+      </div>
+      {hasTarget && <ProgressBar pct={pct} color={color} />}
+      <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)', marginTop: 8 }}>
+        {hasTarget && card.actual > 0
+          ? `op pace voor ${fmtEur(projectedEOM)} eind maand`
+          : card.subtitle}
+      </div>
+    </div>
+  )
 }
 
 export default async function TodayPage() {
-  const range = currentMonth()
+  const now        = new Date()
+  const year       = now.getFullYear()
+  const month      = now.getMonth()
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
+  const dayOfMonth = now.getDate()
+  const daysLeft   = daysInMonth - dayOfMonth
 
-  const db = serverClient()
-  const { data: lastRun } = await db
-    .from('sync_runs')
-    .select('started_at')
-    .order('started_at', { ascending: false })
-    .limit(1)
-    .single()
+  const monthKey   = `${year}-${String(month + 1).padStart(2, '0')}`
+  const monthStart = `${monthKey}-01`
+  const monthEnd   = new Date(year, month + 1, 0).toISOString().slice(0, 10)
+  const periodLabel = `${NL_MONTHS[month]} ${year}`
 
-  const [week, qualStats, offertesStats, bundle, alerts, leaderboard] = await Promise.all([
-    leadsThisWeek(),
-    qualificationStats(),
-    openOffertesStats(),
-    todayBundle(),
-    getActiveAlerts({ limit: 100 }),
-    contractorLeaderboard(range),
-  ])
-
-  // Leads card badges: breakdown row + niche row
-  const leadBadges = [
-    `${week.routed} gerouteerd`,
-    `${week.inBehandeling} in behandeling`,
-    `${week.afgewezen} afgewezen`,
-  ]
-  const nicheBadges = NICHE_ORDER
-    .filter(n => (week.byNiche[n] ?? 0) > 0)
-    .map(n => `${NICHE_LABEL[n] ?? n} ${week.byNiche[n]}`)
-
-  // Kwalificatieratio subtext + per-niche badges (Option A: only show % for full_sales niches)
-  const qualSubtext = qualStats.ratio != null
-    ? `${qualStats.routed} gerouteerd van ${qualStats.routed + qualStats.rejected} beoordeeld`
-    : 'Onvoldoende data'
-  const qualInBehandelingMeta = qualStats.inBehandeling > 0
-    ? `+${qualStats.inBehandeling} in behandeling (niet meegerekend)`
-    : undefined
-  const filterable = new Set(qualStats.filterableNiches)
-  const qualNicheBadges = NICHE_ORDER
-    .filter(n => qualStats.byNiche[n])
-    .map(n => {
-      if (!filterable.has(n)) return `${NICHE_LABEL[n] ?? n} —`
-      const s = qualStats.byNiche[n]
-      return s.ratio != null ? `${NICHE_LABEL[n] ?? n} ${s.ratio}%` : `${NICHE_LABEL[n] ?? n} —`
-    })
-
-  const criticalCount = alerts.filter(a => a.severity === 'critical').length
-  const today = new Date().toLocaleDateString('nl-NL', {
+  const todayLabel = now.toLocaleDateString('nl-NL', {
     weekday: 'long', day: 'numeric', month: 'long',
   })
 
+  const db = serverClient()
+
+  const [
+    { data: lastRun },
+    { data: dealsRaw },
+    { data: adBudgetRaw },
+    { data: targetsRow },
+  ] = await Promise.all([
+    db.from('sync_runs').select('started_at').order('started_at', { ascending: false }).limit(1).single(),
+    db.from('closed_deals').select('deal_value, commission_amount').gte('closed_at', monthStart).lte('closed_at', monthEnd),
+    db.from('ad_budget_revenue').select('amount').gte('received_at', monthStart).lte('received_at', monthEnd),
+    db.from('monthly_targets').select('deal_value_target, commission_target, ad_budget_target').eq('month', monthKey).maybeSingle(),
+  ])
+
+  const deals = dealsRaw ?? []
+  const totalDealValue  = deals.reduce((s, d) => s + Number(d.deal_value), 0)
+  const totalCommission = deals.reduce((s, d) => s + Number(d.commission_amount), 0)
+  const dealCount       = deals.length
+  const avgCommPct      = totalDealValue > 0 ? (totalCommission / totalDealValue * 100) : 0
+  const totalAdBudget   = (adBudgetRaw ?? []).reduce((s, a) => s + Number(a.amount), 0)
+
+  const targets = targetsRow ?? null
+
+  const cards: SnapshotCard[] = [
+    {
+      label:    'Closed Deals waarde',
+      actual:   totalDealValue,
+      target:   targets?.deal_value_target,
+      subtitle: `${dealCount} deal${dealCount !== 1 ? 's' : ''} geland`,
+    },
+    {
+      label:    'Commissie',
+      actual:   totalCommission,
+      target:   targets?.commission_target,
+      subtitle: `Gem. ${avgCommPct.toFixed(1)}% commissie deze maand`,
+    },
+    {
+      label:    'Ad Budget Revenue',
+      actual:   totalAdBudget,
+      target:   targets?.ad_budget_target,
+      subtitle: periodLabel,
+    },
+  ]
+
   return (
     <div style={{ padding: '32px 36px', maxWidth: 1280 }}>
-      {/* ── Header ── */}
+      {/* Header */}
       <div style={{ marginBottom: 32 }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
-          <h1 style={{
-            fontSize:   'var(--font-size-2xl)',
-            fontWeight: 600,
-            color:      'var(--color-ink)',
-            margin:     0,
-          }}>
-            Today
-          </h1>
-          {criticalCount > 0 && (
-            <span style={{
-              fontSize:     'var(--font-size-xs)',
-              fontWeight:   600,
-              color:        'var(--color-critical)',
-              background:   'var(--color-critical-subtle)',
-              borderRadius: 'var(--radius-full)',
-              padding:      '2px 8px',
-            }}>
-              {criticalCount} kritiek
-            </span>
-          )}
-        </div>
+        <h1 style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 600, color: 'var(--color-ink)', margin: 0 }}>
+          Today
+        </h1>
         <p style={{
-          fontSize:  'var(--font-size-sm)',
-          color:     'var(--color-ink-muted)',
-          marginTop: 4,
-          display:   'flex', alignItems: 'center', gap: 8,
+          fontSize: 'var(--font-size-sm)', color: 'var(--color-ink-muted)',
+          marginTop: 4, display: 'flex', alignItems: 'center', gap: 8,
           textTransform: 'capitalize',
         }}>
-          {today}
+          {todayLabel}
           <LastSynced syncedAt={lastRun?.started_at ?? null} />
         </p>
       </div>
 
-      {/* ── Top StatCards ── */}
-      <div style={{
-        display:             'grid',
-        gridTemplateColumns: 'repeat(5, 1fr)',
-        gap:                 12,
-        marginBottom:        36,
-      }}>
-        {/* 1. Leads deze week */}
-        <StatCard
-          label="Leads deze week"
-          value={week.total}
-          delta={week.trend}
-          deltaLabel="vs vorige week"
-          previousValue={week.previous}
-          badges={[...leadBadges, ...nicheBadges]}
-        />
-
-        {/* 2. Kwalificatieratio */}
-        <StatCard
-          label="Kwalificatieratio"
-          value={qualStats.ratio}
-          suffix="%"
-          subtext={qualSubtext}
-          badges={qualNicheBadges}
-          meta={qualInBehandelingMeta}
-        />
-
-        {/* 3. Open offertes — count only until quote_amount is populated */}
-        <StatCard
-          label="Open offertes"
-          value={offertesStats.total}
-          subtext="Bedragen nog niet geregistreerd"
-          meta={`Waarvan ${offertesStats.fullSalesCount} bij full-sales klanten`}
-        />
-
-        {/* 4. Commissie MTD — projects marked 'betaald' created this month
-              Note: filtered by project monday_created_at (no paid_at column yet).
-              Commission state machine:
-                quote_sent lead    → potential (not tracked until Aanneemsom capture)
-                project, not paid  → EARNED, awaiting payout ("Commissie pending")
-                project, betaald   → PAID this month ("Commissie MTD")
-              TODO: once quote_amount capture is active for full_sales contractors,
-              add a third card "Potentiële commissie" (weighted pipeline forecast).
-              Three-card row: MTD (paid) / Pending (earned) / Potential (forecast). */}
-        <StatCard
-          label="Commissie MTD"
-          value={bundle.totalCommissionBooked || null}
-          prefix="€"
-          subtext="bevestigd en geboekt"
-        />
-
-        {/* 5. Commissie pending — all projects with commissie > 0 and not yet paid.
-              These are WON deals where our commission is earned but contractor
-              hasn't paid out yet. No date filter — snapshot of all outstanding. */}
-        <StatCard
-          label="Commissie pending"
-          value={bundle.totalCommissionPending || null}
-          prefix="€"
-          subtext="verdiend, wacht op uitbetaling"
-        />
-      </div>
-
-      {/* ── Alerts ── */}
-      <div style={{ marginBottom: 36 }}>
+      {/* Maand Snapshot */}
+      <div style={{ marginBottom: 32 }}>
         <div style={{
-          display:        'flex',
-          alignItems:     'center',
-          justifyContent: 'space-between',
-          marginBottom:   16,
+          fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-ink-faint)',
+          textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 16,
         }}>
-          <SectionTitle>Meldingen</SectionTitle>
-          <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)' }}>
-            {alerts.length} actief
-          </span>
+          {periodLabel}
         </div>
-        <AlertsFeed initialAlerts={alerts} />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
+          {cards.map(c => (
+            <MonthCard key={c.label} card={c} dayOfMonth={dayOfMonth} daysInMonth={daysInMonth} />
+          ))}
+        </div>
+        <div style={{ marginTop: 14, fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)' }}>
+          Dagen tot maand-einde: {daysLeft}
+        </div>
       </div>
-
     </div>
   )
 }

@@ -31,6 +31,13 @@ interface AdBudget {
   contractor:    { name: string; niche: string } | null
 }
 
+interface MetaSpend {
+  id:         string
+  year_month: string
+  amount_eur: number
+  notes:      string | null
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function fmtEur(v: number) {
@@ -39,6 +46,11 @@ function fmtEur(v: number) {
 
 function fmtDate(d: string) {
   return new Date(d).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+function fmtYearMonth(ym: string) {
+  const [y, m] = ym.split('-').map(Number)
+  return new Date(y, m - 1, 1).toLocaleDateString('nl-NL', { month: 'long', year: 'numeric' })
 }
 
 function fmtPct(a: number, b: number) {
@@ -347,11 +359,13 @@ function RowMenu({
 export default function DealsPage() {
   const { data: rawDeals,   mutate: mutateDeals   } = useSWR<Deal[]>('/api/deals/closed',    fetcher, SWR_OPTS)
   const { data: rawAdBudget, mutate: mutateAdBudget } = useSWR<AdBudget[]>('/api/ad-budget-revenue', fetcher, SWR_OPTS)
-  const { data: rawContractors }                      = useSWR<Contractor[]>('/api/contractors', fetcher, SWR_OPTS)
+  const { data: rawContractors }                        = useSWR<Contractor[]>('/api/contractors', fetcher, SWR_OPTS)
+  const { data: rawMetaSpend, mutate: mutateMetaSpend } = useSWR<MetaSpend[]>('/api/revenue/meta-spend', fetcher, SWR_OPTS)
 
-  const deals       = Array.isArray(rawDeals)    ? rawDeals    : []
-  const adBudgets   = Array.isArray(rawAdBudget) ? rawAdBudget : []
+  const deals       = Array.isArray(rawDeals)      ? rawDeals      : []
+  const adBudgets   = Array.isArray(rawAdBudget)   ? rawAdBudget   : []
   const contractors = Array.isArray(rawContractors) ? rawContractors : []
+  const metaSpends  = Array.isArray(rawMetaSpend)  ? rawMetaSpend.slice(0, 6) : []
 
   // Filters
   const [filterPeriod,     setFilterPeriod]     = useState('month')
@@ -362,6 +376,14 @@ export default function DealsPage() {
   const [editDeal,      setEditDeal]      = useState<Deal | null>(null)
   const [adBudgetModal, setAdBudgetModal] = useState(false)
   const [editAdBudget,  setEditAdBudget]  = useState<AdBudget | null>(null)
+
+  // Meta spend form
+  const [msMonth,  setMsMonth]  = useState(() => { const n = new Date(); return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}` })
+  const [msAmount, setMsAmount] = useState('')
+  const [msNotes,  setMsNotes]  = useState('')
+  const [msSaving, setMsSaving] = useState(false)
+  const [msError,  setMsError]  = useState('')
+  const [editMs,   setEditMs]   = useState<MetaSpend | null>(null)
 
   // Context menus
   const [menuId,  setMenuId]  = useState<string | null>(null)
@@ -417,6 +439,16 @@ export default function DealsPage() {
     padding: '9px 12px', borderBottom: '1px solid var(--color-border-subtle)',
     fontSize: 'var(--font-size-sm)', color: 'var(--color-ink)', verticalAlign: 'middle',
   }
+  const inp: React.CSSProperties = {
+    padding: '7px 10px', width: '100%', boxSizing: 'border-box',
+    background: 'var(--color-surface-raised)', border: '1px solid var(--color-border)',
+    borderRadius: 'var(--radius-sm)', color: 'var(--color-ink)',
+    fontSize: 'var(--font-size-sm)', outline: 'none',
+  }
+  const lbl: React.CSSProperties = {
+    fontSize: 'var(--font-size-2xs)', fontWeight: 600, color: 'var(--color-ink-faint)',
+    textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4, display: 'block',
+  }
 
   async function deleteDeal(id: string) {
     if (!confirm('Deal verwijderen?')) return
@@ -428,6 +460,38 @@ export default function DealsPage() {
     if (!confirm('Ad budget entry verwijderen?')) return
     await fetch(`/api/ad-budget-revenue/${id}`, { method: 'DELETE' })
     mutateAdBudget(prev => (prev ?? []).filter(a => a.id !== id), false)
+  }
+
+  async function deleteMs(id: string) {
+    if (!confirm('Meta spend entry verwijderen?')) return
+    await fetch(`/api/revenue/meta-spend/${id}`, { method: 'DELETE' })
+    mutateMetaSpend(prev => (prev ?? []).filter(m => m.id !== id), false)
+  }
+
+  async function saveMs() {
+    if (!msAmount || !msMonth) { setMsError('Vul maand en bedrag in'); return }
+    setMsSaving(true); setMsError('')
+    const r = await fetch('/api/revenue/meta-spend', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ year_month: msMonth, amount_eur: Number(msAmount), notes: msNotes || null }),
+    })
+    setMsSaving(false)
+    if (!r.ok) { const j = await r.json().catch(() => ({})); setMsError(j.error ?? 'Opslaan mislukt'); return }
+    const saved = await r.json()
+    mutateMetaSpend(prev => {
+      const list = prev ?? []
+      const idx = list.findIndex(m => m.year_month === saved.year_month)
+      if (idx >= 0) { const n = [...list]; n[idx] = saved; return n }
+      return [saved, ...list]
+    }, false)
+    setEditMs(null); setMsAmount(''); setMsNotes('')
+  }
+
+  function fillMsEdit(m: MetaSpend) {
+    setEditMs(m)
+    setMsMonth(m.year_month.slice(0, 7))
+    setMsAmount(String(m.amount_eur))
+    setMsNotes(m.notes ?? '')
   }
 
   const menuDeal = menuId && menuType.current === 'deal' ? deals.find(d => d.id === menuId) : null
@@ -567,6 +631,58 @@ export default function DealsPage() {
             </tbody>
           </table>
         )}
+      </div>
+
+      {/* Meta Ad Spend */}
+      <div style={{ marginTop: 40 }}>
+        <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-ink-faint)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>
+          Meta Ad Spend
+        </div>
+        <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-muted)', marginTop: 0, marginBottom: 16 }}>
+          Totale Meta Business Manager uitgaven per maand
+        </p>
+        <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border-subtle)', borderRadius: 'var(--radius-lg)', padding: 20 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '160px 1fr 1fr auto', gap: 12, alignItems: 'end' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <label style={lbl}>Maand</label>
+              <input type="month" value={msMonth} onChange={e => setMsMonth(e.target.value)} style={inp} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <label style={lbl}>Totaal uitgegeven (€)</label>
+              <input type="number" min="0" step="0.01" value={msAmount} onChange={e => setMsAmount(e.target.value)} placeholder="0" style={inp} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <label style={lbl}>Notities (optioneel)</label>
+              <input type="text" value={msNotes} onChange={e => setMsNotes(e.target.value)} placeholder="optioneel" style={inp} />
+            </div>
+            <button onClick={saveMs} disabled={msSaving} style={{ padding: '7px 16px', background: 'var(--color-accent)', color: '#fff', border: 'none', borderRadius: 'var(--radius-sm)', cursor: msSaving ? 'default' : 'pointer', fontSize: 'var(--font-size-xs)', fontWeight: 500, opacity: msSaving ? 0.7 : 1, whiteSpace: 'nowrap' }}>
+              {msSaving ? 'Opslaan…' : editMs ? 'Bijwerken' : 'Opslaan'}
+            </button>
+          </div>
+          {msError && <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-critical)', marginTop: 10 }}>{msError}</div>}
+          {metaSpends.length > 0 && (
+            <div style={{ borderTop: '1px solid var(--color-border-subtle)', marginTop: 16, paddingTop: 12 }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <tbody>
+                  {metaSpends.map(m => (
+                    <tr key={m.id}
+                      onMouseEnter={e => (e.currentTarget as HTMLTableRowElement).style.background = 'var(--color-surface-raised)'}
+                      onMouseLeave={e => (e.currentTarget as HTMLTableRowElement).style.background = ''}
+                    >
+                      <td style={{ ...tdStyle, fontWeight: 500 }}>{fmtYearMonth(m.year_month)}</td>
+                      <td style={{ ...tdStyle, fontVariantNumeric: 'tabular-nums', fontWeight: 600, color: 'var(--color-critical)' }}>{fmtEur(m.amount_eur)}</td>
+                      <td style={{ ...tdStyle, color: 'var(--color-ink-muted)' }}>{m.notes ?? '—'}</td>
+                      <td style={{ ...tdStyle, textAlign: 'right', whiteSpace: 'nowrap' }}>
+                        <button onClick={() => fillMsEdit(m)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-muted)', padding: '2px 8px' }}>Bewerken</button>
+                        <button onClick={() => deleteMs(m.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 'var(--font-size-xs)', color: 'var(--color-critical)', padding: '2px 8px' }}>Verwijderen</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Context menus */}
