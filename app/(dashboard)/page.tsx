@@ -3,126 +3,268 @@ import { LastSynced } from '../components/today/LastSynced'
 
 export const dynamic = 'force-dynamic'
 
-const NL_MONTHS = ['Januari', 'Februari', 'Maart', 'April', 'Mei', 'Juni', 'Juli', 'Augustus', 'September', 'Oktober', 'November', 'December']
+const NL_MONTHS = [
+  'Januari', 'Februari', 'Maart', 'April', 'Mei', 'Juni',
+  'Juli', 'Augustus', 'September', 'Oktober', 'November', 'December',
+]
+const NICHE_ORDER  = ['bouw', 'daken', 'dakkapel', 'extras']
+const NICHE_LABEL: Record<string, string> = {
+  bouw: 'Bouw', daken: 'Daken', dakkapel: 'Dakkapel', extras: 'Extras',
+}
+
+// Raw Monday.com status strings per canonical stage — must match exactly.
+const INSPECTION_STATUSES = ['Inspectie gepland']
+const QUOTE_STATUSES      = ['Offerte verzonden', 'Offerte verstuurd', 'Laatste poging']
+const WON_STATUSES        = ['Akkoord']
 
 function fmtEur(v: number) {
   return `€${v.toLocaleString('nl-NL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
 }
 
-
-interface SnapshotCard {
-  label:     string
-  actual:    number
-  target:    number | null | undefined
-  subtitle:  string
-  prefix?:   string
+function distinctLeads(rows: Array<{ lead_id: string | null }> | null): number {
+  return new Set((rows ?? []).map(r => r.lead_id).filter(Boolean)).size
 }
 
-function MonthCard({ card }: { card: SnapshotCard }) {
-  const hasTarget = card.target && card.target > 0
-  const pct   = hasTarget ? Math.round((card.actual / card.target!) * 100) : 0
-  const color = card.actual >= (card.target ?? Infinity) ? '#3fb950' : card.actual > 0 ? '#58a6ff' : '#6e7681'
+// ── UI primitives ──────────────────────────────────────────────────────────────
+
+function SectionHeader({ label, subtitle }: { label: string; subtitle?: string }) {
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <div style={{
+        fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-ink-faint)',
+        textTransform: 'uppercase', letterSpacing: '0.08em',
+      }}>
+        {label}
+      </div>
+      {subtitle && (
+        <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-muted)', marginTop: 2 }}>
+          {subtitle}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function PulseCard({ label, value, prevValue }: { label: string; value: number; prevValue: number }) {
+  const diff  = value - prevValue
+  const color = diff > 0 ? '#3fb950' : diff < 0 ? '#f85149' : 'var(--color-ink-faint)'
+  const arrow = diff > 0 ? '↑' : diff < 0 ? '↓' : '–'
 
   return (
     <div style={{
-      padding: '20px',
-      background: 'var(--color-surface)',
-      border: '1px solid var(--color-border-subtle)',
-      borderRadius: 'var(--radius-lg)',
+      padding: '18px 20px', background: 'var(--color-surface)',
+      border: '1px solid var(--color-border-subtle)', borderRadius: 'var(--radius-lg)',
     }}>
-      <div style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 600, color: 'var(--color-ink-faint)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>
-        {card.label}
+      <div style={{
+        fontSize: 'var(--font-size-2xs)', fontWeight: 600, color: 'var(--color-ink-faint)',
+        textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8,
+      }}>
+        {label}
       </div>
       <div style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 600, color: 'var(--color-ink)', fontVariantNumeric: 'tabular-nums' }}>
-        {fmtEur(card.actual)}
-        {hasTarget && (
-          <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, color: 'var(--color-ink-muted)', marginLeft: 6 }}>
-            / {fmtEur(card.target!)}
-          </span>
-        )}
+        {value}
       </div>
-      {hasTarget && (
-        <div style={{ marginTop: 10 }}>
-          <div style={{ height: 4, background: 'var(--color-border-subtle)', borderRadius: 2, overflow: 'hidden' }}>
-            <div style={{ height: '100%', width: `${Math.min(pct, 100)}%`, background: color, borderRadius: 2, transition: 'width 0.3s' }} />
-          </div>
-          <div style={{ fontSize: 'var(--font-size-2xs)', color, marginTop: 4 }}>
-            {pct}% van {fmtEur(card.target!)} doel
-          </div>
-        </div>
-      )}
-      <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)', marginTop: 8 }}>
-        {card.subtitle}
+      <div style={{ fontSize: 'var(--font-size-xs)', color, marginTop: 6, fontVariantNumeric: 'tabular-nums' }}>
+        {arrow} {Math.abs(diff)} vs vorige week
       </div>
     </div>
   )
 }
 
+function SimpleCard({ label, value, sub }: { label: string; value: number | string; sub?: string }) {
+  return (
+    <div style={{
+      padding: '18px 20px', background: 'var(--color-surface)',
+      border: '1px solid var(--color-border-subtle)', borderRadius: 'var(--radius-lg)',
+    }}>
+      <div style={{
+        fontSize: 'var(--font-size-2xs)', fontWeight: 600, color: 'var(--color-ink-faint)',
+        textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8,
+      }}>
+        {label}
+      </div>
+      <div style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 600, color: 'var(--color-ink)', fontVariantNumeric: 'tabular-nums' }}>
+        {value}
+      </div>
+      {sub && <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)', marginTop: 6 }}>{sub}</div>}
+    </div>
+  )
+}
+
+// ── Page ───────────────────────────────────────────────────────────────────────
+
 export default async function TodayPage() {
-  const now        = new Date()
-  const year       = now.getFullYear()
-  const month      = now.getMonth()
-  const daysInMonth = new Date(year, month + 1, 0).getDate()
-  const dayOfMonth = now.getDate()
-  const daysLeft   = daysInMonth - dayOfMonth
+  const now = new Date()
 
-  const monthKey   = `${year}-${String(month + 1).padStart(2, '0')}`
-  const monthStart = `${monthKey}-01`
-  const monthEnd   = new Date(year, month + 1, 0).toISOString().slice(0, 10)
-  const periodLabel = `${NL_MONTHS[month]} ${year}`
+  // ── Week date ranges (fair Mon-to-today comparison) ─────────────────────────
+  const dayOfWeek      = now.getDay()             // 0 = Sun
+  const daysSinceMon   = (dayOfWeek + 6) % 7      // 0 = Mon … 6 = Sun
 
-  const todayLabel = now.toLocaleDateString('nl-NL', {
-    weekday: 'long', day: 'numeric', month: 'long',
-  })
+  const thisMonStart = new Date(now)
+  thisMonStart.setDate(now.getDate() - daysSinceMon)
+  thisMonStart.setHours(0, 0, 0, 0)
+
+  const thisCutoff   = new Date(now)
+  thisCutoff.setHours(23, 59, 59, 999)
+
+  const lastMonStart = new Date(thisMonStart.getTime() - 7 * 86_400_000)
+  const lastCutoff   = new Date(thisCutoff.getTime()   - 7 * 86_400_000)
+
+  // ── Month date ranges ────────────────────────────────────────────────────────
+  const monthStart  = new Date(now.getFullYear(), now.getMonth(), 1)
+  const monthEnd    = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
+  const periodLabel = `${NL_MONTHS[now.getMonth()]} ${now.getFullYear()}`
+
+  // ── Quarter date ranges (pending commission proxy) ───────────────────────────
+  const qStartMonth  = Math.floor(now.getMonth() / 3) * 3
+  const quarterStart = new Date(now.getFullYear(), qStartMonth, 1)
+  const quarterEnd   = new Date(now.getFullYear(), qStartMonth + 3, 0, 23, 59, 59, 999)
+
+  // ── Display labels ───────────────────────────────────────────────────────────
+  const monLabel    = thisMonStart.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long' })
+  const weekSubtitle = `Maandag ${monLabel} tot vandaag`
+  const todayLabel   = now.toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' })
 
   const db = serverClient()
 
   const [
     { data: lastRun },
-    { data: dealsRaw },
-    { data: adBudgetRaw },
-    { data: targetsRow },
+    // Section 1: lead counts (head:true = count only, no data)
+    { count: thisWeekLeads },
+    { count: lastWeekLeads },
+    // Section 1: stage transitions (fetch lead_id for distinct-lead counting)
+    { data: twInsp },
+    { data: lwInsp },
+    { data: twQuote },
+    { data: lwQuote },
+    { data: twWon },
+    { data: lwWon },
+    // Section 2: month lead count
+    { count: monthLeads },
+    // Section 2: open stage snapshots (current state, no date filter)
+    { count: openInsp },
+    { count: openQuote },
+    // Section 2: won transitions this month
+    { data: monthWonRows },
+    // Section 2: leads with niche info for breakdown text
+    { data: monthLeadsRaw },
+    { data: contractorsRaw },
+    { data: boardsRaw },
+    // Section 3: quarter deals (pending commission proxy)
+    { data: qDealsRaw },
   ] = await Promise.all([
     db.from('sync_runs').select('started_at').order('started_at', { ascending: false }).limit(1).single(),
-    db.from('closed_deals').select('deal_value, commission_amount').gte('closed_at', monthStart).lte('closed_at', monthEnd),
-    db.from('ad_budget_revenue').select('amount').gte('received_at', monthStart).lte('received_at', monthEnd),
-    db.from('monthly_targets').select('deal_value_target, commission_target, ad_budget_target').eq('month', monthKey).maybeSingle(),
+
+    // ── Section 1 ─────────────────────────────────────────────────
+    db.from('leads').select('*', { count: 'exact', head: true })
+      .gte('monday_created_at', thisMonStart.toISOString())
+      .lte('monday_created_at', thisCutoff.toISOString()),
+    db.from('leads').select('*', { count: 'exact', head: true })
+      .gte('monday_created_at', lastMonStart.toISOString())
+      .lte('monday_created_at', lastCutoff.toISOString()),
+
+    db.from('lead_status_changes').select('lead_id')
+      .in('to_status', INSPECTION_STATUSES)
+      .gte('changed_at', thisMonStart.toISOString())
+      .lte('changed_at', thisCutoff.toISOString()),
+    db.from('lead_status_changes').select('lead_id')
+      .in('to_status', INSPECTION_STATUSES)
+      .gte('changed_at', lastMonStart.toISOString())
+      .lte('changed_at', lastCutoff.toISOString()),
+
+    db.from('lead_status_changes').select('lead_id')
+      .in('to_status', QUOTE_STATUSES)
+      .gte('changed_at', thisMonStart.toISOString())
+      .lte('changed_at', thisCutoff.toISOString()),
+    db.from('lead_status_changes').select('lead_id')
+      .in('to_status', QUOTE_STATUSES)
+      .gte('changed_at', lastMonStart.toISOString())
+      .lte('changed_at', lastCutoff.toISOString()),
+
+    db.from('lead_status_changes').select('lead_id')
+      .in('to_status', WON_STATUSES)
+      .gte('changed_at', thisMonStart.toISOString())
+      .lte('changed_at', thisCutoff.toISOString()),
+    db.from('lead_status_changes').select('lead_id')
+      .in('to_status', WON_STATUSES)
+      .gte('changed_at', lastMonStart.toISOString())
+      .lte('changed_at', lastCutoff.toISOString()),
+
+    // ── Section 2 ─────────────────────────────────────────────────
+    db.from('leads').select('*', { count: 'exact', head: true })
+      .gte('monday_created_at', monthStart.toISOString())
+      .lte('monday_created_at', monthEnd.toISOString()),
+
+    db.from('leads').select('*', { count: 'exact', head: true })
+      .eq('canonical_stage', 'inspection'),
+    db.from('leads').select('*', { count: 'exact', head: true })
+      .eq('canonical_stage', 'quote_sent'),
+
+    db.from('lead_status_changes').select('lead_id')
+      .in('to_status', WON_STATUSES)
+      .gte('changed_at', monthStart.toISOString())
+      .lte('changed_at', monthEnd.toISOString()),
+
+    db.from('leads').select('contractor_id, board_id')
+      .gte('monday_created_at', monthStart.toISOString())
+      .lte('monday_created_at', monthEnd.toISOString())
+      .limit(3000),
+    db.from('contractors').select('id, niche'),
+    db.from('boards_config').select('id, niche'),
+
+    // ── Section 3 ─────────────────────────────────────────────────
+    // TODO: add payment_status to closed_deals so only genuinely unpaid deals
+    // are shown here. Until then, all deals from current quarter serve as a proxy.
+    db.from('closed_deals')
+      .select('id, client_name, deal_value, commission_amount, closed_at')
+      .gte('closed_at', quarterStart.toISOString().slice(0, 10))
+      .lte('closed_at', quarterEnd.toISOString().slice(0, 10))
+      .order('commission_amount', { ascending: false }),
   ])
 
-  const deals = dealsRaw ?? []
-  const totalDealValue  = deals.reduce((s, d) => s + Number(d.deal_value), 0)
-  const totalCommission = deals.reduce((s, d) => s + Number(d.commission_amount), 0)
-  const dealCount       = deals.length
-  const avgCommPct      = totalDealValue > 0 ? (totalCommission / totalDealValue * 100) : 0
-  const totalAdBudget   = (adBudgetRaw ?? []).reduce((s, a) => s + Number(a.amount), 0)
+  // ── Derived values ───────────────────────────────────────────────────────────
 
-  const targets = targetsRow ?? null
+  // Section 1
+  const twInspCount  = distinctLeads(twInsp)
+  const lwInspCount  = distinctLeads(lwInsp)
+  const twQuoteCount = distinctLeads(twQuote)
+  const lwQuoteCount = distinctLeads(lwQuote)
+  const twWonCount   = distinctLeads(twWon)
+  const lwWonCount   = distinctLeads(lwWon)
 
-  const cards: SnapshotCard[] = [
-    {
-      label:    'Closed Deals waarde',
-      actual:   totalDealValue,
-      target:   targets?.deal_value_target,
-      subtitle: `${dealCount} deal${dealCount !== 1 ? 's' : ''} geland`,
-    },
-    {
-      label:    'Commissie',
-      actual:   totalCommission,
-      target:   targets?.commission_target,
-      subtitle: `Gem. ${avgCommPct.toFixed(1)}% commissie deze maand`,
-    },
-    {
-      label:    'Ad Budget Revenue',
-      actual:   totalAdBudget,
-      target:   targets?.ad_budget_target,
-      subtitle: periodLabel,
-    },
-  ]
+  // Section 2 — niche breakdown text
+  const contractorNiche = new Map<string, string>(
+    (contractorsRaw ?? []).filter(c => c.niche).map(c => [c.id, c.niche as string]),
+  )
+  const boardNiche = new Map<number, string>(
+    (boardsRaw ?? []).filter(b => b.niche).map(b => [b.id as number, b.niche as string]),
+  )
+  const nicheCount: Record<string, number> = {}
+  for (const l of monthLeadsRaw ?? []) {
+    const niche = l.contractor_id
+      ? (contractorNiche.get(l.contractor_id) ?? null)
+      : (l.board_id != null ? (boardNiche.get(l.board_id as number) ?? null) : null)
+    if (niche) nicheCount[niche] = (nicheCount[niche] ?? 0) + 1
+  }
+  const nicheText = NICHE_ORDER
+    .filter(n => (nicheCount[n] ?? 0) > 0)
+    .map(n => `${NICHE_LABEL[n]}: ${nicheCount[n]}`)
+    .join(' · ')
+
+  const monthWonCount = distinctLeads(monthWonRows)
+
+  // Section 3
+  const qDeals               = qDealsRaw ?? []
+  const totalPendingComm     = qDeals.reduce((s, d) => s + Number(d.commission_amount), 0)
+  const top3                 = qDeals.slice(0, 3)
+
+  // ── Render ───────────────────────────────────────────────────────────────────
 
   return (
-    <div style={{ padding: '32px 36px', maxWidth: 1280 }}>
+    <div style={{ padding: '32px 36px', maxWidth: 1200 }}>
+
       {/* Header */}
-      <div style={{ marginBottom: 32 }}>
+      <div style={{ marginBottom: 36 }}>
         <h1 style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 600, color: 'var(--color-ink)', margin: 0 }}>
           Today
         </h1>
@@ -136,23 +278,75 @@ export default async function TodayPage() {
         </p>
       </div>
 
-      {/* Maand Snapshot */}
-      <div style={{ marginBottom: 32 }}>
-        <div style={{
-          fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-ink-faint)',
-          textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 16,
-        }}>
-          {periodLabel}
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
-          {cards.map(c => (
-            <MonthCard key={c.label} card={c} />
-          ))}
-        </div>
-        <div style={{ marginTop: 14, fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)' }}>
-          Dagen tot maand-einde: {daysLeft}
+      {/* ── Section 1: Week vergelijking ─────────────────────────────────────── */}
+      <div style={{ marginBottom: 40 }}>
+        <SectionHeader label="Deze week" subtitle={weekSubtitle} />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14 }}>
+          <PulseCard label="Leads ontvangen"    value={thisWeekLeads ?? 0} prevValue={lastWeekLeads ?? 0} />
+          <PulseCard label="Inspecties gepland" value={twInspCount}        prevValue={lwInspCount} />
+          <PulseCard label="Offertes verzonden" value={twQuoteCount}       prevValue={lwQuoteCount} />
+          <PulseCard label="Wins"               value={twWonCount}         prevValue={lwWonCount} />
         </div>
       </div>
+
+      {/* ── Section 2: Maand pipeline status ────────────────────────────────── */}
+      <div style={{ marginBottom: 40 }}>
+        <SectionHeader label={periodLabel} />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: nicheText ? 12 : 0 }}>
+          <SimpleCard label="Leads ontvangen"   value={monthLeads ?? 0} />
+          <SimpleCard label="Open inspecties"   value={openInsp ?? 0}   sub="Huidige pipeline" />
+          <SimpleCard label="Open offertes"     value={openQuote ?? 0}  sub="Huidige pipeline" />
+          <SimpleCard label="Wins deze maand"   value={monthWonCount} />
+        </div>
+        {nicheText && (
+          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)' }}>
+            {nicheText}
+          </div>
+        )}
+      </div>
+
+      {/* ── Section 3: Commissie pending ────────────────────────────────────── */}
+      <div>
+        <SectionHeader label="Commissie pending" />
+        <div style={{
+          background: 'var(--color-surface)', border: '1px solid var(--color-border-subtle)',
+          borderRadius: 'var(--radius-lg)', padding: '18px 20px',
+        }}>
+          <div style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 600, color: 'var(--color-ink)', fontVariantNumeric: 'tabular-nums', marginBottom: 4 }}>
+            {fmtEur(totalPendingComm)}
+          </div>
+          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)', marginBottom: top3.length > 0 ? 16 : 0 }}>
+            {/* TODO: add payment_status to closed_deals to show only genuinely unpaid deals */}
+            Gesloten deals dit kwartaal — schatting, betalingsstatus wordt nog niet bijgehouden
+          </div>
+
+          {top3.length > 0 && (
+            <div style={{ borderTop: '1px solid var(--color-border-subtle)', paddingTop: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {top3.map(d => (
+                <div key={d.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 }}>
+                  <div>
+                    <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 500, color: 'var(--color-ink)' }}>
+                      {d.client_name}
+                    </span>
+                    <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)', marginLeft: 8 }}>
+                      {new Date(d.closed_at).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}
+                    </span>
+                  </div>
+                  <div style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                    <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-muted)' }}>
+                      {fmtEur(Number(d.deal_value))} deal ·{' '}
+                    </span>
+                    <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-success)' }}>
+                      {fmtEur(Number(d.commission_amount))}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
     </div>
   )
 }
