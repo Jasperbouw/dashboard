@@ -4,16 +4,17 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, TrendingUp, Building2,
-  Wallet, Banknote, Users,
+  Wallet, Banknote, Users, FolderOpen,
 } from 'lucide-react'
 
 const NAV = [
-  { href: '/',            label: 'Today',       Icon: LayoutDashboard },
-  { href: '/funnel',      label: 'Funnel',      Icon: TrendingUp      },
-  { href: '/contractors', label: 'Contractors', Icon: Building2       },
-  { href: '/finance',     label: 'Finance',     Icon: Wallet          },
-  { href: '/revenue',     label: 'Omzet',       Icon: Banknote        },
-  { href: '/team',        label: 'Team',        Icon: Users           },
+  { href: '/',             label: 'Today',       Icon: LayoutDashboard },
+  { href: '/funnel',       label: 'Funnel',      Icon: TrendingUp      },
+  { href: '/contractors',  label: 'Contractors', Icon: Building2       },
+  { href: '/finance',      label: 'Finance',     Icon: Wallet          },
+  { href: '/revenue',      label: 'Omzet',       Icon: Banknote        },
+  { href: '/team',         label: 'Team',        Icon: Users           },
+  { href: '/documenten',   label: 'Documenten',  Icon: FolderOpen      },
 ]
 
 export function NavItems() {
