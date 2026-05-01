@@ -28,6 +28,7 @@ interface SyncBoardResult {
   boardId: number
   itemsFetched: number
   itemsFiltered: number   // non-active, skipped
+  itemsSkipped: number    // unchanged since last sync, skipped
   itemsSynced: number
   error?: string
 }
@@ -205,11 +206,23 @@ async function buildLabelContractorMap(db: SupabaseClient): Promise<Map<string, 
 
 // ── Lead upsert ───────────────────────────────────────────────────────────────
 
+interface CachedLead {
+  id: string
+  current_status: string | null
+  monday_updated_at: string | null
+}
+
 async function upsertLead(
   item: MondayItem,
   board: BoardConfig,
-  db: SupabaseClient
-): Promise<void> {
+  db: SupabaseClient,
+  existingMap: Map<string, CachedLead>
+): Promise<boolean> {  // returns true if skipped
+  const cached = existingMap.get(item.id)
+
+  // Skip write if Monday hasn't updated the item since last sync
+  if (cached?.monday_updated_at === item.updated_at) return true
+
   const cm = board.column_map
 
   const currentStatus  = item.group.title
@@ -218,13 +231,6 @@ async function upsertLead(
 
   const rawColumnValues: Record<string, string> = {}
   for (const cv of item.column_values) rawColumnValues[cv.id] = cv.text
-
-  // Check existing for status change tracking
-  const { data: existing } = await db
-    .from('leads')
-    .select('id, current_status')
-    .eq('monday_item_id', item.id)
-    .maybeSingle()
 
   const now = new Date().toISOString()
 
@@ -261,12 +267,12 @@ async function upsertLead(
 
   if (error) throw new Error(`Lead upsert failed for item ${item.id}: ${error.message}`)
 
-  if (existing && existing.current_status !== currentStatus) {
+  if (cached && cached.current_status !== currentStatus) {
     // creator_name / creator_user_id: not yet available from Monday webhook payload.
     // Columns added 2026-04-20 — populate once webhook includes actor context.
     const insertResult = await db.from('lead_status_changes').insert({
       lead_id:          upserted.id,
-      from_status:      existing.current_status,
+      from_status:      cached.current_status,
       to_status:        currentStatus,
       changed_at:       now,
       creator_name:     null,
@@ -276,6 +282,8 @@ async function upsertLead(
       console.warn(`[sync] lead_status_changes insert warning for lead ${upserted.id}:`, insertResult.error.message)
     }
   }
+
+  return false
 }
 
 // ── Project upsert ────────────────────────────────────────────────────────────
@@ -351,9 +359,27 @@ async function syncBoard(
 ): Promise<SyncBoardResult> {
   let itemsFetched  = 0
   let itemsFiltered = 0
+  let itemsSkipped  = 0
   let itemsSynced   = 0
   let cursor: string | null = null
   let isFirstPage = true
+
+  // For leads boards: pre-fetch existing cache so we skip writes for unchanged items
+  // (saves ~90%+ of DB writes on steady-state syncs)
+  const existingMap = new Map<string, CachedLead>()
+  if (board.type !== 'projects') {
+    const { data: existing } = await db
+      .from('leads')
+      .select('monday_item_id, monday_updated_at, current_status, id')
+      .eq('board_id', board.id)
+    for (const row of existing ?? []) {
+      existingMap.set(row.monday_item_id, {
+        id:               row.id,
+        current_status:   row.current_status,
+        monday_updated_at: row.monday_updated_at,
+      })
+    }
+  }
 
   try {
     while (true) {
@@ -374,10 +400,15 @@ async function syncBoard(
 
         if (board.type === 'projects') {
           await upsertProject(item, board, labelMap, db)
+          itemsSynced++
         } else {
-          await upsertLead(item, board, db)
+          const skipped = await upsertLead(item, board, db, existingMap)
+          if (skipped) {
+            itemsSkipped++
+          } else {
+            itemsSynced++
+          }
         }
-        itemsSynced++
       }
 
       cursor = page.cursor ?? null
@@ -385,14 +416,13 @@ async function syncBoard(
       if (!cursor) break
     }
 
-    // Post-sync validation
-    if (itemsFiltered > 0) {
-      console.log(`  ⚠ Board ${board.id} (${board.name}): ${itemsFetched} fetched, ${itemsFiltered} filtered (non-active), ${itemsSynced} persisted`)
+    if (itemsSkipped > 0 || itemsFiltered > 0) {
+      console.log(`  Board ${board.id} (${board.name}): ${itemsFetched} fetched, ${itemsFiltered} filtered, ${itemsSkipped} unchanged, ${itemsSynced} written`)
     }
 
-    return { boardId: board.id, itemsFetched, itemsFiltered, itemsSynced }
+    return { boardId: board.id, itemsFetched, itemsFiltered, itemsSkipped, itemsSynced }
   } catch (err: any) {
-    return { boardId: board.id, itemsFetched, itemsFiltered, itemsSynced, error: err.message }
+    return { boardId: board.id, itemsFetched, itemsFiltered, itemsSkipped, itemsSynced, error: err.message }
   }
 }
 
@@ -401,6 +431,7 @@ async function syncBoard(
 export async function syncAllBoards(): Promise<{
   boardsSynced: number
   itemsSynced: number
+  itemsSkipped: number
   itemsFiltered: number
   errors: Array<{ boardId: number; name: string; error: string }>
 }> {
@@ -442,6 +473,7 @@ export async function syncAllBoards(): Promise<{
     .map(r => ({ boardId: r.boardId, name: boards.find(b => b.id === r.boardId)?.name ?? '', error: r.error! }))
 
   const totalSynced   = successes.reduce((s, r) => s + r.itemsSynced, 0)
+  const totalSkipped  = successes.reduce((s, r) => s + r.itemsSkipped, 0)
   const totalFiltered = successes.reduce((s, r) => s + r.itemsFiltered, 0)
   const finalStatus   = errors.length === 0 ? 'success' : errors.length < boards.length ? 'partial' : 'failed'
 
@@ -456,6 +488,7 @@ export async function syncAllBoards(): Promise<{
   return {
     boardsSynced:  successes.filter(r => !r.error).length,
     itemsSynced:   totalSynced,
+    itemsSkipped:  totalSkipped,
     itemsFiltered: totalFiltered,
     errors,
   }

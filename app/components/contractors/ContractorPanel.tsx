@@ -1584,13 +1584,11 @@ function ContractSection({ contractorId, contractor }: { contractorId: string; c
             </div>
           </div>
           <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-            {c.url && (
-              <a href={c.url} target="_blank" rel="noopener noreferrer" style={{
-                fontSize: 'var(--font-size-2xs)', padding: '4px 10px',
-                background: 'var(--color-accent)', color: '#fff',
-                borderRadius: 'var(--radius-sm)', textDecoration: 'none', fontWeight: 500,
-              }}>Openen</a>
-            )}
+            <a href={`/api/contractors/${contractorId}/contracts/${c.id}`} target="_blank" rel="noopener noreferrer" style={{
+              fontSize: 'var(--font-size-2xs)', padding: '4px 10px',
+              background: 'var(--color-accent)', color: '#fff',
+              borderRadius: 'var(--radius-sm)', textDecoration: 'none', fontWeight: 500,
+            }}>Openen</a>
             <button
               onClick={async () => {
                 await fetch(`/api/contractors/${contractorId}/contracts/${c.id}`, { method: 'DELETE' })
@@ -1676,13 +1674,11 @@ function ContractSection({ contractorId, contractor }: { contractorId: string; c
                     <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink)', fontWeight: 500 }}>{c.title}</div>
                     <div style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-ink-faint)' }}>{fmtUploadDate(c.generated_at)}</div>
                   </div>
-                  {c.url && (
-                    <a href={c.url} target="_blank" rel="noopener noreferrer" style={{
-                      fontSize: 'var(--font-size-2xs)', padding: '3px 8px',
-                      background: 'none', border: '1px solid var(--color-border-subtle)',
-                      borderRadius: 'var(--radius-sm)', color: 'var(--color-ink-muted)', textDecoration: 'none',
-                    }}>Openen</a>
-                  )}
+                  <a href={`/api/contractors/${contractorId}/contracts/${c.id}`} target="_blank" rel="noopener noreferrer" style={{
+                    fontSize: 'var(--font-size-2xs)', padding: '3px 8px',
+                    background: 'none', border: '1px solid var(--color-border-subtle)',
+                    borderRadius: 'var(--radius-sm)', color: 'var(--color-ink-muted)', textDecoration: 'none',
+                  }}>Openen</a>
                 </div>
               ))}
               {archivedDocs.map(doc => (
