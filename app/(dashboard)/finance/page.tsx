@@ -1,5 +1,5 @@
 import { serverClient } from '../../../lib/supabase-server'
-import { getActiveContractors, ALL_INCOME_TYPES } from '../../../lib/metrics'
+import { getActiveContractors } from '../../../lib/metrics'
 import { StatCard } from '../../components/ui/StatCard'
 import { FinanceCharts } from '../../components/finance/FinanceCharts'
 import { MonthPicker } from '../../components/finance/MonthPicker'
@@ -85,7 +85,7 @@ export default async function FinancePage({ searchParams }: Props) {
 
   const revenue = (revenueRaw ?? []) as RevRow[]
   const pending  = pendingProjects ?? []
-  const income   = revenue.filter(e => ALL_INCOME_TYPES.includes(e.type))
+  const income   = revenue
 
   function revSum(fromDate: string, toDate: string, rows = income) {
     return rows
@@ -151,6 +151,13 @@ export default async function FinancePage({ searchParams }: Props) {
     amount,
   }))
 
+  // Revenue breakdown for selected month
+  const byTypeMonth   = income.filter(e => e.entry_date >= monthStartDate && e.entry_date <= monthEndDate)
+  const commissieMtd  = byTypeMonth.filter(e => ['commission_percentage', 'commission_flat'].includes(e.type)).reduce((s, e) => s + Number(e.amount), 0)
+  const retainerMtd   = byTypeMonth.filter(e => e.type === 'retainer_fee').reduce((s, e) => s + Number(e.amount), 0)
+  const adBudgetMtd   = byTypeMonth.filter(e => e.type === 'ad_budget').reduce((s, e) => s + Number(e.amount), 0)
+  const andereMtd     = byTypeMonth.filter(e => e.type === 'other').reduce((s, e) => s + Number(e.amount), 0)
+
   // Labels
   const periodLabel = `${selectedMonthLabel} ${selYear}`
   const mtdLabel    = isCurrentMonth ? 'Omzet MTD' : `Omzet ${periodLabel}`
@@ -168,7 +175,7 @@ export default async function FinancePage({ searchParams }: Props) {
             Finance
           </h1>
           <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-ink-muted)', marginTop: 4, marginBottom: 0 }}>
-            Commissie en retaineroverzicht
+            Totale omzet · commissie, retainer en ad budget
           </p>
         </div>
         <MonthPicker value={selectedMonthKey} max={maxMonthKey} />
@@ -180,7 +187,7 @@ export default async function FinancePage({ searchParams }: Props) {
           label={mtdLabel}
           value={mtd}
           prefix="€"
-          meta="Commissie + retainer · ad budget exclusief"
+          meta={`Totale omzet · ${periodLabel}`}
         />
         <StatCard
           label={qtdLabel}
@@ -201,6 +208,49 @@ export default async function FinancePage({ searchParams }: Props) {
           subtext={`${pending.length} project${pending.length !== 1 ? 'en' : ''} nog niet ontvangen`}
         />
       </div>
+
+      {/* Revenue breakdown card */}
+      {mtd > 0 && (
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: `repeat(${andereMtd > 0 ? 4 : 3}, 1fr)`,
+          gap: 0,
+          marginBottom: 16,
+          background: 'var(--color-surface)',
+          border: '1px solid var(--color-border-subtle)',
+          borderRadius: 'var(--radius-xl)',
+          overflow: 'hidden',
+        }}>
+          {([
+            { label: 'Commissie',  amount: commissieMtd },
+            { label: 'Retainer',   amount: retainerMtd  },
+            { label: 'Ad Budget',  amount: adBudgetMtd  },
+            ...(andereMtd > 0 ? [{ label: 'Andere', amount: andereMtd }] : []),
+          ] as { label: string; amount: number }[]).map((item, i, arr) => (
+            <div key={item.label} style={{
+              padding: '16px 20px',
+              borderRight: i < arr.length - 1 ? '1px solid var(--color-border-subtle)' : undefined,
+            }}>
+              <div style={{
+                fontSize: 'var(--font-size-2xs)', fontWeight: 600,
+                color: 'var(--color-ink-faint)', textTransform: 'uppercase',
+                letterSpacing: '0.07em', marginBottom: 6,
+              }}>
+                {item.label} {periodLabel}
+              </div>
+              <div style={{
+                fontSize: 'var(--font-size-xl)', fontWeight: 600,
+                color: 'var(--color-ink)', fontVariantNumeric: 'tabular-nums',
+              }}>
+                €{item.amount.toLocaleString('nl-NL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+              </div>
+              <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)', marginTop: 4 }}>
+                {Math.round((item.amount / mtd) * 100)}% van totaal
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Ad spend P&L tile */}
       <div style={{

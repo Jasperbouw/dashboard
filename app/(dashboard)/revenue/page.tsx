@@ -641,8 +641,6 @@ export default function RevenuePage() {
     })
 
   const filteredTotal    = filtered.reduce((s, e) => s + Number(e.amount), 0)
-  const adBudgetTotal    = filtered.filter(e => e.type === 'ad_budget').reduce((s, e) => s + Number(e.amount), 0)
-  const omzetTotal       = filteredTotal - adBudgetTotal
 
   function toggleSort(col: 'entry_date' | 'amount') {
     if (sortCol === col) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
@@ -864,16 +862,9 @@ export default function RevenuePage() {
           fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)',
         }}>
           <span>{filtered.length} entr{filtered.length !== 1 ? 'ies' : 'y'} getoond</span>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
-            <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 500, color: 'var(--color-ink)' }}>
-              {fmtEur(filteredTotal)} totaal
-            </span>
-            {adBudgetTotal > 0 && (
-              <span style={{ fontVariantNumeric: 'tabular-nums', color: 'var(--color-ink-faint)' }}>
-                {fmtEur(omzetTotal)} omzet · {fmtEur(adBudgetTotal)} ad budget pass-through
-              </span>
-            )}
-          </div>
+          <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 500, color: 'var(--color-ink)' }}>
+            {fmtEur(filteredTotal)} totaal
+          </span>
         </div>
       )}
 

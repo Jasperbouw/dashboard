@@ -324,13 +324,13 @@ export async function pipelineValue(contractorId: string): Promise<number> {
   return 0
 }
 
-// Revenue types that count as our income (excludes ad_budget which is pass-through)
+// All revenue types — ad_budget is real revenue (invoiced to client), not pass-through
 export const INCOME_TYPES_BY_MODEL: Record<string, string[]> = {
-  retainer:   ['retainer_fee'],
-  percentage: ['commission_percentage'],
-  flat_fee:   ['commission_flat'],
+  retainer:   ['retainer_fee',          'ad_budget'],
+  percentage: ['commission_percentage', 'ad_budget'],
+  flat_fee:   ['commission_flat',       'ad_budget'],
 }
-export const ALL_INCOME_TYPES = ['retainer_fee', 'commission_percentage', 'commission_flat', 'other']
+export const ALL_INCOME_TYPES = ['retainer_fee', 'commission_percentage', 'commission_flat', 'ad_budget', 'other']
 
 export async function commissionBooked(contractorId: string, range: TimeRange): Promise<number> {
   const contractor = await getContractor(contractorId)
