@@ -159,7 +159,7 @@ function DealModal({
         <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 14, overflowY: 'auto', maxHeight: '70vh' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <label style={lbl}>Klant naam *</label>
-            <input type="text" value={form.client_name} onChange={e => set('client_name', e.target.value)} placeholder="bijv. Buskermolen B.V." style={inp} />
+            <input type="text" value={form.client_name} onChange={e => set('client_name', e.target.value)} style={inp} />
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
