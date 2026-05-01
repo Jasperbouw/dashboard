@@ -1,17 +1,31 @@
 import { serverClient } from '../../../lib/supabase-server'
 import { getActiveContractors } from '../../../lib/metrics'
-import { StatCard } from '../../components/ui/StatCard'
 import { FinanceCharts } from '../../components/finance/FinanceCharts'
 import { MonthPicker } from '../../components/finance/MonthPicker'
+import { TargetsSection } from '../../components/finance/TargetsSection'
 
 export const dynamic = 'force-dynamic'
 
 const NL_MONTHS = ['Jan', 'Feb', 'Mrt', 'Apr', 'Mei', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec']
-const MODEL_LABELS: Record<string, string> = { percentage: 'Percentage', flat_fee: 'Vast bedrag', retainer: 'Retainer' }
 const NICHE_LABELS: Record<string, string> = { bouw: 'Bouw', daken: 'Daken', dakkapel: 'Dakkapel', extras: 'Extras', overig: 'Overig' }
 
 interface Props {
   searchParams: Promise<{ month?: string }>
+}
+
+function fmtEur(v: number) {
+  return `€${v.toLocaleString('nl-NL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
+}
+
+function targetProgress(actual: number, target: number | null | undefined, isCurrentMonth: boolean, selYear: number, selMonth: number) {
+  if (!target || target <= 0) return null
+  const daysInMonth  = new Date(selYear, selMonth + 1, 0).getDate()
+  const today        = new Date()
+  const dayOfMonth   = isCurrentMonth ? Math.min(today.getDate(), daysInMonth) : daysInMonth
+  const expectedPace = (dayOfMonth / daysInMonth) * target
+  const pct          = Math.round((actual / target) * 100)
+  const color        = actual >= expectedPace ? '#3fb950' : actual >= 0.5 * expectedPace ? '#f59e0b' : '#f85149'
+  return { pct, target, expectedPace, color }
 }
 
 export default async function FinancePage({ searchParams }: Props) {
@@ -19,12 +33,11 @@ export default async function FinancePage({ searchParams }: Props) {
 
   const now          = new Date()
   const currentYear  = now.getFullYear()
-  const currentMonth = now.getMonth()  // 0-indexed
+  const currentMonth = now.getMonth()
   const maxMonthKey  = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`
 
-  // Parse ?month=YYYY-MM, clamp to [max-11, max]
   let selYear: number
-  let selMonth: number  // 0-indexed
+  let selMonth: number
 
   if (params.month && /^\d{4}-\d{2}$/.test(params.month)) {
     const [py, pm] = params.month.split('-').map(Number)
@@ -38,112 +51,82 @@ export default async function FinancePage({ searchParams }: Props) {
     selMonth = currentMonth
   }
 
-  const selectedMonthKey  = `${selYear}-${String(selMonth + 1).padStart(2, '0')}`
-  const isCurrentMonth    = selectedMonthKey === maxMonthKey
+  const selectedMonthKey   = `${selYear}-${String(selMonth + 1).padStart(2, '0')}`
+  const isCurrentMonth     = selectedMonthKey === maxMonthKey
   const selectedMonthLabel = NL_MONTHS[selMonth]
+  const periodLabel        = `${selectedMonthLabel} ${selYear}`
 
-  // Period boundaries
-  const monthStart    = new Date(selYear, selMonth, 1)
-  const monthEnd      = new Date(selYear, selMonth + 1, 0)  // last day
-  const quarterMonth  = Math.floor(selMonth / 3) * 3
-  const quarterStart  = new Date(selYear, quarterMonth, 1)
-  const ytdStart      = new Date(selYear, 0, 1)
-  const trendStart    = new Date(selYear, selMonth - 5, 1)   // 6 months window
-  const dataStart     = trendStart < ytdStart ? trendStart : ytdStart
+  const monthStartDate = new Date(selYear, selMonth, 1).toISOString().slice(0, 10)
+  const monthEndDate   = new Date(selYear, selMonth + 1, 0).toISOString().slice(0, 10)
 
-  const monthStartDate   = monthStart.toISOString().slice(0, 10)
-  const monthEndDate     = monthEnd.toISOString().slice(0, 10)
-  const quarterStartDate = quarterStart.toISOString().slice(0, 10)
-  const ytdStartDate     = ytdStart.toISOString().slice(0, 10)
-  const dataStartDate    = dataStart.toISOString().slice(0, 10)
+  // 6-month trend window
+  const trendStart     = new Date(selYear, selMonth - 5, 1)
+  const trendStartDate = trendStart.toISOString().slice(0, 10)
 
   const db = serverClient()
   const contractors = await getActiveContractors()
-  const activeIds     = contractors.map(c => c.id)
-  const contractorMap = new Map(contractors.map(c => [c.id, c]))
 
-  type RevRow = { contractor_id: string; amount: number; type: string; niche: string | null; entry_date: string }
-
-  const [{ data: revenueRaw }, { data: pendingProjects }, { data: metaSpendRow }] = await Promise.all([
-    db.from('revenue_entries')
-      .select('contractor_id, amount, type, niche, entry_date')
-      .in('contractor_id', activeIds)
-      .eq('payment_status', 'paid')
-      .gte('entry_date', dataStartDate)
-      .lte('entry_date', monthEndDate),
-    db.from('projects')
-      .select('contractor_id, commissie')
-      .in('contractor_id', activeIds)
-      .not('commissie', 'is', null)
-      .gt('commissie', 0)
-      .not('commissie_status', 'ilike', '%betaald%'),
+  const [
+    { data: dealsRaw },
+    { data: adBudgetRaw },
+    { data: metaSpendRow },
+    { data: targetsRow },
+    { data: trendDealsRaw },
+  ] = await Promise.all([
+    db.from('closed_deals')
+      .select('deal_value, commission_amount, contractor_id, niche, closed_at')
+      .gte('closed_at', monthStartDate)
+      .lte('closed_at', monthEndDate),
+    db.from('ad_budget_revenue')
+      .select('amount, contractor_id, received_at')
+      .gte('received_at', monthStartDate)
+      .lte('received_at', monthEndDate),
     db.from('meta_spend_monthly')
       .select('amount_eur')
-      .eq('year_month', `${selYear}-${String(selMonth + 1).padStart(2, '0')}-01`)
+      .eq('year_month', `${selectedMonthKey}-01`)
       .maybeSingle(),
+    db.from('monthly_targets')
+      .select('*')
+      .eq('month', selectedMonthKey)
+      .maybeSingle(),
+    db.from('closed_deals')
+      .select('commission_amount, closed_at')
+      .gte('closed_at', trendStartDate)
+      .lte('closed_at', monthEndDate),
   ])
 
-  const revenue = (revenueRaw ?? []) as RevRow[]
-  const pending  = pendingProjects ?? []
-  const income   = revenue
+  type DealRow = { deal_value: number; commission_amount: number; contractor_id: string | null; niche: string | null; closed_at: string }
+  type ABRow   = { amount: number; contractor_id: string | null; received_at: string }
 
-  function revSum(fromDate: string, toDate: string, rows = income) {
-    return rows
-      .filter(e => e.entry_date >= fromDate && e.entry_date <= toDate)
-      .reduce((s, e) => s + Number(e.amount), 0)
-  }
+  const deals    = (dealsRaw    ?? []) as DealRow[]
+  const adBudget = (adBudgetRaw ?? []) as ABRow[]
+  const trendDeals = (trendDealsRaw ?? []) as { commission_amount: number; closed_at: string }[]
 
-  const mtd          = revSum(monthStartDate, monthEndDate)
-  const qtd          = revSum(quarterStartDate, monthEndDate)
-  const ytd          = revSum(ytdStartDate, monthEndDate)
-  const pendingTotal = pending.reduce((s, p) => s + (p.commissie ?? 0), 0)
+  // Hero stats
+  const totalDealValue  = deals.reduce((s, d) => s + Number(d.deal_value), 0)
+  const totalCommission = deals.reduce((s, d) => s + Number(d.commission_amount), 0)
+  const dealCount       = deals.length
+  const avgCommPct      = totalDealValue > 0 ? (totalCommission / totalDealValue * 100) : 0
+  const totalAdBudget   = adBudget.reduce((s, a) => s + Number(a.amount), 0)
+  const metaSpendAmt    = Number(metaSpendRow?.amount_eur ?? 0)
+  const adPnL           = totalAdBudget - metaSpendAmt
 
-  const adBudgetPeriod = revenue
-    .filter(e => e.type === 'ad_budget' && e.entry_date >= monthStartDate && e.entry_date <= monthEndDate)
-    .reduce((s, e) => s + Number(e.amount), 0)
-  const metaSpendPeriod = Number(metaSpendRow?.amount_eur ?? 0)
-  const adPnL           = adBudgetPeriod - metaSpendPeriod
+  // Targets
+  const targets = targetsRow as { deal_value_target: number | null; commission_target: number | null; ad_budget_target: number | null } | null
 
-  // Breakdowns for selected month
-  const MODEL_ORDER = ['percentage', 'flat_fee', 'retainer'] as const
-  const byModelRaw: Record<string, number> = { percentage: 0, flat_fee: 0, retainer: 0 }
-  for (const e of income.filter(e => e.entry_date >= monthStartDate && e.entry_date <= monthEndDate)) {
-    const model = contractorMap.get(e.contractor_id)?.commission_model ?? 'unknown'
-    byModelRaw[model] = (byModelRaw[model] ?? 0) + Number(e.amount)
-  }
-  const byModel = MODEL_ORDER.map(m => ({
-    name: m, label: MODEL_LABELS[m] ?? m, amount: byModelRaw[m] ?? 0,
-  }))
+  const dealProgress  = targetProgress(totalDealValue,  targets?.deal_value_target,  isCurrentMonth, selYear, selMonth)
+  const commProgress  = targetProgress(totalCommission,  targets?.commission_target,  isCurrentMonth, selYear, selMonth)
+  const adBudProgress = targetProgress(totalAdBudget,   targets?.ad_budget_target,   isCurrentMonth, selYear, selMonth)
 
-  const NICHE_ORDER = ['bouw', 'daken', 'dakkapel', 'extras']
-  const byNicheRaw: Record<string, number> = Object.fromEntries(NICHE_ORDER.map(n => [n, 0]))
-  for (const e of income.filter(e => e.entry_date >= monthStartDate && e.entry_date <= monthEndDate)) {
-    const niche = e.niche ?? contractorMap.get(e.contractor_id)?.niche ?? 'overig'
-    byNicheRaw[niche] = (byNicheRaw[niche] ?? 0) + Number(e.amount)
-  }
-  const byNiche = NICHE_ORDER
-    .map(name => ({ name, label: NICHE_LABELS[name] ?? name, amount: byNicheRaw[name] ?? 0 }))
-
-  // Top 5 contractors by selected-month revenue
-  const contRevMap: Record<string, number> = {}
-  for (const e of income.filter(e => e.entry_date >= monthStartDate && e.entry_date <= monthEndDate)) {
-    contRevMap[e.contractor_id] = (contRevMap[e.contractor_id] ?? 0) + Number(e.amount)
-  }
-  const top5 = contractors
-    .map(c => ({ id: c.id, name: c.name, niche: c.niche, model: c.commission_model ?? '', amount: contRevMap[c.id] ?? 0 }))
-    .sort((a, b) => b.amount - a.amount)
-    .slice(0, 5)
-
-  // 6-month trend window ending at selected month
+  // 6-month trend (commission)
   const trendMap: Record<string, number> = {}
   for (let i = 5; i >= 0; i--) {
     const d = new Date(selYear, selMonth - i, 1)
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-    trendMap[key] = 0
+    trendMap[`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`] = 0
   }
-  for (const e of income) {
-    const key = e.entry_date.slice(0, 7)
-    if (key in trendMap) trendMap[key] += Number(e.amount)
+  for (const d of trendDeals) {
+    const key = d.closed_at.slice(0, 7)
+    if (key in trendMap) trendMap[key] += Number(d.commission_amount)
   }
   const trend = Object.entries(trendMap).map(([mo, amount]) => ({
     month: mo,
@@ -151,157 +134,130 @@ export default async function FinancePage({ searchParams }: Props) {
     amount,
   }))
 
-  // Revenue breakdown for selected month
-  const byTypeMonth   = income.filter(e => e.entry_date >= monthStartDate && e.entry_date <= monthEndDate)
-  const commissieMtd  = byTypeMonth.filter(e => ['commission_percentage', 'commission_flat'].includes(e.type)).reduce((s, e) => s + Number(e.amount), 0)
-  const retainerMtd   = byTypeMonth.filter(e => e.type === 'retainer_fee').reduce((s, e) => s + Number(e.amount), 0)
-  const adBudgetMtd   = byTypeMonth.filter(e => e.type === 'ad_budget').reduce((s, e) => s + Number(e.amount), 0)
-  const andereMtd     = byTypeMonth.filter(e => e.type === 'other').reduce((s, e) => s + Number(e.amount), 0)
+  // By niche (commission)
+  const NICHE_ORDER = ['bouw', 'daken', 'dakkapel', 'extras']
+  const byNicheRaw: Record<string, number> = Object.fromEntries(NICHE_ORDER.map(n => [n, 0]))
+  for (const d of deals) {
+    const niche = d.niche ?? 'overig'
+    byNicheRaw[niche] = (byNicheRaw[niche] ?? 0) + Number(d.commission_amount)
+  }
+  const byNiche = NICHE_ORDER.map(n => ({ name: n, label: NICHE_LABELS[n] ?? n, amount: byNicheRaw[n] ?? 0 }))
 
-  // Labels
-  const periodLabel = `${selectedMonthLabel} ${selYear}`
-  const mtdLabel    = isCurrentMonth ? 'Omzet MTD' : `Omzet ${periodLabel}`
-  const qtdLabel    = isCurrentMonth ? 'Omzet QTD' : `Q${Math.floor(selMonth / 3) + 1} ${selYear}`
-  const ytdMeta     = `Januari – ${selectedMonthLabel} ${selYear}`
-  const adLabel     = isCurrentMonth ? 'MTD' : periodLabel
+  // Top 5 contractors (commission)
+  const contCommMap: Record<string, number> = {}
+  for (const d of deals) {
+    if (!d.contractor_id) continue
+    contCommMap[d.contractor_id] = (contCommMap[d.contractor_id] ?? 0) + Number(d.commission_amount)
+  }
+  const top5 = contractors
+    .map(c => ({ id: c.id, name: c.name, niche: c.niche ?? '', model: c.commission_model ?? '', amount: contCommMap[c.id] ?? 0 }))
+    .sort((a, b) => b.amount - a.amount)
+    .slice(0, 5)
+
+  type ProgressInfo = { pct: number; target: number; expectedPace: number; color: string } | null
+
+  function ProgressBar({ prog, actual }: { prog: ProgressInfo; actual: number }) {
+    if (!prog) return null
+    const fill = Math.min(prog.pct, 100)
+    const behind = actual < prog.expectedPace
+    return (
+      <div style={{ marginTop: 8 }}>
+        <div style={{ height: 4, background: 'var(--color-border-subtle)', borderRadius: 2, overflow: 'hidden' }}>
+          <div style={{ width: `${fill}%`, height: '100%', background: prog.color, borderRadius: 2, transition: 'width 0.3s' }} />
+        </div>
+        <div style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-ink-faint)', marginTop: 4, display: 'flex', justifyContent: 'space-between' }}>
+          <span style={{ color: prog.color }}>{prog.pct}% van {fmtEur(prog.target)} doel</span>
+          {behind && <span>verwacht: {fmtEur(Math.round(prog.expectedPace))}</span>}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div style={{ padding: '32px 36px', maxWidth: 1200 }}>
 
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 32, gap: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 28, gap: 16 }}>
         <div>
-          <h1 style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 600, color: 'var(--color-ink)', margin: 0 }}>
-            Finance
-          </h1>
+          <h1 style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 600, color: 'var(--color-ink)', margin: 0 }}>Finance</h1>
           <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-ink-muted)', marginTop: 4, marginBottom: 0 }}>
-            Totale omzet · commissie, retainer en ad budget
+            Closed deals, commissie en ad budget
           </p>
         </div>
         <MonthPicker value={selectedMonthKey} max={maxMonthKey} />
       </div>
 
-      {/* 4 hero tiles */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 32 }}>
-        <StatCard
-          label={mtdLabel}
-          value={mtd}
-          prefix="€"
-          meta={`Totale omzet · ${periodLabel}`}
-        />
-        <StatCard
-          label={qtdLabel}
-          value={qtd}
-          prefix="€"
-          meta={`Q${Math.floor(selMonth / 3) + 1} ${selYear}`}
-        />
-        <StatCard
-          label="Omzet YTD"
-          value={ytd}
-          prefix="€"
-          meta={ytdMeta}
-        />
-        <StatCard
-          label="Commissie pending"
-          value={pendingTotal}
-          prefix="€"
-          subtext={`${pending.length} project${pending.length !== 1 ? 'en' : ''} nog niet ontvangen`}
-        />
-      </div>
+      {/* 4 hero cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 20 }}>
 
-      {/* Revenue breakdown card */}
-      {mtd > 0 && (
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: `repeat(${andereMtd > 0 ? 4 : 3}, 1fr)`,
-          gap: 0,
-          marginBottom: 16,
-          background: 'var(--color-surface)',
-          border: '1px solid var(--color-border-subtle)',
-          borderRadius: 'var(--radius-xl)',
-          overflow: 'hidden',
-        }}>
-          {([
-            { label: 'Commissie',  amount: commissieMtd },
-            { label: 'Retainer',   amount: retainerMtd  },
-            { label: 'Ad Budget',  amount: adBudgetMtd  },
-            ...(andereMtd > 0 ? [{ label: 'Andere', amount: andereMtd }] : []),
-          ] as { label: string; amount: number }[]).map((item, i, arr) => (
-            <div key={item.label} style={{
-              padding: '16px 20px',
-              borderRight: i < arr.length - 1 ? '1px solid var(--color-border-subtle)' : undefined,
-            }}>
-              <div style={{
-                fontSize: 'var(--font-size-2xs)', fontWeight: 600,
-                color: 'var(--color-ink-faint)', textTransform: 'uppercase',
-                letterSpacing: '0.07em', marginBottom: 6,
-              }}>
-                {item.label} {periodLabel}
-              </div>
-              <div style={{
-                fontSize: 'var(--font-size-xl)', fontWeight: 600,
-                color: 'var(--color-ink)', fontVariantNumeric: 'tabular-nums',
-              }}>
-                €{item.amount.toLocaleString('nl-NL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-              </div>
-              <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)', marginTop: 4 }}>
-                {Math.round((item.amount / mtd) * 100)}% van totaal
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Ad spend P&L tile */}
-      <div style={{
-        display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 32,
-        background: 'var(--color-surface)',
-        border: '1px solid var(--color-border-subtle)',
-        borderRadius: 'var(--radius-xl)',
-        overflow: 'hidden',
-      }}>
-        {[
-          { label: `Ad Budget ontvangen ${adLabel}`, value: adBudgetPeriod, color: 'var(--color-ink)' },
-          { label: `Meta spend ${adLabel}`,           value: metaSpendPeriod,  color: 'var(--color-ink)' },
-          {
-            label: adPnL >= 0 ? `Surplus ${adLabel}` : `Tekort ${adLabel}`,
-            value: Math.abs(adPnL),
-            color: adPnL >= 0 ? '#3fb950' : '#f85149',
-          },
-        ].map((item, i) => (
-          <div key={i} style={{
-            padding: '18px 20px',
-            borderRight: i < 2 ? '1px solid var(--color-border-subtle)' : undefined,
-          }}>
-            <div style={{
-              fontSize: 'var(--font-size-2xs)', fontWeight: 600,
-              color: 'var(--color-ink-faint)', textTransform: 'uppercase',
-              letterSpacing: '0.07em', marginBottom: 6,
-            }}>
-              {item.label}
-            </div>
-            <div style={{
-              fontSize: 'var(--font-size-2xl)', fontWeight: 600,
-              color: item.color, fontVariantNumeric: 'tabular-nums',
-            }}>
-              {adPnL < 0 && i === 2 ? '−' : ''}€{item.value.toLocaleString('nl-NL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-            </div>
-            {i === 2 && (
-              <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)', marginTop: 4 }}>
-                Ad budget − Meta spend
-              </div>
-            )}
+        {/* Card 1: Deal value */}
+        <div style={{ padding: '18px 20px', background: 'var(--color-surface)', border: '1px solid var(--color-border-subtle)', borderRadius: 'var(--radius-xl)' }}>
+          <div style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 600, color: 'var(--color-ink-faint)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>
+            Closed deals {periodLabel}
           </div>
-        ))}
+          <div style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 600, color: 'var(--color-ink)', fontVariantNumeric: 'tabular-nums' }}>
+            {fmtEur(totalDealValue)}
+          </div>
+          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)', marginTop: 4 }}>
+            {dealCount} deal{dealCount !== 1 ? 's' : ''} geland
+          </div>
+          <ProgressBar prog={dealProgress} actual={totalDealValue} />
+        </div>
+
+        {/* Card 2: Commission */}
+        <div style={{ padding: '18px 20px', background: 'var(--color-surface)', border: '1px solid var(--color-border-subtle)', borderRadius: 'var(--radius-xl)' }}>
+          <div style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 600, color: 'var(--color-ink-faint)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>
+            Commissie {periodLabel}
+          </div>
+          <div style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 600, color: 'var(--color-ink)', fontVariantNumeric: 'tabular-nums' }}>
+            {fmtEur(totalCommission)}
+          </div>
+          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)', marginTop: 4 }}>
+            Gem. {avgCommPct.toFixed(1)}% commissie
+          </div>
+          <ProgressBar prog={commProgress} actual={totalCommission} />
+        </div>
+
+        {/* Card 3: Ad budget revenue */}
+        <div style={{ padding: '18px 20px', background: 'var(--color-surface)', border: '1px solid var(--color-border-subtle)', borderRadius: 'var(--radius-xl)' }}>
+          <div style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 600, color: 'var(--color-ink-faint)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>
+            Ad Budget Revenue {periodLabel}
+          </div>
+          <div style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 600, color: 'var(--color-ink)', fontVariantNumeric: 'tabular-nums' }}>
+            {fmtEur(totalAdBudget)}
+          </div>
+          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)', marginTop: 4 }}>
+            {periodLabel}
+          </div>
+          <ProgressBar prog={adBudProgress} actual={totalAdBudget} />
+        </div>
+
+        {/* Card 4: Meta ad spend + P&L */}
+        <div style={{ padding: '18px 20px', background: 'var(--color-surface)', border: '1px solid var(--color-border-subtle)', borderRadius: 'var(--radius-xl)' }}>
+          <div style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 600, color: 'var(--color-ink-faint)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>
+            Meta Ad Spend {periodLabel}
+          </div>
+          <div style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 600, color: 'var(--color-ink)', fontVariantNumeric: 'tabular-nums' }}>
+            {fmtEur(metaSpendAmt)}
+          </div>
+          <div style={{ fontSize: 'var(--font-size-xs)', marginTop: 4, color: adPnL >= 0 ? '#3fb950' : '#f85149' }}>
+            {adPnL >= 0 ? '+' : '−'}{fmtEur(Math.abs(adPnL))} {adPnL >= 0 ? 'surplus' : 'tekort'}
+          </div>
+        </div>
       </div>
 
-      {/* Charts + tables */}
+      {/* Targets section */}
+      <TargetsSection
+        month={selectedMonthKey}
+        initial={targets}
+        periodLabel={periodLabel}
+      />
+
+      {/* Charts */}
       <FinanceCharts
         trend={trend}
-        byModel={byModel}
         byNiche={byNiche}
         top5={top5}
-        ytd={ytd}
         selectedMonth={selectedMonthKey}
         periodLabel={periodLabel}
       />

@@ -1,13 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { serverClient } from '../../../../../lib/supabase-server'
-import { getActiveContractors, INCOME_TYPES_BY_MODEL, ALL_INCOME_TYPES } from '../../../../../lib/metrics'
-
-function startOf(unit: 'month' | 'quarter' | 'year'): Date {
-  const now = new Date()
-  if (unit === 'month')   return new Date(now.getFullYear(), now.getMonth(), 1)
-  if (unit === 'quarter') return new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1)
-  return new Date(now.getFullYear(), 0, 1)
-}
+import { getActiveContractors } from '../../../../../lib/metrics'
 
 function isPaid(status: string | null): boolean {
   return !!status?.toLowerCase().includes('betaald')
@@ -29,59 +22,47 @@ export async function GET(
     return `${year}-${String(q + 1).padStart(2, '0')}-01`
   })()
 
-  const [contractors, { data: projects }, { data: revenueRaw }] = await Promise.all([
+  const [contractors, { data: projects }, { data: dealsRaw }] = await Promise.all([
     getActiveContractors(),
     db.from('projects')
       .select('project_name, aanneemsom, commissie, commissie_status, betaal_status, monday_created_at')
       .eq('contractor_id', id)
       .order('monday_created_at', { ascending: false }),
-    db.from('revenue_entries')
-      .select('type, amount, entry_date')
+    db.from('closed_deals')
+      .select('commission_amount, deal_value, closed_at, client_name, description')
       .eq('contractor_id', id)
-      .eq('payment_status', 'paid')
-      .gte('entry_date', ytdFirst),
+      .gte('closed_at', ytdFirst)
+      .order('closed_at', { ascending: false }),
   ])
 
   const contractor = contractors.find(c => c.id === id)
   if (!contractor) return NextResponse.json({ error: 'not found' }, { status: 404 })
 
-  const all     = projects ?? []
-  const revenue = (revenueRaw ?? []) as { type: string; amount: number; entry_date: string }[]
+  const all   = projects ?? []
+  const deals = (dealsRaw ?? []) as { commission_amount: number; deal_value: number; closed_at: string; client_name: string; description: string | null }[]
 
-  // Revenue from revenue_entries — includes all paid income types
-  const incomeTypes = INCOME_TYPES_BY_MODEL[contractor.commission_model ?? ''] ?? ALL_INCOME_TYPES
-  function revSum(from: string, types: string[] = incomeTypes) {
-    return revenue.filter(e => e.entry_date >= from && types.includes(e.type))
-      .reduce((s, e) => s + Number(e.amount), 0)
+  function dealCommSum(from: string) {
+    return deals.filter(d => d.closed_at >= from).reduce((s, d) => s + Number(d.commission_amount), 0)
   }
 
-  // Commission pending still comes from projects (deal-level tracking)
-  const pending      = all.filter(p => (p.commissie ?? 0) > 0 && !isPaid(p.commissie_status))
-  const pendingTotal = pending.reduce((s, p) => s + (p.commissie ?? 0), 0)
-
-  // Recent projects (for deals table — period/flat_fee contractors)
-  const recent = all
-    .filter(p => (p.commissie ?? 0) > 0 || (p.aanneemsom ?? 0) > 0)
-    .slice(0, 10)
-    .map(p => ({
-      project_name:     p.project_name,
-      aanneemsom:       p.aanneemsom,
-      commissie:        p.commissie,
-      commissie_status: p.commissie_status,
-      date:             p.monday_created_at,
-    }))
+  const commissionMTD = dealCommSum(mtdFirst)
+  const commissionQTD = dealCommSum(qtdFirst)
+  const commissionYTD = dealCommSum(ytdFirst)
 
   const isRetainer = contractor.commission_model === 'retainer'
 
-  // For retainer tab: fee-only rows (excluding pass-through ad_budget entries)
-  const retainerFeeMTD = isRetainer ? revSum(mtdFirst, ['retainer_fee']) : null
-  const retainerFeeQTD = isRetainer ? revSum(qtdFirst, ['retainer_fee']) : null
-  const retainerFeeYTD = isRetainer ? revSum(ytdFirst, ['retainer_fee']) : null
+  // Commission pending still from projects
+  const pending      = all.filter(p => (p.commissie ?? 0) > 0 && !isPaid(p.commissie_status))
+  const pendingTotal = pending.reduce((s, p) => s + (p.commissie ?? 0), 0)
 
-  // For percentage/flat tab: commission entries
-  const commissionMTD = isRetainer ? 0 : revSum(mtdFirst)
-  const commissionQTD = isRetainer ? 0 : revSum(qtdFirst)
-  const commissionYTD = isRetainer ? 0 : revSum(ytdFirst)
+  // Recent deals (top 10 this year)
+  const recent = deals.slice(0, 10).map(d => ({
+    project_name:     d.client_name,
+    aanneemsom:       d.deal_value,
+    commissie:        d.commission_amount,
+    commissie_status: 'closed',
+    date:             d.closed_at,
+  }))
 
   return NextResponse.json({
     commission_model:     contractor.commission_model,
@@ -89,14 +70,14 @@ export async function GET(
     monthly_retainer_fee: contractor.monthly_retainer_fee,
     monthly_ad_budget:    contractor.monthly_ad_budget,
     relationship_status:  contractor.relationship_status,
-    commissionMTD:     commissionMTD,
-    commissionQTD:     commissionQTD,
-    commissionYTD:     commissionYTD,
+    commissionMTD,
+    commissionQTD,
+    commissionYTD,
     commissionPending: pendingTotal,
     pendingCount:      pending.length,
-    retainerFeeMTD,
-    retainerFeeQTD,
-    retainerFeeYTD,
+    retainerFeeMTD:    isRetainer ? commissionMTD : null,
+    retainerFeeQTD:    isRetainer ? commissionQTD : null,
+    retainerFeeYTD:    isRetainer ? commissionYTD : null,
     recent,
   })
 }

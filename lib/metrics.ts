@@ -324,28 +324,14 @@ export async function pipelineValue(contractorId: string): Promise<number> {
   return 0
 }
 
-// All revenue types — ad_budget is real revenue (invoiced to client), not pass-through
-export const INCOME_TYPES_BY_MODEL: Record<string, string[]> = {
-  retainer:   ['retainer_fee',          'ad_budget'],
-  percentage: ['commission_percentage', 'ad_budget'],
-  flat_fee:   ['commission_flat',       'ad_budget'],
-}
-export const ALL_INCOME_TYPES = ['retainer_fee', 'commission_percentage', 'commission_flat', 'ad_budget', 'other']
-
 export async function commissionBooked(contractorId: string, range: TimeRange): Promise<number> {
-  const contractor = await getContractor(contractorId)
-  if (!contractor) return 0
-
-  const types = INCOME_TYPES_BY_MODEL[contractor.commission_model ?? ''] ?? ALL_INCOME_TYPES
   const { data } = await db()
-    .from('revenue_entries')
-    .select('amount')
+    .from('closed_deals')
+    .select('commission_amount')
     .eq('contractor_id', contractorId)
-    .in('type', types)
-    .eq('payment_status', 'paid')
-    .gte('entry_date', range.from.toISOString().slice(0, 10))
-    .lte('entry_date', range.to.toISOString().slice(0, 10))
-  return (data ?? []).reduce((s, e) => s + Number((e as { amount: number }).amount), 0)
+    .gte('closed_at', range.from.toISOString().slice(0, 10))
+    .lte('closed_at', range.to.toISOString().slice(0, 10))
+  return (data ?? []).reduce((s, d) => s + Number((d as { commission_amount: number }).commission_amount), 0)
 }
 
 export async function commissionPending(contractorId: string): Promise<number> {
@@ -498,15 +484,13 @@ export async function totalCommissionBooked(range: TimeRange): Promise<number> {
   const toDate      = range.to.toISOString().slice(0, 10)
 
   const { data } = await db()
-    .from('revenue_entries')
-    .select('amount')
+    .from('closed_deals')
+    .select('commission_amount')
     .in('contractor_id', activeIds)
-    .in('type', ALL_INCOME_TYPES)
-    .eq('payment_status', 'paid')
-    .gte('entry_date', fromDate)
-    .lte('entry_date', toDate)
+    .gte('closed_at', fromDate)
+    .lte('closed_at', toDate)
 
-  return (data ?? []).reduce((s, e) => s + Number((e as { amount: number }).amount), 0)
+  return (data ?? []).reduce((s, d) => s + Number((d as { commission_amount: number }).commission_amount), 0)
 }
 
 export async function totalCommissionPending(): Promise<number> {
@@ -624,13 +608,11 @@ export async function contractorLeaderboard(range: TimeRange): Promise<Contracto
       .lt('monday_updated_at', backlogCutoff)
       .limit(5000),
     db()
-      .from('revenue_entries')
-      .select('contractor_id, amount, type')
+      .from('closed_deals')
+      .select('contractor_id, commission_amount')
       .in('contractor_id', activeIds)
-      .in('type', ALL_INCOME_TYPES)
-      .eq('payment_status', 'paid')
-      .gte('entry_date', fromDate)
-      .lte('entry_date', toDate),
+      .gte('closed_at', fromDate)
+      .lte('closed_at', toDate),
     db()
       .from('lead_packs')
       .select('id, contractor_id, niche, pack_type, units_promised, units_used')
@@ -638,8 +620,8 @@ export async function contractorLeaderboard(range: TimeRange): Promise<Contracto
       .eq('status', 'active'),
   ])
 
-  type RevRow = { contractor_id: string; amount: number; type: string }
-  const revenueEntries = ((invoiceResult as { data: RevRow[] | null }).data ?? [])
+  type DealRow = { contractor_id: string; commission_amount: number }
+  const closedDeals = ((invoiceResult as { data: DealRow[] | null }).data ?? [])
 
   return contractors.map(c => {
     const cLeads    = (leads    ?? []).filter(l => l.contractor_id === c.id)
@@ -671,9 +653,9 @@ export async function contractorLeaderboard(range: TimeRange): Promise<Contracto
       ? null
       : Math.round(dealsWithAmount.reduce((s, p) => s + (p.aanneemsom ?? 0), 0) / dealsWithAmount.length)
 
-    const commBooked = revenueEntries
-      .filter(e => e.contractor_id === c.id)
-      .reduce((s, e) => s + Number(e.amount), 0)
+    const commBooked = closedDeals
+      .filter(d => d.contractor_id === c.id)
+      .reduce((s, d) => s + Number(d.commission_amount), 0)
 
     const commPending = isRetainer ? 0 : cProjects
       .filter(p => p.commissie && p.commissie > 0 && !p.commissie_status?.toLowerCase().includes('betaald'))
