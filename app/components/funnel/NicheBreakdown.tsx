@@ -36,7 +36,7 @@ export function NicheBreakdown({ niches }: Props) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       {sorted.map(row => {
         const leadsPct = totalLeads > 0 ? (row.leads / totalLeads) * 100 : 0
-        const qualPct  = row.leads > 0 ? Math.round((row.routed / row.leads) * 100) : null
+        const qualPct  = row.leads > 0 ? Math.round((row.inspecties / row.leads) * 100) : null
         const isOpen   = expanded === row.niche
 
         return (

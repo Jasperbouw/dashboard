@@ -216,7 +216,7 @@ export async function qualifiedLeads(contractorId: string, range: TimeRange): Pr
     .from('leads')
     .select('*', { count: 'exact', head: true })
     .eq('contractor_id', contractorId)
-    .neq('canonical_stage', 'lost')
+    .in('canonical_stage', ['inspection', 'quote_sent', 'won'])
     .gte('monday_created_at', range.from.toISOString())
     .lte('monday_created_at', range.to.toISOString())
   return count ?? 0
@@ -653,7 +653,7 @@ export async function contractorLeaderboard(range: TimeRange): Promise<Contracto
     const isUnfiltered = c.qualification_model === 'unfiltered'
 
     const total        = cLeads.length
-    const qualified    = cLeads.filter(l => l.canonical_stage !== 'lost' && l.canonical_stage !== 'deferred').length
+    const qualified    = cLeads.filter(l => ['inspection', 'quote_sent', 'won'].includes(l.canonical_stage)).length
     const wonInPeriod  = cLeads.filter(l => l.canonical_stage === 'won').length
     const quoteInPeriod = cLeads.filter(l => l.canonical_stage === 'quote_sent' || l.canonical_stage === 'won').length
     const quoteSentNow = cAllLeads.filter(l => l.canonical_stage === 'quote_sent').length
