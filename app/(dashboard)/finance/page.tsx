@@ -180,7 +180,7 @@ export default async function FinancePage({ searchParams }: Props) {
           label={mtdLabel}
           value={mtd}
           prefix="€"
-          meta={`Betaalde commissie + retainerfee · ${periodLabel}`}
+          meta="Commissie + retainer · ad budget exclusief"
         />
         <StatCard
           label={qtdLabel}

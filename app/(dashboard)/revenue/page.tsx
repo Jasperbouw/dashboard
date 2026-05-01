@@ -578,17 +578,31 @@ export default function RevenuePage() {
   const [defaultCont, setDefaultCont]     = useState('')
 
   // Action menus
-  const [openMenu, setOpenMenu] = useState<string | null>(null)
+  const [openMenu,  setOpenMenu]  = useState<string | null>(null)
+  const [menuEntry, setMenuEntry] = useState<RevenueEntry | null>(null)
+  const [menuPos,   setMenuPos]   = useState<{ top: number; right: number } | null>(null)
+
+  function openContextMenu(ev: React.MouseEvent, entry: RevenueEntry) {
+    ev.stopPropagation()
+    if (openMenu === entry.id) {
+      setOpenMenu(null); setMenuEntry(null); setMenuPos(null)
+      return
+    }
+    const rect = (ev.currentTarget as HTMLElement).getBoundingClientRect()
+    setMenuPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right })
+    setMenuEntry(entry)
+    setOpenMenu(entry.id)
+  }
 
   // Close menu on outside click
   useEffect(() => {
-    function handler() { setOpenMenu(null) }
+    function handler() { setOpenMenu(null); setMenuEntry(null); setMenuPos(null) }
     document.addEventListener('click', handler)
     return () => document.removeEventListener('click', handler)
   }, [])
 
   async function deleteEntry(id: string) {
-    if (!confirm('Entry verwijderen?')) return
+    if (!confirm('Entry verwijderen? Dit kan niet ongedaan gemaakt worden.')) return
     await fetch(`/api/revenue/${id}`, { method: 'DELETE' })
     mutateEntries(prev => (prev ?? []).filter(e => e.id !== id), false)
   }
@@ -626,7 +640,9 @@ export default function RevenuePage() {
       return 0
     })
 
-  const filteredTotal = filtered.reduce((s, e) => s + Number(e.amount), 0)
+  const filteredTotal    = filtered.reduce((s, e) => s + Number(e.amount), 0)
+  const adBudgetTotal    = filtered.filter(e => e.type === 'ad_budget').reduce((s, e) => s + Number(e.amount), 0)
+  const omzetTotal       = filteredTotal - adBudgetTotal
 
   function toggleSort(col: 'entry_date' | 'amount') {
     if (sortCol === col) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
@@ -825,44 +841,13 @@ export default function RevenuePage() {
                         {ss.label}
                       </span>
                     </td>
-                    <td style={{ ...tdStyle, position: 'relative', width: 40, textAlign: 'center' }}>
+                    <td style={{ ...tdStyle, width: 40, textAlign: 'center' }}>
                       <button
-                        onClick={ev => { ev.stopPropagation(); setOpenMenu(m => m === e.id ? null : e.id) }}
+                        onClick={ev => openContextMenu(ev, e)}
                         style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-ink-faint)', fontSize: 16, padding: '2px 6px', borderRadius: 'var(--radius-sm)' }}
                       >
                         ⋯
                       </button>
-                      {openMenu === e.id && (
-                        <div
-                          onClick={ev => ev.stopPropagation()}
-                          style={{
-                            position: 'absolute', right: 8, top: '100%', zIndex: 50,
-                            background: 'var(--color-surface)',
-                            border: '1px solid var(--color-border)',
-                            borderRadius: 'var(--radius-md)',
-                            boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
-                            minWidth: 130, overflow: 'hidden',
-                          }}
-                        >
-                          {[
-                            { label: 'Bewerken', action: () => { setEditEntry(e); setModalOpen(true); setOpenMenu(null) } },
-                            { label: 'Verwijderen', action: () => { deleteEntry(e.id); setOpenMenu(null) }, danger: true },
-                          ].map(item => (
-                            <button
-                              key={item.label}
-                              onClick={item.action}
-                              style={{
-                                display: 'block', width: '100%', textAlign: 'left',
-                                padding: '9px 14px', background: 'none', border: 'none',
-                                cursor: 'pointer', fontSize: 'var(--font-size-xs)',
-                                color: item.danger ? 'var(--color-critical)' : 'var(--color-ink)',
-                              }}
-                            >
-                              {item.label}
-                            </button>
-                          ))}
-                        </div>
-                      )}
                     </td>
                   </tr>
                 )
@@ -875,18 +860,71 @@ export default function RevenuePage() {
       {/* Footer summary */}
       {!loading && filtered.length > 0 && (
         <div style={{
-          marginTop: 12, display: 'flex', justifyContent: 'space-between',
+          marginTop: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline',
           fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)',
         }}>
           <span>{filtered.length} entr{filtered.length !== 1 ? 'ies' : 'y'} getoond</span>
-          <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 500, color: 'var(--color-ink)' }}>
-            {fmtEur(filteredTotal)} totaal
-          </span>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
+            <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 500, color: 'var(--color-ink)' }}>
+              {fmtEur(filteredTotal)} totaal
+            </span>
+            {adBudgetTotal > 0 && (
+              <span style={{ fontVariantNumeric: 'tabular-nums', color: 'var(--color-ink-faint)' }}>
+                {fmtEur(omzetTotal)} omzet · {fmtEur(adBudgetTotal)} ad budget pass-through
+              </span>
+            )}
+          </div>
         </div>
       )}
 
       {/* Meta spend */}
       <MetaSpendSection />
+
+      {/* Context menu — rendered outside table to avoid overflow clipping */}
+      {openMenu && menuEntry && menuPos && (
+        <div
+          onClick={ev => ev.stopPropagation()}
+          style={{
+            position: 'fixed',
+            top: menuPos.top,
+            right: menuPos.right,
+            zIndex: 500,
+            background: 'var(--color-surface)',
+            border: '1px solid var(--color-border)',
+            borderRadius: 'var(--radius-md)',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+            minWidth: 140, overflow: 'hidden',
+          }}
+        >
+          {([
+            {
+              label: 'Bewerken',
+              action: () => { setEditEntry(menuEntry); setModalOpen(true); setOpenMenu(null); setMenuEntry(null) },
+              danger: false,
+            },
+            {
+              label: 'Verwijderen',
+              action: () => { deleteEntry(menuEntry.id); setOpenMenu(null); setMenuEntry(null) },
+              danger: true,
+            },
+          ] as const).map(item => (
+            <button
+              key={item.label}
+              onClick={item.action}
+              style={{
+                display: 'block', width: '100%', textAlign: 'left',
+                padding: '9px 14px', background: 'none', border: 'none',
+                cursor: 'pointer', fontSize: 'var(--font-size-xs)',
+                color: item.danger ? 'var(--color-critical)' : 'var(--color-ink)',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-surface-raised)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Modal */}
       {modalOpen && (
