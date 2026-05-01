@@ -216,7 +216,7 @@ export async function qualifiedLeads(contractorId: string, range: TimeRange): Pr
     .from('leads')
     .select('*', { count: 'exact', head: true })
     .eq('contractor_id', contractorId)
-    .in('canonical_stage', ['inspection', 'quote_sent', 'won'])
+    .in('canonical_stage', ['inspection', 'quote_sent', 'won', 'deferred'])
     .gte('monday_created_at', range.from.toISOString())
     .lte('monday_created_at', range.to.toISOString())
   return count ?? 0
@@ -653,7 +653,7 @@ export async function contractorLeaderboard(range: TimeRange): Promise<Contracto
     const isUnfiltered = c.qualification_model === 'unfiltered'
 
     const total        = cLeads.length
-    const qualified    = cLeads.filter(l => ['inspection', 'quote_sent', 'won'].includes(l.canonical_stage)).length
+    const qualified    = cLeads.filter(l => ['inspection', 'quote_sent', 'won', 'deferred'].includes(l.canonical_stage)).length
     const wonInPeriod  = cLeads.filter(l => l.canonical_stage === 'won').length
     const quoteInPeriod = cLeads.filter(l => l.canonical_stage === 'quote_sent' || l.canonical_stage === 'won').length
     const quoteSentNow = cAllLeads.filter(l => l.canonical_stage === 'quote_sent').length
@@ -1246,6 +1246,7 @@ export interface NicheRow {
   inspecties: number
   offertes:   number
   gewonnen:   number
+  deferred:   number
 }
 
 export async function nichePerformance(range?: TimeRange): Promise<NicheRow[]> {
@@ -1281,7 +1282,7 @@ export async function nichePerformance(range?: TimeRange): Promise<NicheRow[]> {
     if (l.contractor_id && !activeIds.has(l.contractor_id)) continue
 
     if (!rowMap.has(leadNiche)) {
-      rowMap.set(leadNiche, { niche: leadNiche, leads: 0, routed: 0, inspecties: 0, offertes: 0, gewonnen: 0 })
+      rowMap.set(leadNiche, { niche: leadNiche, leads: 0, routed: 0, inspecties: 0, offertes: 0, gewonnen: 0, deferred: 0 })
     }
     const row = rowMap.get(leadNiche)!
     row.leads++
@@ -1290,6 +1291,7 @@ export async function nichePerformance(range?: TimeRange): Promise<NicheRow[]> {
     if (s === 'inspection' || s === 'quote_sent' || s === 'won') row.inspecties++
     if (s === 'quote_sent' || s === 'won') row.offertes++
     if (s === 'won') row.gewonnen++
+    if (s === 'deferred') row.deferred++
   }
 
   return [...rowMap.values()].sort((a, b) => b.leads - a.leads)
