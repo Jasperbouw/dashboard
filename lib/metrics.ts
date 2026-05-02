@@ -1255,12 +1255,6 @@ export interface NicheRow {
 }
 
 export async function nichePerformance(range?: TimeRange): Promise<NicheRow[]> {
-  // DEBUG: verify period bounds
-  console.log('[nichePerf] period bounds used in query:', range
-    ? { from: range.from.toISOString(), to: range.to.toISOString() }
-    : 'NO RANGE — all-time query'
-  )
-
   // ── Cohort query — leads received in period (QL% / routing stats) ──────────
   let leadsQ = db().from('leads')
     .select('contractor_id, board_id, canonical_stage')
@@ -1301,17 +1295,6 @@ export async function nichePerformance(range?: TimeRange): Promise<NicheRow[]> {
     db().from('contractors').select('id, niche, active'),
     changesQ,
   ])
-
-  // ── DEBUG: rawChanges row count ─────────────────────────────────────────────
-  const rawTotal = rawChanges?.length ?? 0
-  const byCounts: Record<string, number> = {}
-  for (const r of rawChanges ?? []) {
-    const s = (r as any).to_status as string
-    byCounts[s] = (byCounts[s] ?? 0) + 1
-  }
-  console.log(`[nichePerf] rawChanges total rows: ${rawTotal}`)
-  console.log(`[nichePerf] rows by to_status:`, JSON.stringify(byCounts))
-  // ────────────────────────────────────────────────────────────────────────────
 
   const boardNiche      = new Map<number, string>((boardConfigs ?? []).filter(b => b.niche).map(b => [b.id, b.niche!]))
   const contractorNiche = new Map<string, string>((contractors ?? []).filter(c => c.niche).map(c => [c.id, c.niche!]))
@@ -1373,12 +1356,6 @@ export async function nichePerformance(range?: TimeRange): Promise<NicheRow[]> {
     else if (stageKey === 'lost')       sets.lost.add(c.lead_id)
   }
 
-  // ── DEBUG: Set sizes per niche before waterfall ─────────────────────────────
-  for (const [niche, sets] of activity) {
-    console.log(`[nichePerf] ${niche} sets — insp:${sets.inspection.size} quote:${sets.quote_sent.size} won:${sets.won.size} def:${sets.deferred.size} lost:${sets.lost.size}`)
-  }
-  // ────────────────────────────────────────────────────────────────────────────
-
   // Merge activity into rowMap using waterfall logic:
   // won ⊆ offertes ⊆ inspecties — a lead that went directly to won counts in all three.
   for (const [niche, sets] of activity) {
@@ -1393,9 +1370,6 @@ export async function nichePerformance(range?: TimeRange): Promise<NicheRow[]> {
     row.gewonnen   = sets.won.size
     row.deferred   = sets.deferred.size
     row.lost       = sets.lost.size
-    // ── DEBUG: after waterfall ───────────────────────────────────────────────
-    console.log(`[nichePerf] ${niche} FINAL — insp:${row.inspecties} off:${row.offertes} won:${row.gewonnen} def:${row.deferred} lost:${row.lost}`)
-    // ────────────────────────────────────────────────────────────────────────
   }
 
   return [...rowMap.values()]

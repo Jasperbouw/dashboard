@@ -83,19 +83,10 @@ export default async function FunnelPage({ searchParams }: Props) {
 
   const def      = currentMonth()
   const fromDate = params.from ? new Date(params.from) : def.from
-  const toDate   = params.to   ? new Date(params.to)   : def.to
+  const toDate   = params.to   ? new Date(params.to + 'T23:59:59.999Z') : def.to
   const fromStr  = params.from ?? def.from.toISOString().slice(0, 10)
   const toStr    = params.to   ?? def.to.toISOString().slice(0, 10)
   const range: TimeRange = { from: fromDate, to: toDate }
-
-  // DEBUG: verify URL params flow through
-  console.log('[funnel] params received:', {
-    rawFrom:   params.from,
-    rawTo:     params.to,
-    defaulted: !params.from || !params.to,
-    resolvedFrom: fromDate.toISOString(),
-    resolvedTo:   toDate.toISOString(),
-  })
 
   const funnelT0 = Date.now()
   const [distribution, campaigns, niches, funnel, doorlooptijden] = await Promise.all([
