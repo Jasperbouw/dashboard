@@ -69,13 +69,14 @@ const STAGE_STATUSES: Record<string, string[]> = {
   new:        ['Open Leads', 'Open Leads huidig', 'Nieuwe Lead'],
   contacted:  ['1x gebeld', '2x gebeld', '3x gebeld', '4x gebeld',
                'Gebeld', 'Gesproken', 'Inplannen', 'In afwachting bevestiging'],
-  inspection: ['Inspectie gepland'],
+  inspection: ['Inspectie gepland', 'Afspraak gepland'],
   quote_sent: ['Offerte verzonden', 'Offerte verstuurd', 'Laatste poging'],
   won:        ['Akkoord'],
-  deferred:   ['Later opvolgen', 'Opvolgen', 'Follow up later'],
+  deferred:   ['Later opvolgen', 'Opvolgen', 'Follow up later', 'On-hold'],
   lost:       ['Niet bereikbaar', 'Niet bereikbaar/geinteresseerd/al voorzien',
-               'Niet bereikbaar/geïnteresseerd/al voorzien',
-               'Niet geïnteresseerd', 'Geïnteresseerd', 'Al voorzien'],
+               'Niet bereikbaar/geïnteresseerd/al voorzien', 'Niet bereikbaar/al voorzien',
+               'Offerte afgewezen', 'Niet geïnteresseerd', 'Geïnteresseerd', 'Al voorzien',
+               'Afgevallen / niet interessant'],
 }
 
 // ── Commission helper ─────────────────────────────────────────────────────────
@@ -1246,13 +1247,15 @@ export interface NicheRow {
   leads:          number
   routed:         number
   qualifiedRate:  number | null   // routed / leads — routing-based QL for Funnel page
-  inspecties:     number          // routed leads at inspection/quote_sent/won
-  offertes:       number          // routed leads at quote_sent/won
-  gewonnen:       number          // routed leads at won
-  deferred:       number          // routed leads at deferred
+  inspecties:     number          // activity: distinct leads that transitioned to inspection/quote_sent/won in period (waterfall)
+  offertes:       number          // activity: distinct leads that transitioned to quote_sent/won in period (waterfall)
+  gewonnen:       number          // activity: distinct leads that transitioned to won in period
+  deferred:       number          // activity: distinct leads that transitioned to deferred in period
+  lost:           number          // activity: distinct leads that transitioned to lost in period
 }
 
 export async function nichePerformance(range?: TimeRange): Promise<NicheRow[]> {
+  // ── Cohort query — leads received in period (QL% / routing stats) ──────────
   let leadsQ = db().from('leads')
     .select('contractor_id, board_id, canonical_stage')
     .limit(5000)
@@ -1262,10 +1265,35 @@ export async function nichePerformance(range?: TimeRange): Promise<NicheRow[]> {
       .lte('monday_created_at', range.to.toISOString())
   }
 
-  const [{ data: leads }, { data: boardConfigs }, { data: contractors }] = await Promise.all([
+  // ── Activity query — stage transitions in period (insp/offerte/won/deferred/lost) ─
+  // Filtered by (to_status, changed_at) composite index (migration 016).
+  const activityStatuses = [
+    ...STAGE_STATUSES.inspection,
+    ...STAGE_STATUSES.quote_sent,
+    ...STAGE_STATUSES.won,
+    ...STAGE_STATUSES.deferred,
+    ...STAGE_STATUSES.lost,
+  ]
+  let changesQ = db()
+    .from('lead_status_changes')
+    .select('lead_id, to_status, leads!inner(contractor_id, board_id)')
+    .in('to_status', activityStatuses)
+  if (range) {
+    changesQ = changesQ
+      .gte('changed_at', range.from.toISOString())
+      .lte('changed_at', range.to.toISOString())
+  }
+
+  const [
+    { data: leads },
+    { data: boardConfigs },
+    { data: contractors },
+    { data: rawChanges },
+  ] = await Promise.all([
     leadsQ,
     db().from('boards_config').select('id, niche'),
     db().from('contractors').select('id, niche, active'),
+    changesQ,
   ])
 
   const boardNiche      = new Map<number, string>((boardConfigs ?? []).filter(b => b.niche).map(b => [b.id, b.niche!]))
@@ -1274,29 +1302,74 @@ export async function nichePerformance(range?: TimeRange): Promise<NicheRow[]> {
 
   const rowMap = new Map<string, NicheRow>()
 
+  // ── Cohort pass — leads received + routed count (cohort = monday_created_at) ─
   for (const l of leads ?? []) {
-    // Only count leads that belong to an active contractor, or to a board with a known niche
     const leadNiche = l.contractor_id
       ? (contractorNiche.get(l.contractor_id) ?? null)
       : (boardNiche.get(l.board_id) ?? null)
-
     if (!leadNiche) continue
-    // If routed, must be to an active contractor
     if (l.contractor_id && !activeIds.has(l.contractor_id)) continue
 
     if (!rowMap.has(leadNiche)) {
-      rowMap.set(leadNiche, { niche: leadNiche, leads: 0, routed: 0, qualifiedRate: null, inspecties: 0, offertes: 0, gewonnen: 0, deferred: 0 })
+      rowMap.set(leadNiche, { niche: leadNiche, leads: 0, routed: 0, qualifiedRate: null, inspecties: 0, offertes: 0, gewonnen: 0, deferred: 0, lost: 0 })
     }
     const row = rowMap.get(leadNiche)!
     row.leads++
-    if (l.contractor_id) {
-      const s = l.canonical_stage
-      if (s !== 'lost') row.routed++
-      if (s === 'inspection' || s === 'quote_sent' || s === 'won') row.inspecties++
-      if (s === 'quote_sent' || s === 'won') row.offertes++
-      if (s === 'won') row.gewonnen++
-      if (s === 'deferred') row.deferred++
+    if (l.contractor_id && l.canonical_stage !== 'lost') row.routed++
+  }
+
+  // ── Activity pass — deduplicated stage transition counts (activity = changed_at) ─
+  // Sets per (niche, stage-bucket) ensure each lead counted at most once per bucket.
+  type ActivitySets = {
+    inspection: Set<string>; quote_sent: Set<string>; won: Set<string>
+    deferred:   Set<string>; lost:       Set<string>
+  }
+  const activity = new Map<string, ActivitySets>()
+
+  type ChangeRow = {
+    lead_id:   string
+    to_status: string
+    leads: { contractor_id: string | null; board_id: number | null }
+  }
+
+  for (const c of (rawChanges ?? []) as unknown as ChangeRow[]) {
+    const { contractor_id: ctr, board_id: brd } = c.leads ?? {}
+    const leadNiche = ctr
+      ? (contractorNiche.get(ctr) ?? null)
+      : (brd != null ? (boardNiche.get(brd) ?? null) : null)
+    if (!leadNiche) continue
+
+    const stageKey = STATUS_TO_STAGE.get(c.to_status.trim().toLowerCase())
+    if (!stageKey || stageKey === 'new' || stageKey === 'contacted') continue
+
+    if (!activity.has(leadNiche)) {
+      activity.set(leadNiche, {
+        inspection: new Set(), quote_sent: new Set(), won: new Set(),
+        deferred:   new Set(), lost:       new Set(),
+      })
     }
+    const sets = activity.get(leadNiche)!
+    if      (stageKey === 'inspection') sets.inspection.add(c.lead_id)
+    else if (stageKey === 'quote_sent') sets.quote_sent.add(c.lead_id)
+    else if (stageKey === 'won')        sets.won.add(c.lead_id)
+    else if (stageKey === 'deferred')   sets.deferred.add(c.lead_id)
+    else if (stageKey === 'lost')       sets.lost.add(c.lead_id)
+  }
+
+  // Merge activity into rowMap using waterfall logic:
+  // won ⊆ offertes ⊆ inspecties — a lead that went directly to won counts in all three.
+  for (const [niche, sets] of activity) {
+    if (!rowMap.has(niche)) {
+      rowMap.set(niche, { niche, leads: 0, routed: 0, qualifiedRate: null, inspecties: 0, offertes: 0, gewonnen: 0, deferred: 0, lost: 0 })
+    }
+    const row = rowMap.get(niche)!
+    const inspSet = new Set([...sets.inspection, ...sets.quote_sent, ...sets.won])
+    const offSet  = new Set([...sets.quote_sent,  ...sets.won])
+    row.inspecties = inspSet.size
+    row.offertes   = offSet.size
+    row.gewonnen   = sets.won.size
+    row.deferred   = sets.deferred.size
+    row.lost       = sets.lost.size
   }
 
   return [...rowMap.values()]
