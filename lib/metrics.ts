@@ -1290,8 +1290,8 @@ export async function nichePerformance(range?: TimeRange): Promise<NicheRow[]> {
     const row = rowMap.get(leadNiche)!
     row.leads++
     if (l.contractor_id) {
-      row.routed++
       const s = l.canonical_stage
+      if (s !== 'lost') row.routed++
       if (s === 'inspection' || s === 'quote_sent' || s === 'won') row.inspecties++
       if (s === 'quote_sent' || s === 'won') row.offertes++
       if (s === 'won') row.gewonnen++
