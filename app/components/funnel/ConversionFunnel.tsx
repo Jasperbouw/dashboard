@@ -2,7 +2,7 @@ import type { FunnelTransitionsResult } from '../../../lib/metrics'
 
 const STAGE_META = [
   { key: 'new',        label: 'Leads ontvangen',  rateKey: null },
-  { key: 'contacted',  label: 'Gekwalificeerd',    rateKey: 'new_to_contacted' },
+  { key: 'contacted',  label: 'Opgepakt',           rateKey: 'new_to_contacted' },
   { key: 'inspection', label: 'Inspectie',         rateKey: 'contacted_to_inspection' },
   { key: 'quote_sent', label: 'Offerte',           rateKey: 'inspection_to_quote_sent' },
   { key: 'won',        label: 'Gewonnen',          rateKey: 'quote_sent_to_won' },

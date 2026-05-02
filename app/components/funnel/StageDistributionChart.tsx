@@ -73,43 +73,57 @@ export function StageDistributionChart({ distribution }: Props) {
           const pct   = total > 0 ? count / total : 0
 
           return (
-            <div key={stage} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              {/* Stage label */}
-              <div style={{
-                width:      80, flexShrink: 0,
-                fontSize:   'var(--font-size-xs)',
-                color:      'var(--color-ink-muted)',
-                textAlign:  'right',
-              }}>
-                {meta?.label ?? stage}
-              </div>
-
-              {/* Bar */}
-              <div style={{
-                flex: 1, height: 18,
-                background:   'var(--color-surface-raised)',
-                borderRadius: 'var(--radius-sm)',
-                overflow:     'hidden',
-              }}>
+            <div key={stage}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                {/* Stage label */}
                 <div style={{
-                  width:        `${Math.max(pct * 100, pct > 0 ? 1 : 0)}%`,
-                  height:       '100%',
-                  background:   meta?.color ?? 'var(--color-border-strong)',
+                  width:      80, flexShrink: 0,
+                  fontSize:   'var(--font-size-xs)',
+                  color:      'var(--color-ink-muted)',
+                  textAlign:  'right',
+                }}>
+                  {meta?.label ?? stage}
+                </div>
+
+                {/* Bar */}
+                <div style={{
+                  flex: 1, height: 18,
+                  background:   'var(--color-surface-raised)',
                   borderRadius: 'var(--radius-sm)',
-                  transition:   'width 0.3s ease',
-                }} />
+                  overflow:     'hidden',
+                }}>
+                  <div style={{
+                    width:        `${Math.max(pct * 100, pct > 0 ? 1 : 0)}%`,
+                    height:       '100%',
+                    background:   meta?.color ?? 'var(--color-border-strong)',
+                    borderRadius: 'var(--radius-sm)',
+                    transition:   'width 0.3s ease',
+                  }} />
+                </div>
+
+                {/* Count */}
+                <div style={{
+                  width:              36, flexShrink: 0,
+                  fontSize:           'var(--font-size-xs)',
+                  color:              count > 0 ? 'var(--color-ink)' : 'var(--color-ink-faint)',
+                  fontVariantNumeric: 'tabular-nums',
+                  textAlign:          'right',
+                }}>
+                  {count}
+                </div>
               </div>
 
-              {/* Count */}
-              <div style={{
-                width:              36, flexShrink: 0,
-                fontSize:           'var(--font-size-xs)',
-                color:              count > 0 ? 'var(--color-ink)' : 'var(--color-ink-faint)',
-                fontVariantNumeric: 'tabular-nums',
-                textAlign:          'right',
-              }}>
-                {count}
-              </div>
+              {/* Nieuw split annotation — only when no niche filter is active */}
+              {stage === 'new' && !activeNiche && (distribution.newUnrouted > 0 || distribution.newRouted > 0) && (
+                <div style={{
+                  paddingLeft:  92,   // label (80) + gap (12)
+                  marginTop:    2,
+                  fontSize:     'var(--font-size-2xs)',
+                  color:        'var(--color-ink-faint)',
+                }}>
+                  {distribution.newUnrouted} ongerouteerd · {distribution.newRouted} bij contractor
+                </div>
+              )}
             </div>
           )
         })}

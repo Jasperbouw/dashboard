@@ -1126,8 +1126,10 @@ export async function qualificationStats(range?: TimeRange): Promise<Qualificati
 // Current stage snapshot — all active-contractor leads, no date filter.
 // Pass niche to restrict to one niche; omit for all niches.
 export interface StageDistribution {
-  counts:  Record<string, number>
-  byNiche: Record<string, Record<string, number>>
+  counts:      Record<string, number>
+  byNiche:     Record<string, Record<string, number>>
+  newRouted:   number   // canonical_stage='new' AND contractor_id IS NOT NULL
+  newUnrouted: number   // canonical_stage='new' AND contractor_id IS NULL
 }
 
 // range is optional — when provided, filters by monday_created_at for "active period" view.
@@ -1157,6 +1159,8 @@ export async function currentStageDistribution(range?: TimeRange): Promise<Stage
   const stages  = ['new', 'contacted', 'inspection', 'quote_sent', 'won', 'deferred', 'lost']
   const counts: Record<string, number> = Object.fromEntries(stages.map(s => [s, 0]))
   const byNiche: Record<string, Record<string, number>> = {}
+  let newRouted = 0
+  let newUnrouted = 0
 
   for (const l of data ?? []) {
     const niche: string | null = l.contractor_id
@@ -1168,9 +1172,14 @@ export async function currentStageDistribution(range?: TimeRange): Promise<Stage
     if (stage in counts) counts[stage]++
     if (!byNiche[niche]) byNiche[niche] = Object.fromEntries(stages.map(s => [s, 0]))
     if (stage in byNiche[niche]) byNiche[niche][stage]++
+
+    if (stage === 'new') {
+      if (l.contractor_id) newRouted++
+      else newUnrouted++
+    }
   }
 
-  return { counts, byNiche }
+  return { counts, byNiche, newRouted, newUnrouted }
 }
 
 // Campaign performance table — per campaign_tag aggregation for a date range.
@@ -1233,13 +1242,14 @@ export async function campaignPerformance(range?: TimeRange, niche?: string): Pr
 
 // Niche-level performance for a date range. Includes ALL leads (no campaign_tag requirement).
 export interface NicheRow {
-  niche:      string
-  leads:      number
-  routed:     number
-  inspecties: number
-  offertes:   number
-  gewonnen:   number
-  deferred:   number
+  niche:          string
+  leads:          number
+  routed:         number
+  qualifiedRate:  number | null   // routed / leads — routing-based QL for Funnel page
+  inspecties:     number          // routed leads at inspection/quote_sent/won
+  offertes:       number          // routed leads at quote_sent/won
+  gewonnen:       number          // routed leads at won
+  deferred:       number          // routed leads at deferred
 }
 
 export async function nichePerformance(range?: TimeRange): Promise<NicheRow[]> {
@@ -1275,19 +1285,23 @@ export async function nichePerformance(range?: TimeRange): Promise<NicheRow[]> {
     if (l.contractor_id && !activeIds.has(l.contractor_id)) continue
 
     if (!rowMap.has(leadNiche)) {
-      rowMap.set(leadNiche, { niche: leadNiche, leads: 0, routed: 0, inspecties: 0, offertes: 0, gewonnen: 0, deferred: 0 })
+      rowMap.set(leadNiche, { niche: leadNiche, leads: 0, routed: 0, qualifiedRate: null, inspecties: 0, offertes: 0, gewonnen: 0, deferred: 0 })
     }
     const row = rowMap.get(leadNiche)!
     row.leads++
-    if (l.contractor_id) row.routed++
-    const s = l.canonical_stage
-    if (s === 'inspection' || s === 'quote_sent' || s === 'won') row.inspecties++
-    if (s === 'quote_sent' || s === 'won') row.offertes++
-    if (s === 'won') row.gewonnen++
-    if (s === 'deferred') row.deferred++
+    if (l.contractor_id) {
+      row.routed++
+      const s = l.canonical_stage
+      if (s === 'inspection' || s === 'quote_sent' || s === 'won') row.inspecties++
+      if (s === 'quote_sent' || s === 'won') row.offertes++
+      if (s === 'won') row.gewonnen++
+      if (s === 'deferred') row.deferred++
+    }
   }
 
-  return [...rowMap.values()].sort((a, b) => b.leads - a.leads)
+  return [...rowMap.values()]
+    .map(row => ({ ...row, qualifiedRate: row.leads > 0 ? row.routed / row.leads : null }))
+    .sort((a, b) => b.leads - a.leads)
 }
 
 // Business-wide average days between stage transitions for a period.
