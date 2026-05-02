@@ -108,9 +108,11 @@ function SimpleCard({ label, value, sub }: { label: string; value: number | stri
 }
 
 // ── Timing helper (server-side only, remove once investigation is done) ────────
-function timed<T>(label: string, p: Promise<T>): Promise<T> {
+async function timed<T>(label: string, p: PromiseLike<T>): Promise<T> {
   const t0 = Date.now()
-  return p.then(r => { console.log(`[today] ${label}: ${Date.now() - t0}ms`); return r })
+  const result = await p
+  console.log(`[today] ${label}: ${Date.now() - t0}ms`)
+  return result
 }
 
 // ── Page ───────────────────────────────────────────────────────────────────────

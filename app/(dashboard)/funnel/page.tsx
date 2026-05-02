@@ -71,9 +71,11 @@ function periodLabel(from: string, to: string): string {
   return `${from} t/m ${to}`
 }
 
-function timedFn<T>(label: string, p: Promise<T>): Promise<T> {
+async function timedFn<T>(label: string, p: PromiseLike<T>): Promise<T> {
   const t0 = Date.now()
-  return p.then(r => { console.log(`[funnel] ${label}: ${Date.now() - t0}ms`); return r })
+  const result = await p
+  console.log(`[funnel] ${label}: ${Date.now() - t0}ms`)
+  return result
 }
 
 export default async function FunnelPage({ searchParams }: Props) {
