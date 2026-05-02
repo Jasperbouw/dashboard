@@ -11,7 +11,7 @@ const NICHE_ORDER  = ['bouw', 'daken', 'dakkapel', 'extras']
 const NICHE_LABEL: Record<string, string> = {
   bouw: 'Bouw', daken: 'Daken', dakkapel: 'Dakkapel', extras: 'Extras',
 }
-const NL_DAY_SHORT = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za']
+
 
 // Raw Monday.com status strings per canonical stage — must match exactly.
 const INSPECTION_STATUSES = ['Inspectie gepland']
@@ -72,8 +72,12 @@ function PulseCard({ label, value, prevValue, compareLabel, nicheBreakdown }: {
         {value}
       </div>
       {nicheBreakdown && (
-        <div style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-ink-faint)', marginTop: 5 }}>
-          {nicheBreakdown}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0 6px', marginTop: 6 }}>
+          {nicheBreakdown.split(' · ').map((item, i, arr) => (
+            <span key={item} style={{ whiteSpace: 'nowrap', fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-muted)' }}>
+              {item}{i < arr.length - 1 ? ' ·' : ''}
+            </span>
+          ))}
         </div>
       )}
       <div style={{ fontSize: 'var(--font-size-xs)', color, marginTop: 6, fontVariantNumeric: 'tabular-nums' }}>
@@ -134,10 +138,7 @@ export default async function TodayPage() {
 
   // ── Display labels ───────────────────────────────────────────────────────────
   const todayLabel      = now.toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' })
-  const todayShort      = NL_DAY_SHORT[now.getDay()]
-  const weekCompareLabel = daysSinceMon === 0
-    ? 'vs ma vorige week'
-    : `vs ma–${todayShort} vorige week`
+  const weekCompareLabel = 'vs vorige week'
 
   const db = serverClient()
 
