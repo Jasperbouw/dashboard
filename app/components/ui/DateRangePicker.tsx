@@ -10,29 +10,27 @@ function isoDate(d: Date) { return d.toISOString().slice(0, 10) }
 function getPreset(key: string): DateRange {
   const now   = new Date()
   const today = isoDate(now)
+  const y = now.getUTCFullYear()
+  const m = now.getUTCMonth()
   switch (key) {
-    case 'this_month': {
-      const from = new Date(now.getFullYear(), now.getMonth(), 1)
-      const to   = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-      return { from: isoDate(from), to: isoDate(to) }
-    }
-    case 'last_month': {
-      const from = new Date(now.getFullYear(), now.getMonth() - 1, 1)
-      const to   = new Date(now.getFullYear(), now.getMonth(), 0)
-      return { from: isoDate(from), to: isoDate(to) }
-    }
-    case 'last_30d': {
-      const from = new Date(now.getTime() - 30 * 86_400_000)
-      return { from: isoDate(from), to: today }
-    }
-    case 'last_90d': {
-      const from = new Date(now.getTime() - 90 * 86_400_000)
-      return { from: isoDate(from), to: today }
-    }
-    case 'ytd': {
-      return { from: `${now.getFullYear()}-01-01`, to: today }
-    }
-    default: return { from: isoDate(new Date(now.getFullYear(), now.getMonth(), 1)), to: today }
+    case 'this_month':
+      return {
+        from: isoDate(new Date(Date.UTC(y, m, 1))),
+        to:   isoDate(new Date(Date.UTC(y, m + 1, 0))),
+      }
+    case 'last_month':
+      return {
+        from: isoDate(new Date(Date.UTC(y, m - 1, 1))),
+        to:   isoDate(new Date(Date.UTC(y, m, 0))),
+      }
+    case 'last_30d':
+      return { from: isoDate(new Date(now.getTime() - 30 * 86_400_000)), to: today }
+    case 'last_90d':
+      return { from: isoDate(new Date(now.getTime() - 90 * 86_400_000)), to: today }
+    case 'ytd':
+      return { from: `${y}-01-01`, to: today }
+    default:
+      return { from: isoDate(new Date(Date.UTC(y, m, 1))), to: today }
   }
 }
 
