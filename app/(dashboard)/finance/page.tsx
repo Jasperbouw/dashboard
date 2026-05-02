@@ -59,6 +59,11 @@ export default async function FinancePage({ searchParams }: Props) {
   const trendStart     = new Date(selYear, selMonth - 5, 1)
   const trendStartDate = trendStart.toISOString().slice(0, 10)
 
+  // YTD high-value niches (bouw + new high-value; excl. daken & dakkapel)
+  const ytdStart = `${currentYear}-01-01`
+  const ytdEnd   = now.toISOString().slice(0, 10)
+  const YTD_NICHES = ['bouw', 'zwembaden', 'pergolas', 'nieuwbouw']
+
   const db = serverClient()
   const contractors = await getActiveContractors()
 
@@ -68,6 +73,7 @@ export default async function FinancePage({ searchParams }: Props) {
     { data: metaSpendRow },
     { data: targetsRow },
     { data: trendDealsRaw },
+    { data: ytdDealsRaw },
   ] = await Promise.all([
     db.from('closed_deals')
       .select('deal_value, commission_amount, contractor_id, niche, closed_at')
@@ -89,6 +95,11 @@ export default async function FinancePage({ searchParams }: Props) {
       .select('commission_amount, closed_at')
       .gte('closed_at', trendStartDate)
       .lte('closed_at', monthEndDate),
+    db.from('closed_deals')
+      .select('deal_value, commission_amount')
+      .gte('closed_at', ytdStart)
+      .lte('closed_at', ytdEnd)
+      .in('niche', YTD_NICHES),
   ])
 
   type DealRow = { deal_value: number; commission_amount: number; contractor_id: string | null; niche: string | null; closed_at: string }
@@ -149,6 +160,15 @@ export default async function FinancePage({ searchParams }: Props) {
     .map(c => ({ id: c.id, name: c.name, niche: c.niche ?? '', model: c.commission_model ?? '', amount: contCommMap[c.id] ?? 0 }))
     .sort((a, b) => b.amount - a.amount)
     .slice(0, 5)
+
+  // YTD stats
+  type YtdRow = { deal_value: number; commission_amount: number }
+  const ytdDeals         = (ytdDealsRaw ?? []) as YtdRow[]
+  const ytdCount         = ytdDeals.length
+  const ytdTotalDealValue = ytdDeals.reduce((s, d) => s + Number(d.deal_value), 0)
+  const ytdTotalComm      = ytdDeals.reduce((s, d) => s + Number(d.commission_amount), 0)
+  const ytdAvgDealValue   = ytdCount > 0 ? Math.round(ytdTotalDealValue / ytdCount) : 0
+  const ytdEmpty          = ytdCount === 0
 
   type ProgressInfo = { pct: number; target: number; color: string } | null
 
@@ -246,6 +266,43 @@ export default async function FinancePage({ searchParams }: Props) {
         initial={targets}
         periodLabel={periodLabel}
       />
+
+      {/* YTD — Bouw & high-value niches */}
+      <div style={{ marginBottom: 28 }}>
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-ink-faint)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            YTD — Bouw &amp; high-value niches
+          </div>
+          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-muted)', marginTop: 2 }}>
+            1 jan – vandaag · excl. daken &amp; dakkapel
+          </div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+          {[
+            { label: 'Gemiddelde deal value',       value: ytdEmpty ? '—' : fmtEur(ytdAvgDealValue),   sub: 'Gem. per deal' },
+            { label: 'Totale omzet bouwbedrijven',  value: ytdEmpty ? '—' : fmtEur(ytdTotalDealValue), sub: 'Deal waarde YTD' },
+            { label: 'Onze commissie',              value: ytdEmpty ? '—' : fmtEur(ytdTotalComm),      sub: 'Commissie YTD' },
+            { label: 'Aantal deals',                value: ytdEmpty ? '—' : String(ytdCount),           sub: 'Gesloten dit jaar' },
+          ].map(c => (
+            <div key={c.label} style={{ padding: '18px 20px', background: 'var(--color-surface)', border: '1px solid var(--color-border-subtle)', borderRadius: 'var(--radius-xl)' }}>
+              <div style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 600, color: 'var(--color-ink-faint)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>
+                {c.label}
+              </div>
+              <div style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 600, color: 'var(--color-ink)', fontVariantNumeric: 'tabular-nums' }}>
+                {c.value}
+              </div>
+              <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)', marginTop: 4 }}>
+                {c.sub}
+              </div>
+            </div>
+          ))}
+        </div>
+        {ytdEmpty && (
+          <div style={{ marginTop: 10, fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)' }}>
+            Nog geen high-value deals dit jaar.
+          </div>
+        )}
+      </div>
 
       {/* Charts */}
       <FinanceCharts
