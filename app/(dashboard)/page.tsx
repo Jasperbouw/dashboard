@@ -11,6 +11,7 @@ const NICHE_ORDER  = ['bouw', 'daken', 'dakkapel', 'extras']
 const NICHE_LABEL: Record<string, string> = {
   bouw: 'Bouw', daken: 'Daken', dakkapel: 'Dakkapel', extras: 'Extras',
 }
+const NL_DAY_SHORT = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za']
 
 // Raw Monday.com status strings per canonical stage — must match exactly.
 const INSPECTION_STATUSES = ['Inspectie gepland']
@@ -45,10 +46,16 @@ function SectionHeader({ label, subtitle }: { label: string; subtitle?: string }
   )
 }
 
-function PulseCard({ label, value, prevValue }: { label: string; value: number; prevValue: number }) {
+function PulseCard({ label, value, prevValue, compareLabel, nicheBreakdown }: {
+  label:           string
+  value:           number
+  prevValue:       number
+  compareLabel:    string
+  nicheBreakdown?: string
+}) {
   const diff  = value - prevValue
   const color = diff > 0 ? '#3fb950' : diff < 0 ? '#f85149' : 'var(--color-ink-faint)'
-  const arrow = diff > 0 ? '↑' : diff < 0 ? '↓' : '–'
+  const sign  = diff > 0 ? '↑' : diff < 0 ? '↓' : '='
 
   return (
     <div style={{
@@ -64,8 +71,13 @@ function PulseCard({ label, value, prevValue }: { label: string; value: number; 
       <div style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 600, color: 'var(--color-ink)', fontVariantNumeric: 'tabular-nums' }}>
         {value}
       </div>
+      {nicheBreakdown && (
+        <div style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-ink-faint)', marginTop: 5 }}>
+          {nicheBreakdown}
+        </div>
+      )}
       <div style={{ fontSize: 'var(--font-size-xs)', color, marginTop: 6, fontVariantNumeric: 'tabular-nums' }}>
-        {arrow} {Math.abs(diff)} vs vorige week
+        {sign} {Math.abs(diff)} {compareLabel}
       </div>
     </div>
   )
@@ -121,9 +133,11 @@ export default async function TodayPage() {
   const quarterEnd   = new Date(now.getFullYear(), qStartMonth + 3, 0, 23, 59, 59, 999)
 
   // ── Display labels ───────────────────────────────────────────────────────────
-  const monLabel    = thisMonStart.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long' })
-  const weekSubtitle = `Maandag ${monLabel} tot vandaag`
-  const todayLabel   = now.toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' })
+  const todayLabel      = now.toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' })
+  const todayShort      = NL_DAY_SHORT[now.getDay()]
+  const weekCompareLabel = daysSinceMon === 0
+    ? 'vs ma vorige week'
+    : `vs ma–${todayShort} vorige week`
 
   const db = serverClient()
 
@@ -150,6 +164,8 @@ export default async function TodayPage() {
     { data: monthLeadsRaw },
     { data: contractorsRaw },
     { data: boardsRaw },
+    // Section 1 supplemental: this week's leads niche breakdown
+    { data: thisWeekLeadsRaw },
     // Section 3: quarter deals (pending commission proxy)
     { data: qDealsRaw },
   ] = await Promise.all([
@@ -212,6 +228,12 @@ export default async function TodayPage() {
     db.from('contractors').select('id, niche'),
     db.from('boards_config').select('id, niche'),
 
+    // Section 1 supplemental: this week's leads with niche info (for leads card breakdown)
+    db.from('leads').select('contractor_id, board_id')
+      .gte('monday_created_at', thisMonStart.toISOString())
+      .lte('monday_created_at', thisCutoff.toISOString())
+      .limit(2000),
+
     // ── Section 3 ─────────────────────────────────────────────────
     // TODO: add payment_status to closed_deals so only genuinely unpaid deals
     // are shown here. Until then, all deals from current quarter serve as a proxy.
@@ -232,20 +254,35 @@ export default async function TodayPage() {
   const twWonCount   = distinctLeads(twWon)
   const lwWonCount   = distinctLeads(lwWon)
 
-  // Section 2 — niche breakdown text
+  // Shared niche lookup maps (reused for both week and month breakdowns)
   const contractorNiche = new Map<string, string>(
     (contractorsRaw ?? []).filter(c => c.niche).map(c => [c.id, c.niche as string]),
   )
   const boardNiche = new Map<number, string>(
     (boardsRaw ?? []).filter(b => b.niche).map(b => [b.id as number, b.niche as string]),
   )
-  const nicheCount: Record<string, number> = {}
-  for (const l of monthLeadsRaw ?? []) {
-    const niche = l.contractor_id
-      ? (contractorNiche.get(l.contractor_id) ?? null)
-      : (l.board_id != null ? (boardNiche.get(l.board_id as number) ?? null) : null)
-    if (niche) nicheCount[niche] = (nicheCount[niche] ?? 0) + 1
+
+  function leadsToNicheCount(rows: Array<{ contractor_id: string | null; board_id: number | null }> | null) {
+    const counts: Record<string, number> = {}
+    for (const l of rows ?? []) {
+      const niche = l.contractor_id
+        ? (contractorNiche.get(l.contractor_id) ?? null)
+        : (l.board_id != null ? (boardNiche.get(l.board_id) ?? null) : null)
+      if (niche) counts[niche] = (counts[niche] ?? 0) + 1
+    }
+    return counts
   }
+
+  // Section 1 — week niche breakdown (sorted by count desc, no colon)
+  const weekNicheCount = leadsToNicheCount(thisWeekLeadsRaw as Array<{ contractor_id: string | null; board_id: number | null }> | null)
+  const weekNicheText = [...NICHE_ORDER]
+    .filter(n => (weekNicheCount[n] ?? 0) > 0)
+    .sort((a, b) => (weekNicheCount[b] ?? 0) - (weekNicheCount[a] ?? 0))
+    .map(n => `${NICHE_LABEL[n]} ${weekNicheCount[n]}`)
+    .join(' · ')
+
+  // Section 2 — month niche breakdown
+  const nicheCount = leadsToNicheCount(monthLeadsRaw as Array<{ contractor_id: string | null; board_id: number | null }> | null)
   const nicheText = NICHE_ORDER
     .filter(n => (nicheCount[n] ?? 0) > 0)
     .map(n => `${NICHE_LABEL[n]}: ${nicheCount[n]}`)
@@ -280,12 +317,12 @@ export default async function TodayPage() {
 
       {/* ── Section 1: Week vergelijking ─────────────────────────────────────── */}
       <div style={{ marginBottom: 40 }}>
-        <SectionHeader label="Deze week" subtitle={weekSubtitle} />
+        <SectionHeader label="Deze week" />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14 }}>
-          <PulseCard label="Leads ontvangen"    value={thisWeekLeads ?? 0} prevValue={lastWeekLeads ?? 0} />
-          <PulseCard label="Inspecties gepland" value={twInspCount}        prevValue={lwInspCount} />
-          <PulseCard label="Offertes verzonden" value={twQuoteCount}       prevValue={lwQuoteCount} />
-          <PulseCard label="Wins"               value={twWonCount}         prevValue={lwWonCount} />
+          <PulseCard label="Leads ontvangen"    value={thisWeekLeads ?? 0} prevValue={lastWeekLeads ?? 0} compareLabel={weekCompareLabel} nicheBreakdown={weekNicheText || undefined} />
+          <PulseCard label="Inspecties gepland" value={twInspCount}        prevValue={lwInspCount}        compareLabel={weekCompareLabel} />
+          <PulseCard label="Offertes verzonden" value={twQuoteCount}       prevValue={lwQuoteCount}       compareLabel={weekCompareLabel} />
+          <PulseCard label="Wins"               value={twWonCount}         prevValue={lwWonCount}         compareLabel={weekCompareLabel} />
         </div>
       </div>
 
