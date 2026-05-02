@@ -1255,6 +1255,12 @@ export interface NicheRow {
 }
 
 export async function nichePerformance(range?: TimeRange): Promise<NicheRow[]> {
+  // DEBUG: verify period bounds
+  console.log('[nichePerf] period bounds used in query:', range
+    ? { from: range.from.toISOString(), to: range.to.toISOString() }
+    : 'NO RANGE — all-time query'
+  )
+
   // ── Cohort query — leads received in period (QL% / routing stats) ──────────
   let leadsQ = db().from('leads')
     .select('contractor_id, board_id, canonical_stage')
