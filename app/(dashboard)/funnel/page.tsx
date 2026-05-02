@@ -71,6 +71,11 @@ function periodLabel(from: string, to: string): string {
   return `${from} t/m ${to}`
 }
 
+function timedFn<T>(label: string, p: Promise<T>): Promise<T> {
+  const t0 = Date.now()
+  return p.then(r => { console.log(`[funnel] ${label}: ${Date.now() - t0}ms`); return r })
+}
+
 export default async function FunnelPage({ searchParams }: Props) {
   const params = await searchParams
 
@@ -81,13 +86,15 @@ export default async function FunnelPage({ searchParams }: Props) {
   const toStr    = params.to   ?? def.to.toISOString().slice(0, 10)
   const range: TimeRange = { from: fromDate, to: toDate }
 
+  const funnelT0 = Date.now()
   const [distribution, campaigns, niches, funnel, doorlooptijden] = await Promise.all([
-    currentStageDistribution(range),
-    campaignPerformance(range),
-    nichePerformance(range),
-    funnelTransitions(range),
-    doorlooptijdenAggregate(range),
+    timedFn('currentStageDistribution', currentStageDistribution(range)),
+    timedFn('campaignPerformance',      campaignPerformance(range)),
+    timedFn('nichePerformance',         nichePerformance(range)),
+    timedFn('funnelTransitions',        funnelTransitions(range)),
+    timedFn('doorlooptijdenAggregate',  doorlooptijdenAggregate(range)),
   ])
+  console.log(`[funnel] total-db: ${Date.now() - funnelT0}ms`)
 
   const totalLeads = Object.values(distribution.counts).reduce((s, v) => s + v, 0)
   const label      = periodLabel(fromStr, toStr)

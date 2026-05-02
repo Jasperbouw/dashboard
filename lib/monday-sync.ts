@@ -62,6 +62,7 @@ const STAGE_MAP: Record<string, string> = {
   'later opvolgen':                                    'deferred',
   'opvolgen':                                          'deferred',
   'follow up later':                                   'deferred',
+  'on-hold':                                           'deferred',
   // lost
   'niet bereikbaar':                                   'lost',
   'niet bereikbaar/geinteresseerd/al voorzien':        'lost',
@@ -71,12 +72,17 @@ const STAGE_MAP: Record<string, string> = {
   'niet geïnteresseerd':                               'lost',
   'geïnteresseerd':                                    'lost',
   'al voorzien':                                       'lost',
+  'afgevallen / niet interessant':                     'lost',
 }
 
 const unknownStages = new Set<string>()
 
 // Board-specific overrides take priority over the global STAGE_MAP.
-function toCanonicalStage(status: string, stageOverrides?: Record<string, string>): string | null {
+function toCanonicalStage(
+  status: string,
+  stageOverrides?: Record<string, string>,
+  boardName?: string,
+): string | null {
   if (stageOverrides) {
     const override = stageOverrides[status]
     if (override) return override
@@ -84,9 +90,11 @@ function toCanonicalStage(status: string, stageOverrides?: Record<string, string
   const key = status.trim().toLowerCase()
   const stage = STAGE_MAP[key]
   if (!stage) {
-    if (!unknownStages.has(status)) {
-      unknownStages.add(status)
-      console.warn(`  ⚠ Unknown status → canonical_stage=NULL: "${status}"`)
+    const dedupeKey = boardName ? `${boardName}::${status}` : status
+    if (!unknownStages.has(dedupeKey)) {
+      unknownStages.add(dedupeKey)
+      const board = boardName ? ` (board: "${boardName}")` : ''
+      console.warn(`  ⚠ Unknown status → canonical_stage=NULL: "${status}"${board} — add to STAGE_MAP or stage_overrides`)
     }
     return null
   }
@@ -226,7 +234,7 @@ async function upsertLead(
   const cm = board.column_map
 
   const currentStatus  = item.group.title
-  const canonicalStage = toCanonicalStage(currentStatus, board.stage_overrides)
+  const canonicalStage = toCanonicalStage(currentStatus, board.stage_overrides, board.name)
   const followUpRaw    = col(item, cm.follow_up)
 
   const rawColumnValues: Record<string, string> = {}

@@ -136,9 +136,11 @@ async function avgDaysBetweenTransitionsCore(
   toStatuses: string[],
   range: TimeRange,
 ): Promise<number | null> {
+  const label = `${fromStatuses[0]?.slice(0, 12)}→${toStatuses[0]?.slice(0, 12)}`
   // Two static select paths so TypeScript can infer return types
   let fromChanges: { lead_id: string; changed_at: string }[] | null
 
+  const t0 = Date.now()
   if (contractorIds.length > 0) {
     let q = db()
       .from('lead_status_changes')
@@ -159,16 +161,19 @@ async function avgDaysBetweenTransitionsCore(
       .lte('changed_at', range.to.toISOString())
     fromChanges = data
   }
+  console.log(`[metrics] avgDays[${label}]:from-query: ${Date.now() - t0}ms (${fromChanges?.length ?? 0} rows)`)
 
   if (!fromChanges?.length) return null
   const leadIds = [...new Set(fromChanges.map(c => c.lead_id))]
 
+  const t1 = Date.now()
   const { data: toChanges } = await db()
     .from('lead_status_changes')
     .select('lead_id, changed_at')
     .in('lead_id', leadIds)
     .in('to_status', toStatuses)
     .order('changed_at', { ascending: true })
+  console.log(`[metrics] avgDays[${label}]:to-query: ${Date.now() - t1}ms (${toChanges?.length ?? 0} rows, ${leadIds.length} lead_ids in filter)`)
 
   // For each "from" transition, find the first subsequent "to" transition on the same lead
   const firstToByLead = new Map<string, Date>()
@@ -417,20 +422,26 @@ for (const [stage, statuses] of Object.entries(STAGE_STATUSES)) {
 }
 
 export async function funnelTransitions(range: TimeRange): Promise<FunnelTransitionsResult> {
+  const t0 = Date.now()
   const daysOfData = await syncDataAge()
+  console.log(`[metrics] funnelTransitions:syncDataAge: ${Date.now() - t0}ms`)
   const reliable = (daysOfData ?? 0) >= 14
 
+  const t1 = Date.now()
   const contractors = await getActiveContractors()
+  console.log(`[metrics] funnelTransitions:getActiveContractors: ${Date.now() - t1}ms`)
   const activeIds = contractors.map(c => c.id)
 
   // Fetch all status changes for active-contractor leads in range, using embedded join
   // to avoid passing 1000+ lead IDs in a URL parameter.
+  const t2 = Date.now()
   const { data: changes } = await db()
     .from('lead_status_changes')
     .select('lead_id, to_status, leads!inner(contractor_id)')
     .in('leads.contractor_id', activeIds)
     .gte('changed_at', range.from.toISOString())
     .lte('changed_at', range.to.toISOString())
+  console.log(`[metrics] funnelTransitions:status-changes-join: ${Date.now() - t2}ms (${changes?.length ?? 0} rows)`)
 
   // Count unique leads that reached each funnel stage
   const reached: Record<FunnelStage, Set<string>> = {
@@ -1287,14 +1298,18 @@ export interface DoorlooptijdenAggregate {
 }
 
 export async function doorlooptijdenAggregate(range: TimeRange): Promise<DoorlooptijdenAggregate> {
+  const t0 = Date.now()
   const contractors = await getActiveContractors()
+  console.log(`[metrics] doorlooptijden:getActiveContractors: ${Date.now() - t0}ms`)
   const activeIds   = contractors.map(c => c.id)
 
+  const t1 = Date.now()
   const [leadToInspection, inspectionToQuote, quoteToWon] = await Promise.all([
     avgDaysBetweenTransitionsCore(activeIds, STAGE_STATUSES.new,        STAGE_STATUSES.inspection, range),
     avgDaysBetweenTransitionsCore(activeIds, STAGE_STATUSES.inspection,  STAGE_STATUSES.quote_sent, range),
     avgDaysBetweenTransitionsCore(activeIds, STAGE_STATUSES.quote_sent,  STAGE_STATUSES.won,        range),
   ])
+  console.log(`[metrics] doorlooptijden:3x-avgDays-parallel: ${Date.now() - t1}ms`)
 
   return { leadToInspection, inspectionToQuote, quoteToWon }
 }

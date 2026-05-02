@@ -107,6 +107,12 @@ function SimpleCard({ label, value, sub }: { label: string; value: number | stri
   )
 }
 
+// ── Timing helper (server-side only, remove once investigation is done) ────────
+function timed<T>(label: string, p: Promise<T>): Promise<T> {
+  const t0 = Date.now()
+  return p.then(r => { console.log(`[today] ${label}: ${Date.now() - t0}ms`); return r })
+}
+
 // ── Page ───────────────────────────────────────────────────────────────────────
 
 export default async function TodayPage() {
@@ -141,6 +147,7 @@ export default async function TodayPage() {
   const weekCompareLabel = 'vs vorige week'
 
   const db = serverClient()
+  const pageT0 = Date.now()
 
   const [
     { data: lastRun },
@@ -170,80 +177,81 @@ export default async function TodayPage() {
     // Section 3: quarter deals (pending commission proxy)
     { data: qDealsRaw },
   ] = await Promise.all([
-    db.from('sync_runs').select('started_at').order('started_at', { ascending: false }).limit(1).single(),
+    timed('sync_runs',         db.from('sync_runs').select('started_at').order('started_at', { ascending: false }).limit(1).single()),
 
     // ── Section 1 ─────────────────────────────────────────────────
-    db.from('leads').select('*', { count: 'exact', head: true })
+    timed('leads-this-week',   db.from('leads').select('*', { count: 'exact', head: true })
       .gte('monday_created_at', thisMonStart.toISOString())
-      .lte('monday_created_at', thisCutoff.toISOString()),
-    db.from('leads').select('*', { count: 'exact', head: true })
+      .lte('monday_created_at', thisCutoff.toISOString())),
+    timed('leads-last-week',   db.from('leads').select('*', { count: 'exact', head: true })
       .gte('monday_created_at', lastMonStart.toISOString())
-      .lte('monday_created_at', lastCutoff.toISOString()),
+      .lte('monday_created_at', lastCutoff.toISOString())),
 
-    db.from('lead_status_changes').select('lead_id')
+    timed('insp-this-week',    db.from('lead_status_changes').select('lead_id')
       .in('to_status', INSPECTION_STATUSES)
       .gte('changed_at', thisMonStart.toISOString())
-      .lte('changed_at', thisCutoff.toISOString()),
-    db.from('lead_status_changes').select('lead_id')
+      .lte('changed_at', thisCutoff.toISOString())),
+    timed('insp-last-week',    db.from('lead_status_changes').select('lead_id')
       .in('to_status', INSPECTION_STATUSES)
       .gte('changed_at', lastMonStart.toISOString())
-      .lte('changed_at', lastCutoff.toISOString()),
+      .lte('changed_at', lastCutoff.toISOString())),
 
-    db.from('lead_status_changes').select('lead_id')
+    timed('quote-this-week',   db.from('lead_status_changes').select('lead_id')
       .in('to_status', QUOTE_STATUSES)
       .gte('changed_at', thisMonStart.toISOString())
-      .lte('changed_at', thisCutoff.toISOString()),
-    db.from('lead_status_changes').select('lead_id')
+      .lte('changed_at', thisCutoff.toISOString())),
+    timed('quote-last-week',   db.from('lead_status_changes').select('lead_id')
       .in('to_status', QUOTE_STATUSES)
       .gte('changed_at', lastMonStart.toISOString())
-      .lte('changed_at', lastCutoff.toISOString()),
+      .lte('changed_at', lastCutoff.toISOString())),
 
-    db.from('lead_status_changes').select('lead_id')
+    timed('won-this-week',     db.from('lead_status_changes').select('lead_id')
       .in('to_status', WON_STATUSES)
       .gte('changed_at', thisMonStart.toISOString())
-      .lte('changed_at', thisCutoff.toISOString()),
-    db.from('lead_status_changes').select('lead_id')
+      .lte('changed_at', thisCutoff.toISOString())),
+    timed('won-last-week',     db.from('lead_status_changes').select('lead_id')
       .in('to_status', WON_STATUSES)
       .gte('changed_at', lastMonStart.toISOString())
-      .lte('changed_at', lastCutoff.toISOString()),
+      .lte('changed_at', lastCutoff.toISOString())),
 
     // ── Section 2 ─────────────────────────────────────────────────
-    db.from('leads').select('*', { count: 'exact', head: true })
+    timed('leads-this-month',  db.from('leads').select('*', { count: 'exact', head: true })
       .gte('monday_created_at', monthStart.toISOString())
-      .lte('monday_created_at', monthEnd.toISOString()),
+      .lte('monday_created_at', monthEnd.toISOString())),
 
-    db.from('leads').select('*', { count: 'exact', head: true })
-      .eq('canonical_stage', 'inspection'),
-    db.from('leads').select('*', { count: 'exact', head: true })
-      .eq('canonical_stage', 'quote_sent'),
+    timed('open-insp-snap',    db.from('leads').select('*', { count: 'exact', head: true })
+      .eq('canonical_stage', 'inspection')),
+    timed('open-quote-snap',   db.from('leads').select('*', { count: 'exact', head: true })
+      .eq('canonical_stage', 'quote_sent')),
 
-    db.from('lead_status_changes').select('lead_id')
+    timed('won-this-month',    db.from('lead_status_changes').select('lead_id')
       .in('to_status', WON_STATUSES)
       .gte('changed_at', monthStart.toISOString())
-      .lte('changed_at', monthEnd.toISOString()),
+      .lte('changed_at', monthEnd.toISOString())),
 
-    db.from('leads').select('contractor_id, board_id')
+    timed('month-leads-niche', db.from('leads').select('contractor_id, board_id')
       .gte('monday_created_at', monthStart.toISOString())
       .lte('monday_created_at', monthEnd.toISOString())
-      .limit(3000),
-    db.from('contractors').select('id, niche'),
-    db.from('boards_config').select('id, niche'),
+      .limit(3000)),
+    timed('contractors',       db.from('contractors').select('id, niche')),
+    timed('boards-config',     db.from('boards_config').select('id, niche')),
 
     // Section 1 supplemental: this week's leads with niche info (for leads card breakdown)
-    db.from('leads').select('contractor_id, board_id')
+    timed('week-leads-niche',  db.from('leads').select('contractor_id, board_id')
       .gte('monday_created_at', thisMonStart.toISOString())
       .lte('monday_created_at', thisCutoff.toISOString())
-      .limit(2000),
+      .limit(2000)),
 
     // ── Section 3 ─────────────────────────────────────────────────
     // TODO: add payment_status to closed_deals so only genuinely unpaid deals
     // are shown here. Until then, all deals from current quarter serve as a proxy.
-    db.from('closed_deals')
+    timed('quarter-deals',     db.from('closed_deals')
       .select('id, client_name, deal_value, commission_amount, closed_at')
       .gte('closed_at', quarterStart.toISOString().slice(0, 10))
       .lte('closed_at', quarterEnd.toISOString().slice(0, 10))
-      .order('commission_amount', { ascending: false }),
+      .order('commission_amount', { ascending: false })),
   ])
+  console.log(`[today] total-db: ${Date.now() - pageT0}ms`)
 
   // ── Derived values ───────────────────────────────────────────────────────────
 
