@@ -97,15 +97,19 @@ export function NicheBreakdown({ niches }: Props) {
                 <span style={{ color: 'var(--color-ink-muted)' }}>
                   {qualPct != null ? `${qualPct}% QL` : '—'}
                 </span>
-                <span style={{ color: 'var(--color-ink-faint)' }}>
-                  {row.inspecties} insp
-                </span>
-                <span style={{ color: 'var(--color-ink-faint)' }}>
-                  {row.offertes} offertes
-                </span>
-                <span style={{ color: 'var(--color-ink-faint)' }}>
-                  {row.gewonnen} won
-                </span>
+                {row.niche !== 'extras' && (
+                  <>
+                    <span style={{ color: 'var(--color-ink-faint)' }}>
+                      {row.inspecties} insp
+                    </span>
+                    <span style={{ color: 'var(--color-ink-faint)' }}>
+                      {row.offertes} offertes
+                    </span>
+                    <span style={{ color: 'var(--color-ink-faint)' }}>
+                      {row.gewonnen} won
+                    </span>
+                  </>
+                )}
               </div>
 
               <span style={{
@@ -129,9 +133,11 @@ export function NicheBreakdown({ niches }: Props) {
                 {[
                   { label: 'Leads',      value: row.leads },
                   { label: 'Gerouteerd', value: row.routed, pct: row.leads > 0 ? Math.round((row.routed / row.leads) * 100) : null },
-                  { label: 'Inspecties', value: row.inspecties, pct: row.routed > 0 ? Math.round((row.inspecties / row.routed) * 100) : null },
-                  { label: 'Offertes',   value: row.offertes,   pct: row.inspecties > 0 ? Math.round((row.offertes / row.inspecties) * 100) : null },
-                  { label: 'Gewonnen',   value: row.gewonnen,   pct: row.offertes > 0 ? Math.round((row.gewonnen / row.offertes) * 100) : null },
+                  ...(row.niche !== 'extras' ? [
+                    { label: 'Inspecties', value: row.inspecties, pct: row.routed > 0 ? Math.round((row.inspecties / row.routed) * 100) : null },
+                    { label: 'Offertes',   value: row.offertes,   pct: row.inspecties > 0 ? Math.round((row.offertes / row.inspecties) * 100) : null },
+                    { label: 'Gewonnen',   value: row.gewonnen,   pct: row.offertes > 0 ? Math.round((row.gewonnen / row.offertes) * 100) : null },
+                  ] : []),
                 ].map(stat => (
                   <div key={stat.label}>
                     <div style={{
