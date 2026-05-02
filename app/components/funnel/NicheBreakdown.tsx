@@ -94,9 +94,11 @@ export function NicheBreakdown({ niches }: Props) {
                 <span style={{ color: 'var(--color-ink)', fontWeight: 600 }}>
                   {row.leads} leads
                 </span>
-                <span style={{ color: 'var(--color-ink-muted)' }}>
-                  {qualPct != null ? `${qualPct}% QL` : '—'}
-                </span>
+                {row.niche !== 'extras' && (
+                  <span style={{ color: 'var(--color-ink-muted)' }}>
+                    {qualPct != null ? `${qualPct}% QL` : '—'}
+                  </span>
+                )}
                 {row.niche !== 'extras' && (
                   <>
                     <span style={{ color: 'var(--color-ink-faint)' }}>
