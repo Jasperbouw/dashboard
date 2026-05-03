@@ -7,6 +7,13 @@ const NICHE_ORDER = ['bouw', 'dakkapel', 'daken', 'extras']
 const NICHE_LABEL: Record<string, string> = {
   bouw: 'Bouw', dakkapel: 'Dakkapel', daken: 'Daken', extras: 'Extras',
 }
+// Same tokens as the niche badge in ContractorsTable
+const NICHE_COLOR: Record<string, string> = {
+  bouw:     'var(--color-info)',
+  daken:    'var(--color-success)',
+  dakkapel: 'var(--color-quote)',
+  extras:   'var(--color-warning)',
+}
 
 interface Props {
   niches: NicheRow[]
@@ -76,11 +83,12 @@ export function NicheBreakdown({ niches }: Props) {
                 overflow:     'hidden',
               }}>
                 <div style={{
-                  width:      `${Math.max(leadsPct, row.leads > 0 ? 2 : 0)}%`,
-                  height:     '100%',
-                  background: 'var(--color-ink-faint)',
+                  width:        `${Math.max(leadsPct, row.leads > 0 ? 2 : 0)}%`,
+                  height:       '100%',
+                  background:   NICHE_COLOR[row.niche] ?? 'var(--color-ink-faint)',
+                  opacity:      0.65,
                   borderRadius: 'var(--radius-sm)',
-                  transition: 'width 0.3s ease',
+                  transition:   'width 0.3s ease',
                 }} />
               </div>
 
