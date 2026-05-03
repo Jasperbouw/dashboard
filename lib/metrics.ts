@@ -559,7 +559,8 @@ export interface ContractorSummary {
   leadsReceived:     number
   qualifiedLeads:    number
   qualificationRate: number | null  // null for unfiltered/hands_off
-  closeRate:         number | null  // null for leads_only/hands_off — won/(won+quote_sent) in period
+  dealsInPeriod:     number         // closed_deals count in period
+  closeRate:         number | null  // null when no deals or no leads — closed_deals / leads received
   avgDealSize:       number | null  // null for flat_fee/hands_off
   commissionBooked:  number
   commissionPending: number
@@ -666,16 +667,14 @@ export async function contractorLeaderboard(range: TimeRange): Promise<Contracto
 
     const total        = cLeads.length
     const qualified    = cLeads.filter(l => ['inspection', 'quote_sent', 'won', 'deferred'].includes(l.canonical_stage)).length
-    const wonInPeriod  = cLeads.filter(l => l.canonical_stage === 'won').length
-    const quoteInPeriod = cLeads.filter(l => l.canonical_stage === 'quote_sent' || l.canonical_stage === 'won').length
     const quoteSentNow = cAllLeads.filter(l => l.canonical_stage === 'quote_sent').length
 
-    // Close rate: won / (won + quote_sent) in period — meaningful only for full_sales.
-    // Display null (shows "—") when quoteInPeriod < 5 (insufficient sample).
-    const closeRateRaw = (isHandsOff || isLeadsOnly || quoteInPeriod === 0)
+    // Deals and close rate: source of truth is closed_deals table (not leads.canonical_stage).
+    // Denominator is all leads received in period — same number as leadsReceived column.
+    const dealsInPeriod = closedDeals.filter(d => d.contractor_id === c.id).length
+    const closeRate = (dealsInPeriod === 0 || total === 0)
       ? null
-      : Math.round((wonInPeriod / quoteInPeriod) * 1000) / 10
-    const closeRate = quoteInPeriod >= 5 ? closeRateRaw : null
+      : Math.round((dealsInPeriod / total) * 1000) / 10
 
     // Avg deal size from actual project aanneemsom data
     const dealsWithAmount = cProjects.filter(p => p.aanneemsom && p.aanneemsom > 0)
@@ -798,6 +797,7 @@ export async function contractorLeaderboard(range: TimeRange): Promise<Contracto
       leadsReceived:        total,
       qualifiedLeads:       qualified,
       qualificationRate:    qualRate,
+      dealsInPeriod,
       closeRate,
       avgDealSize,
       commissionBooked:     commBooked,
@@ -812,7 +812,7 @@ export async function contractorLeaderboard(range: TimeRange): Promise<Contracto
         contacted:  cLeads.filter(l => l.canonical_stage === 'contacted').length,
         inspection: cLeads.filter(l => l.canonical_stage === 'inspection').length,
         quote_sent: cLeads.filter(l => l.canonical_stage === 'quote_sent').length,
-        won:        wonInPeriod,
+        won:        cLeads.filter(l => l.canonical_stage === 'won').length,
         lost:       cLeads.filter(l => l.canonical_stage === 'lost').length,
         deferred:   cLeads.filter(l => l.canonical_stage === 'deferred').length,
       },

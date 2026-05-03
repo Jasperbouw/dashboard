@@ -94,7 +94,7 @@ function Pill({ label, color, bg, title }: { label: string; color: string; bg: s
 
 type SortKey =
   | 'niche' | 'health' | 'leadsReceived' | 'qualificationRate'
-  | 'closeRate' | 'avgDealSize' | 'commissionBooked'
+  | 'dealsInPeriod' | 'closeRate' | 'avgDealSize' | 'commissionBooked'
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
@@ -141,6 +141,7 @@ export function ContractorsTable({ contractors }: Props) {
           case 'health':            av = HEALTH_META[a.health].order; bv = HEALTH_META[b.health].order; break
           case 'leadsReceived':     av = a.leadsReceived;    bv = b.leadsReceived;    break
           case 'qualificationRate': av = a.qualificationRate ?? -1; bv = b.qualificationRate ?? -1; break
+          case 'dealsInPeriod':     av = a.dealsInPeriod;    bv = b.dealsInPeriod;    break
           case 'closeRate':         av = a.closeRate ?? -1;  bv = b.closeRate ?? -1;  break
           case 'avgDealSize':       av = a.avgDealSize ?? -1; bv = b.avgDealSize ?? -1; break
           case 'commissionBooked':  av = a.commissionBooked; bv = b.commissionBooked; break
@@ -257,6 +258,7 @@ export function ContractorsTable({ contractors }: Props) {
               <th style={{ ...th, minWidth: 120, cursor: 'default' }}>Pakketten</th>
               <th style={{ ...th, textAlign: 'right' }} onClick={() => toggleSort('leadsReceived')}>Leads{arrow('leadsReceived')}</th>
               <th style={{ ...th, textAlign: 'right' }} onClick={() => toggleSort('qualificationRate')}>Qual%{arrow('qualificationRate')}</th>
+              <th style={{ ...th, textAlign: 'right' }} onClick={() => toggleSort('dealsInPeriod')}>Deals{arrow('dealsInPeriod')}</th>
               <th style={{ ...th, textAlign: 'right' }} onClick={() => toggleSort('closeRate')}>Close%{arrow('closeRate')}</th>
               <th style={{ ...th, textAlign: 'right' }} onClick={() => toggleSort('avgDealSize')}>Gem. deal{arrow('avgDealSize')}</th>
               <th style={{ ...th, textAlign: 'right' }} onClick={() => toggleSort('commissionBooked')}>Comm. MTD{arrow('commissionBooked')}</th>
@@ -265,7 +267,7 @@ export function ContractorsTable({ contractors }: Props) {
           <tbody>
             {sorted.length === 0 && (
               <tr>
-                <td colSpan={9} style={{ ...td, textAlign: 'center', color: 'var(--color-ink-faint)', padding: '32px' }}>
+                <td colSpan={10} style={{ ...td, textAlign: 'center', color: 'var(--color-ink-faint)', padding: '32px' }}>
                   Geen contractors gevonden
                 </td>
               </tr>
@@ -366,6 +368,9 @@ export function ContractorsTable({ contractors }: Props) {
 
                   {/* Qual% */}
                   <td style={tdNum}>{fmtPct(c.qualificationRate)}</td>
+
+                  {/* Deals */}
+                  <td style={tdNum}>{c.dealsInPeriod || <Dash />}</td>
 
                   {/* Close% */}
                   <td style={tdNum}>{fmtPct(c.closeRate)}</td>
