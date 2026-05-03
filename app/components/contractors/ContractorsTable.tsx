@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import type { ContractorSummary, ContractorHealth } from '../../../lib/metrics'
 import { ContractorPanel } from './ContractorPanel'
 
@@ -103,6 +104,7 @@ interface Props {
 }
 
 export function ContractorsTable({ contractors }: Props) {
+  const router = useRouter()
   const [sortKey, setSortKey]       = useState<SortKey>('niche')
   const [sortDir, setSortDir]       = useState<'asc' | 'desc'>('asc')
   const [nicheFilter, setNiche]     = useState<string | null>(null)
@@ -254,14 +256,13 @@ export function ContractorsTable({ contractors }: Props) {
               <th style={{ ...th, cursor: 'default' }}>Aannemer</th>
               <th style={th} onClick={() => toggleSort('health')}>Status{arrow('health')}</th>
               <th style={{ ...th, cursor: 'default' }}>Model</th>
+              <th style={{ ...th, minWidth: 120, cursor: 'default' }}>Pakketten</th>
               <th style={{ ...th, textAlign: 'right' }} onClick={() => toggleSort('leadsReceived')}>Leads{arrow('leadsReceived')}</th>
               <th style={{ ...th, textAlign: 'right' }} onClick={() => toggleSort('qualificationRate')}>Qual%{arrow('qualificationRate')}</th>
               <th style={{ ...th, textAlign: 'right' }} onClick={() => toggleSort('closeRate')}>Close%{arrow('closeRate')}</th>
               <th style={{ ...th, textAlign: 'right' }} onClick={() => toggleSort('avgDealSize')}>Gem. deal{arrow('avgDealSize')}</th>
               <th style={{ ...th, textAlign: 'right' }} onClick={() => toggleSort('commissionBooked')}>Comm. MTD{arrow('commissionBooked')}</th>
-
               <th style={{ ...th, textAlign: 'right', cursor: 'default' }} onClick={() => toggleSort('lastActivity')} title="Wanneer het board voor het laatst is bijgewerkt (inclusief onze syncs en Zapier). Contractor-activiteit specifiek volgt in een later fase.">Laatste board-update{arrow('lastActivity')}</th>
-              <th style={{ ...th, cursor: 'default' }}>Pakketten</th>
             </tr>
           </thead>
           <tbody>
@@ -338,30 +339,8 @@ export function ContractorsTable({ contractors }: Props) {
                     </div>
                   </td>
 
-                  {/* Leads */}
-                  <td style={tdNum}>{c.leadsReceived || <Dash />}</td>
-
-                  {/* Qual% */}
-                  <td style={tdNum}>{fmtPct(c.qualificationRate)}</td>
-
-                  {/* Close% */}
-                  <td style={tdNum}>{fmtPct(c.closeRate)}</td>
-
-                  {/* Avg deal size */}
-                  <td style={tdNum}>{fmtEur(c.avgDealSize)}</td>
-
-                  {/* Commission MTD */}
-                  <td style={{ ...tdNum, color: c.commissionBooked > 0 ? 'var(--color-success)' : 'var(--color-ink-faint)' }}>
-                    {fmtEur(c.commissionBooked)}
-                  </td>
-
-                  {/* Last activity */}
-                  <td style={{ ...tdNum, color: 'var(--color-ink-muted)' }}>
-                    {fmtAge(c.lastActivity)}
-                  </td>
-
                   {/* Active packs */}
-                  <td style={{ ...td, minWidth: 110 }}>
+                  <td style={{ ...td, minWidth: 120 }}>
                     {c.activePacks.count === 0 ? (
                       <Dash />
                     ) : c.activePacks.count > 1 ? (
@@ -384,6 +363,28 @@ export function ContractorsTable({ contractors }: Props) {
                       </div>
                     )}
                   </td>
+
+                  {/* Leads */}
+                  <td style={tdNum}>{c.leadsReceived || <Dash />}</td>
+
+                  {/* Qual% */}
+                  <td style={tdNum}>{fmtPct(c.qualificationRate)}</td>
+
+                  {/* Close% */}
+                  <td style={tdNum}>{fmtPct(c.closeRate)}</td>
+
+                  {/* Avg deal size */}
+                  <td style={tdNum}>{fmtEur(c.avgDealSize)}</td>
+
+                  {/* Commission MTD */}
+                  <td style={{ ...tdNum, color: c.commissionBooked > 0 ? 'var(--color-success)' : 'var(--color-ink-faint)' }}>
+                    {fmtEur(c.commissionBooked)}
+                  </td>
+
+                  {/* Last activity */}
+                  <td style={{ ...tdNum, color: 'var(--color-ink-muted)' }}>
+                    {fmtAge(c.lastActivity)}
+                  </td>
                 </tr>
               )
             })}
@@ -391,7 +392,11 @@ export function ContractorsTable({ contractors }: Props) {
         </table>
       </div>
 
-      <ContractorPanel contractor={selectedContractor} onClose={closePanel} />
+      <ContractorPanel
+        contractor={selectedContractor}
+        onClose={closePanel}
+        onPacksChanged={() => router.refresh()}
+      />
     </div>
   )
 }

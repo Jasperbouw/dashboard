@@ -598,7 +598,7 @@ function ActivePackCard({
 
 // ── Main tab ──────────────────────────────────────────────────────────────────
 
-export function PakkettanTab({ contractorId }: { contractorId: string }) {
+export function PakkettanTab({ contractorId, onPacksChanged }: { contractorId: string; onPacksChanged?: () => void }) {
   const { data: rawPacks, isLoading, error, mutate } = useSWR<LeadPack[]>(
     `/api/contractors/${contractorId}/lead-packs`, fetcher, SWR_OPTS,
   )
@@ -614,14 +614,17 @@ export function PakkettanTab({ contractorId }: { contractorId: string }) {
 
   function updatePack(updated: LeadPack) {
     mutate(prev => (prev ?? []).map(p => p.id === updated.id ? updated : p), false)
+    onPacksChanged?.()
   }
 
   function removePack(id: string) {
     mutate(prev => (prev ?? []).filter(p => p.id !== id), false)
+    onPacksChanged?.()
   }
 
   function addPack(pack: LeadPack) {
     mutate(prev => [pack, ...(prev ?? [])], false)
+    onPacksChanged?.()
   }
 
   if (isLoading) return (
@@ -650,7 +653,7 @@ export function PakkettanTab({ contractorId }: { contractorId: string }) {
           contractorId={contractorId}
           pack={editPack}
           onClose={() => setEditPack(null)}
-          onSaved={() => { mutate(); setEditPack(null) }}
+          onSaved={() => { mutate(); setEditPack(null); onPacksChanged?.() }}
         />
       )}
 

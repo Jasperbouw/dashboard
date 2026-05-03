@@ -1899,13 +1899,14 @@ function ComingSoon({ label }: { label: string }) {
 // ── Panel ─────────────────────────────────────────────────────────────────────
 
 interface Props {
-  contractor: ContractorSummary | null
-  onClose: () => void
+  contractor:      ContractorSummary | null
+  onClose:         () => void
+  onPacksChanged?: () => void
 }
 
 const PANEL_WIDTH = 560
 
-export function ContractorPanel({ contractor, onClose }: Props) {
+export function ContractorPanel({ contractor, onClose, onPacksChanged }: Props) {
   const [tab, setTab] = useState<Tab>('performance')
   const [mounted, setMounted] = useState(false)
 
@@ -2049,7 +2050,7 @@ export function ContractorPanel({ contractor, onClose }: Props) {
             <div style={{ flex: 1, overflow: 'auto', padding: '20px' }}>
               {tab === 'performance' && <PerformanceTab c={contractor} />}
               {tab === 'financieel'  && <FinancieelTab contractorId={contractor.id} />}
-              {tab === 'pakketten'   && <PakkettanTab contractorId={contractor.id} />}
+              {tab === 'pakketten'   && <PakkettanTab contractorId={contractor.id} onPacksChanged={onPacksChanged} />}
               {tab === 'info'        && <InfoTab contractor={contractor} />}
               {tab === 'locatie'     && <LocatieTab contractorId={contractor.id} contractorName={contractor.name} />}
             </div>
