@@ -20,15 +20,14 @@ export async function GET(
 
   const enriched = await Promise.all((packs ?? []).map(async (pack) => {
     if (pack.pack_type === 'lead_based') {
-      const query = db
+      let query = db
         .from('leads')
         .select('id', { count: 'exact', head: true })
         .eq('contractor_id', contractorId)
-        .eq('niche', pack.niche)
-        .gte('received_at', pack.started_at)
+        .gte('monday_created_at', pack.started_at)
 
       if (pack.completed_at) {
-        query.lte('received_at', pack.completed_at)
+        query = query.lte('monday_created_at', pack.completed_at)
       }
 
       const { count } = await query
