@@ -7,6 +7,13 @@ const fetcher = (url: string) =>
   fetch(url).then(r => { if (!r.ok) throw new Error(r.statusText); return r.json() })
 const SWR_OPTS = { revalidateOnFocus: false, dedupingInterval: 30_000 } as const
 
+const NICHES: { value: string; label: string }[] = [
+  { value: 'bouw',     label: 'Bouw' },
+  { value: 'daken',    label: 'Daken' },
+  { value: 'dakkapel', label: 'Dakkapel' },
+  { value: 'extras',   label: 'Extras' },
+]
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface LeadPack {
@@ -84,12 +91,10 @@ const EMPTY_FORM = {
 
 function NewPackModal({
   contractorId,
-  niches,
   onClose,
   onSaved,
 }: {
   contractorId: string
-  niches: string[]
   onClose: () => void
   onSaved: (pack: LeadPack) => void
 }) {
@@ -170,7 +175,7 @@ function NewPackModal({
               <label style={labelStyle}>Niche *</label>
               <select value={form.niche} onChange={e => set('niche', e.target.value)} style={inputStyle} required>
                 <option value="">— kies niche —</option>
-                {niches.map(n => <option key={n} value={n}>{n}</option>)}
+                {NICHES.map(n => <option key={n.value} value={n.value}>{n.label}</option>)}
               </select>
             </div>
             <div style={fieldStyle}>
@@ -541,13 +546,11 @@ export function PakkettanTab({ contractorId }: { contractorId: string }) {
   const { data: rawPacks, isLoading, error, mutate } = useSWR<LeadPack[]>(
     `/api/contractors/${contractorId}/lead-packs`, fetcher, SWR_OPTS,
   )
-  const { data: rawNiches } = useSWR<string[]>('/api/revenue/niches', fetcher, SWR_OPTS)
 
   const [showNew, setShowNew]         = useState(false)
   const [showHistory, setShowHistory] = useState(false)
 
-  const packs   = rawPacks ?? []
-  const niches  = Array.isArray(rawNiches) ? rawNiches : ['bouw', 'daken', 'dakkapel', 'extras']
+  const packs = rawPacks ?? []
 
   const active    = packs.filter(p => p.status === 'active')
   const historical = packs.filter(p => p.status !== 'active')
@@ -581,7 +584,6 @@ export function PakkettanTab({ contractorId }: { contractorId: string }) {
       {showNew && (
         <NewPackModal
           contractorId={contractorId}
-          niches={niches}
           onClose={() => setShowNew(false)}
           onSaved={pack => { addPack(pack); setShowNew(false) }}
         />
