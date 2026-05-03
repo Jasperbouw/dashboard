@@ -22,6 +22,10 @@ const NICHE_SORT_ORDER: Record<string, number> = {
   bouw: 0, daken: 1, dakkapel: 2, extras: 3,
 }
 
+// Niches where avg deal size is meaningful (high-value project-based models).
+// Keep in sync with YTD_NICHES in app/(dashboard)/finance/page.tsx.
+const DEAL_VALUE_NICHES = new Set(['bouw', 'zwembaden', 'pergolas', 'nieuwbouw'])
+
 const MODEL_LABEL: Record<string, string> = {
   percentage: '%', flat_fee: 'Flat', retainer: 'Ret.',
 }
@@ -343,8 +347,8 @@ export function ContractorsTable({ contractors }: Props) {
                   {/* Close% */}
                   <td style={tdNum}>{fmtPct(c.closeRate)}</td>
 
-                  {/* Avg deal size */}
-                  <td style={tdNum}>{fmtEur(c.avgDealSize)}</td>
+                  {/* Avg deal size — only shown for high-value niches */}
+                  <td style={tdNum}>{DEAL_VALUE_NICHES.has(c.niche) ? fmtEur(c.avgDealSize) : <Dash />}</td>
 
                   {/* Commission MTD */}
                   <td style={{ ...tdNum, color: c.commissionBooked > 0 ? 'var(--color-success)' : 'var(--color-ink-faint)' }}>

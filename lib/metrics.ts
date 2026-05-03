@@ -635,7 +635,7 @@ export async function contractorLeaderboard(_range?: TimeRange): Promise<Contrac
       .limit(5000),
     db()
       .from('closed_deals')
-      .select('contractor_id, commission_amount')
+      .select('contractor_id, commission_amount, deal_value')
       .in('contractor_id', activeIds),
     db()
       .from('lead_packs')
@@ -644,7 +644,7 @@ export async function contractorLeaderboard(_range?: TimeRange): Promise<Contrac
       .eq('status', 'active'),
   ])
 
-  type DealRow = { contractor_id: string; commission_amount: number }
+  type DealRow = { contractor_id: string; commission_amount: number; deal_value: number | null }
   const closedDeals = ((invoiceResult as { data: DealRow[] | null }).data ?? [])
 
   // For lead_based packs: use direct DB COUNT per pack (avoids in-memory slicing errors).
@@ -684,11 +684,12 @@ export async function contractorLeaderboard(_range?: TimeRange): Promise<Contrac
       ? null
       : Math.round((dealsTotal / total) * 1000) / 10
 
-    // Avg deal size from actual project aanneemsom data
-    const dealsWithAmount = cProjects.filter(p => p.aanneemsom && p.aanneemsom > 0)
-    const avgDealSize = (isHandsOff || c.commission_model === 'flat_fee' || dealsWithAmount.length === 0)
+    // Avg deal size from closed_deals.deal_value (source of truth, all-time).
+    // Niche-based visibility (daken/dakkapel/extras → hide) is handled in ContractorsTable.
+    const dealsWithValue = closedDeals.filter(d => d.contractor_id === c.id && d.deal_value && d.deal_value > 0)
+    const avgDealSize = dealsWithValue.length === 0
       ? null
-      : Math.round(dealsWithAmount.reduce((s, p) => s + (p.aanneemsom ?? 0), 0) / dealsWithAmount.length)
+      : Math.round(dealsWithValue.reduce((s, d) => s + (d.deal_value ?? 0), 0) / dealsWithValue.length)
 
     const commBooked = closedDeals
       .filter(d => d.contractor_id === c.id)
@@ -703,8 +704,8 @@ export async function contractorLeaderboard(_range?: TimeRange): Promise<Contrac
       if (c.commission_model === 'flat_fee' && c.commission_rate) {
         pipeEst = quoteSentNow * c.commission_rate
       } else if (c.commission_rate) {
-        const avgAanneemsom = dealsWithAmount.length > 0
-          ? dealsWithAmount.reduce((s, p) => s + (p.aanneemsom ?? 0), 0) / dealsWithAmount.length
+        const avgAanneemsom = dealsWithValue.length > 0
+          ? dealsWithValue.reduce((s, d) => s + (d.deal_value ?? 0), 0) / dealsWithValue.length
           : (c.target_monthly_revenue && c.target_monthly_leads
               ? c.target_monthly_revenue / c.target_monthly_leads : 0)
         pipeEst = Math.round(quoteSentNow * avgAanneemsom * (c.commission_rate ?? 0))
