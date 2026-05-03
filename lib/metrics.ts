@@ -592,16 +592,40 @@ export async function contractorLeaderboard(_range?: TimeRange): Promise<Contrac
   const activeIds      = contractors.map(c => c.id)
   const backlogCutoff  = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString()
 
-  const [{ data: projects }, { data: allLeads }, { data: backlogLeads }, invoiceResult, { data: activePacks }] = await Promise.all([
+  // Paginate allLeads: Supabase PostgREST caps responses at max_rows (default 1000)
+  // regardless of .limit() value. Fetch count first, then all pages in parallel.
+  async function fetchAllContractorLeads() {
+    const { count: totalCount } = await db()
+      .from('leads')
+      .select('*', { count: 'exact', head: true })
+      .in('contractor_id', activeIds)
+    if (!totalCount) return []
+    const PAGE = 1000
+    const pages = Math.ceil(totalCount / PAGE)
+    console.log(`[leaderboard] allLeads total rows in DB: ${totalCount}, fetching ${pages} page(s)`)
+    const results = await Promise.all(
+      Array.from({ length: pages }, (_, i) =>
+        db()
+          .from('leads')
+          .select('contractor_id, canonical_stage, monday_updated_at, monday_created_at')
+          .in('contractor_id', activeIds)
+          .order('id')
+          .range(i * PAGE, (i + 1) * PAGE - 1)
+      )
+    )
+    const rows = results.flatMap(r => r.data ?? [])
+    console.log(`[leaderboard] allLeads fetched: ${rows.length} rows`)
+    const bcaId = 'e8ee1217-be40-415d-aacd-b561444eabc8'
+    console.log(`[leaderboard] Bouwcombinatie leads in allLeads: ${rows.filter(l => l.contractor_id === bcaId).length}`)
+    return rows
+  }
+
+  const [{ data: projects }, allLeads, { data: backlogLeads }, invoiceResult, { data: activePacks }] = await Promise.all([
     db()
       .from('projects')
       .select('contractor_id, aanneemsom, commissie, commissie_status')
       .in('contractor_id', activeIds),
-    db()
-      .from('leads')
-      .select('contractor_id, canonical_stage, monday_updated_at, monday_created_at')
-      .in('contractor_id', activeIds)
-      .limit(10000),
+    fetchAllContractorLeads(),
     db()
       .from('leads')
       .select('contractor_id')
@@ -623,8 +647,7 @@ export async function contractorLeaderboard(_range?: TimeRange): Promise<Contrac
   type DealRow = { contractor_id: string; commission_amount: number }
   const closedDeals = ((invoiceResult as { data: DealRow[] | null }).data ?? [])
 
-  // For lead_based packs: replicate the API route's COUNT(*) per pack.
-  // We can't use the in-memory allLeads (capped at 5000, no ORDER BY — unreliable).
+  // For lead_based packs: use direct DB COUNT per pack (avoids in-memory slicing errors).
   const packCounts = new Map<string, number>()
   await Promise.all(
     (activePacks ?? [])
