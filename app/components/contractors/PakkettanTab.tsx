@@ -215,7 +215,7 @@ function PackModal({
                 {form.pack_type === 'lead_based' ? 'Aantal leads *' : 'Budget (€) *'}
               </label>
               <input
-                type="number" min="1" step={form.pack_type === 'budget_based' ? '100' : '1'}
+                type="number" min="1" step="1"
                 value={form.units_promised}
                 onChange={e => set('units_promised', e.target.value)}
                 placeholder={form.pack_type === 'lead_based' ? '20' : '5000'}
@@ -225,7 +225,7 @@ function PackModal({
             <div style={fieldStyle}>
               <label style={labelStyle}>Betaald bedrag (€)</label>
               <input
-                type="number" min="0" step="0.01"
+                type="number" min="0" step="1"
                 value={form.amount_paid}
                 onChange={e => set('amount_paid', e.target.value)}
                 placeholder="400"
