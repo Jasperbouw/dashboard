@@ -627,13 +627,31 @@ export async function contractorLeaderboard(range: TimeRange): Promise<Contracto
       .lte('closed_at', toDate),
     db()
       .from('lead_packs')
-      .select('id, contractor_id, niche, pack_type, units_promised, units_used')
+      .select('id, contractor_id, niche, pack_type, units_promised, units_used, units_offset, started_at, completed_at')
       .in('contractor_id', activeIds)
       .eq('status', 'active'),
   ])
 
   type DealRow = { contractor_id: string; commission_amount: number }
   const closedDeals = ((invoiceResult as { data: DealRow[] | null }).data ?? [])
+
+  // For lead_based packs: replicate the API route's COUNT(*) per pack.
+  // We can't use the in-memory allLeads (capped at 5000, no ORDER BY — unreliable).
+  const packCounts = new Map<string, number>()
+  await Promise.all(
+    (activePacks ?? [])
+      .filter(p => p.pack_type === 'lead_based')
+      .map(async (pack) => {
+        let q = db()
+          .from('leads')
+          .select('id', { count: 'exact', head: true })
+          .eq('contractor_id', pack.contractor_id)
+          .gte('monday_created_at', pack.started_at)
+        if (pack.completed_at) q = q.lte('monday_created_at', pack.completed_at)
+        const { count } = await q
+        packCounts.set(pack.id, (count ?? 0) + (Number(pack.units_offset) || 0))
+      })
+  )
 
   return contractors.map(c => {
     const cLeads    = (leads    ?? []).filter(l => l.contractor_id === c.id)
@@ -746,15 +764,19 @@ export async function contractorLeaderboard(range: TimeRange): Promise<Contracto
     const packSummary = cPacks.length === 0
       ? { count: 0 }
       : cPacks.length === 1
-        ? {
-            count:    1,
-            pct:      cPacks[0].units_promised > 0
-                        ? Math.round((cPacks[0].units_used / cPacks[0].units_promised) * 100)
-                        : 0,
-            used:     Number(cPacks[0].units_used),
-            promised: Number(cPacks[0].units_promised),
-            niche:    cPacks[0].niche,
-          }
+        ? (() => {
+            const pack = cPacks[0]
+            const used = pack.pack_type === 'budget_based'
+              ? Number(pack.units_used)
+              : (packCounts.get(pack.id) ?? 0)
+            return {
+              count:    1,
+              pct:      pack.units_promised > 0 ? Math.round((used / pack.units_promised) * 100) : 0,
+              used,
+              promised: Number(pack.units_promised),
+              niche:    pack.niche,
+            }
+          })()
         : { count: cPacks.length }
 
     return {
