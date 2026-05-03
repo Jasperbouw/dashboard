@@ -95,7 +95,6 @@ function Pill({ label, color, bg, title }: { label: string; color: string; bg: s
 type SortKey =
   | 'niche' | 'health' | 'leadsReceived' | 'qualificationRate'
   | 'closeRate' | 'avgDealSize' | 'commissionBooked'
-  | 'lastActivity'
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
@@ -124,7 +123,7 @@ export function ContractorsTable({ contractors }: Props) {
 
   function toggleSort(key: SortKey) {
     if (sortKey === key) setSortDir(d => d === 'desc' ? 'asc' : 'desc')
-    else { setSortKey(key); setSortDir(key === 'niche' || key === 'health' || key === 'lastActivity' ? 'asc' : 'desc') }
+    else { setSortKey(key); setSortDir(key === 'niche' || key === 'health' ? 'asc' : 'desc') }
   }
 
   const sorted = useMemo(() => {
@@ -145,7 +144,6 @@ export function ContractorsTable({ contractors }: Props) {
           case 'closeRate':         av = a.closeRate ?? -1;  bv = b.closeRate ?? -1;  break
           case 'avgDealSize':       av = a.avgDealSize ?? -1; bv = b.avgDealSize ?? -1; break
           case 'commissionBooked':  av = a.commissionBooked; bv = b.commissionBooked; break
-          case 'lastActivity':      av = a.lastActivity ?? ''; bv = b.lastActivity ?? ''; break
           default: av = 0; bv = 0
         }
         const primary = typeof av === 'string'
@@ -262,13 +260,12 @@ export function ContractorsTable({ contractors }: Props) {
               <th style={{ ...th, textAlign: 'right' }} onClick={() => toggleSort('closeRate')}>Close%{arrow('closeRate')}</th>
               <th style={{ ...th, textAlign: 'right' }} onClick={() => toggleSort('avgDealSize')}>Gem. deal{arrow('avgDealSize')}</th>
               <th style={{ ...th, textAlign: 'right' }} onClick={() => toggleSort('commissionBooked')}>Comm. MTD{arrow('commissionBooked')}</th>
-              <th style={{ ...th, textAlign: 'right', cursor: 'default' }} onClick={() => toggleSort('lastActivity')} title="Wanneer het board voor het laatst is bijgewerkt (inclusief onze syncs en Zapier). Contractor-activiteit specifiek volgt in een later fase.">Laatste board-update{arrow('lastActivity')}</th>
             </tr>
           </thead>
           <tbody>
             {sorted.length === 0 && (
               <tr>
-                <td colSpan={10} style={{ ...td, textAlign: 'center', color: 'var(--color-ink-faint)', padding: '32px' }}>
+                <td colSpan={9} style={{ ...td, textAlign: 'center', color: 'var(--color-ink-faint)', padding: '32px' }}>
                   Geen contractors gevonden
                 </td>
               </tr>
@@ -381,10 +378,6 @@ export function ContractorsTable({ contractors }: Props) {
                     {fmtEur(c.commissionBooked)}
                   </td>
 
-                  {/* Last activity */}
-                  <td style={{ ...tdNum, color: 'var(--color-ink-muted)' }}>
-                    {fmtAge(c.lastActivity)}
-                  </td>
                 </tr>
               )
             })}
