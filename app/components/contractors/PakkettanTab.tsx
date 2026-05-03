@@ -23,6 +23,7 @@ interface LeadPack {
   pack_type:                'budget_based' | 'lead_based'
   units_promised:           number
   units_used:               number
+  units_offset:             number
   amount_paid:              number | null
   paid_at:                  string | null
   started_at:               string
@@ -84,6 +85,7 @@ const EMPTY_FORM = {
   niche:          '',
   pack_type:      'lead_based' as 'lead_based' | 'budget_based',
   units_promised: '',
+  units_offset:   '0',
   amount_paid:    '',
   started_at:     new Date().toISOString().slice(0, 10),
   notes:          '',
@@ -105,6 +107,7 @@ function PackModal({
     niche:          pack.niche,
     pack_type:      pack.pack_type,
     units_promised: String(pack.units_promised),
+    units_offset:   String(pack.units_offset ?? 0),
     amount_paid:    pack.amount_paid != null ? String(pack.amount_paid) : '',
     started_at:     pack.started_at.slice(0, 10),
     notes:          pack.notes ?? '',
@@ -135,6 +138,7 @@ function PackModal({
         niche:          form.niche,
         pack_type:      form.pack_type,
         units_promised: Number(form.units_promised),
+        units_offset:   Number(form.units_offset) || 0,
         amount_paid:    form.amount_paid ? Number(form.amount_paid) : null,
         started_at:     form.started_at,
         notes:          form.notes || null,
@@ -229,6 +233,23 @@ function PackModal({
               />
             </div>
           </div>
+
+          {/* Offset — lead-based only */}
+          {form.pack_type === 'lead_based' && (
+            <div style={fieldStyle}>
+              <label style={labelStyle}>Reeds geleverd</label>
+              <input
+                type="number" min="0" step="1"
+                value={form.units_offset}
+                onChange={e => set('units_offset', e.target.value)}
+                placeholder="0"
+                style={inputStyle}
+              />
+              <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-ink-faint)' }}>
+                Leads die al binnen waren voordat het pakket werd aangemaakt
+              </span>
+            </div>
+          )}
 
           {/* Start date */}
           <div style={fieldStyle}>
@@ -479,6 +500,11 @@ function ActivePackCard({
             <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)', marginTop: 2 }}>
               Gestart: {fmtDate(pack.started_at)}
             </div>
+            {(pack.units_offset ?? 0) > 0 && (
+              <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)', marginTop: 1 }}>
+                Reeds geleverd bij start: {pack.units_offset} leads
+              </div>
+            )}
           </div>
         </div>
 

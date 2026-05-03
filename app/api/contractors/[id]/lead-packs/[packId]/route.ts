@@ -9,7 +9,7 @@ export async function PATCH(
   const body = await req.json()
 
   // Only allow safe fields to be updated
-  const allowed = ['units_used', 'status', 'notes', 'completed_at', 'amount_paid',
+  const allowed = ['units_used', 'units_offset', 'status', 'notes', 'completed_at', 'amount_paid',
                    'niche', 'pack_type', 'units_promised', 'started_at']
   const update: Record<string, unknown> = { updated_at: new Date().toISOString() }
   for (const key of allowed) {

@@ -31,7 +31,8 @@ export async function GET(
       }
 
       const { count } = await query
-      return { ...pack, units_used: count ?? 0 }
+      const counted = count ?? 0
+      return { ...pack, units_used: counted + (pack.units_offset ?? 0) }
     }
     return pack
   }))
@@ -45,7 +46,7 @@ export async function POST(
 ) {
   const { id: contractorId } = await params
   const body = await req.json()
-  const { niche, pack_type, units_promised, amount_paid, started_at, notes, related_revenue_entry_id } = body
+  const { niche, pack_type, units_promised, units_offset, amount_paid, started_at, notes, related_revenue_entry_id } = body
 
   if (!niche || !pack_type || !units_promised || !started_at) {
     return NextResponse.json({ error: 'niche, pack_type, units_promised en started_at zijn verplicht' }, { status: 400 })
@@ -60,8 +61,9 @@ export async function POST(
       niche,
       pack_type,
       units_promised: Number(units_promised),
-      units_used: 0,
-      amount_paid: amount_paid ? Number(amount_paid) : null,
+      units_used:     0,
+      units_offset:   units_offset ? Number(units_offset) : 0,
+      amount_paid:    amount_paid ? Number(amount_paid) : null,
       started_at,
       status: 'active',
       notes: notes || null,
