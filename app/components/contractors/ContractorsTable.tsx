@@ -2,10 +2,8 @@
 
 import { useState, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import type { ContractorSummary, ContractorHealth } from '../../../lib/metrics'
+import type { ContractorSummary } from '../../../lib/metrics'
 import { ContractorPanel } from './ContractorPanel'
-
-// Keep in sync with ContractorHealth union in lib/metrics.ts
 
 // ── Display helpers ───────────────────────────────────────────────────────────
 
@@ -22,24 +20,6 @@ const NICHE_COLOR: Record<string, { color: string; bg: string }> = {
 
 const NICHE_SORT_ORDER: Record<string, number> = {
   bouw: 0, daken: 1, dakkapel: 2, extras: 3,
-}
-
-const HEALTH_META: Record<ContractorHealth, { label: string; color: string; bg: string; order: number }> = {
-  critical:           { label: 'Kritiek',          color: 'var(--color-critical)',  bg: 'var(--color-critical-subtle)',  order: 0 },
-  warning:            { label: 'Let op',            color: 'var(--color-warning)',   bg: 'var(--color-warning-subtle)',   order: 1 },
-  'on-track':         { label: 'Performing',        color: 'var(--color-success)',   bg: 'var(--color-success-subtle)',   order: 2 },
-  active:             { label: 'Lopend',            color: 'var(--color-info)',      bg: 'var(--color-info-subtle)',      order: 3 },
-  'insufficient-data':{ label: 'Onvoldoende data',  color: 'var(--color-ink-muted)', bg: 'var(--color-surface-raised)',   order: 4 },
-  idle:               { label: 'Inactief',          color: 'var(--color-ink-faint)', bg: 'var(--color-surface-raised)',   order: 5 },
-}
-
-const HEALTH_TOOLTIP: Record<ContractorHealth, string> = {
-  critical:           'Handmatig gemarkeerd als at-risk relatie',
-  warning:            '60+ dagen actief, 10+ leads, 5+ offertes (≥1 ouder dan 30d), close rate <15%',
-  'on-track':         '60+ dagen actief, 10+ leads, ≥1 deal gewonnen, close rate >15%',
-  active:             'Actieve relatie — pipeline niet volledig zichtbaar (leads-only) of onvoldoende data',
-  'insufficient-data':'Eerste lead minder dan 60 dagen geleden — te vroeg om te oordelen',
-  idle:               'Geen leads ontvangen in laatste 30 dagen',
 }
 
 const MODEL_LABEL: Record<string, string> = {
@@ -93,8 +73,8 @@ function Pill({ label, color, bg, title }: { label: string; color: string; bg: s
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 type SortKey =
-  | 'niche' | 'health' | 'leadsReceived' | 'qualificationRate'
-  | 'dealsInPeriod' | 'closeRate' | 'avgDealSize' | 'commissionBooked'
+  | 'niche' | 'leadsReceived' | 'qualificationRate'
+  | 'dealsTotal' | 'closeRate' | 'avgDealSize' | 'commissionBooked'
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
@@ -123,7 +103,7 @@ export function ContractorsTable({ contractors }: Props) {
 
   function toggleSort(key: SortKey) {
     if (sortKey === key) setSortDir(d => d === 'desc' ? 'asc' : 'desc')
-    else { setSortKey(key); setSortDir(key === 'niche' || key === 'health' ? 'asc' : 'desc') }
+    else { setSortKey(key); setSortDir(key === 'niche' ? 'asc' : 'desc') }
   }
 
   const sorted = useMemo(() => {
@@ -138,10 +118,9 @@ export function ContractorsTable({ contractors }: Props) {
         let av: number | string, bv: number | string
         switch (sortKey) {
           case 'niche':             av = NICHE_SORT_ORDER[a.niche] ?? 99; bv = NICHE_SORT_ORDER[b.niche] ?? 99; break
-          case 'health':            av = HEALTH_META[a.health].order; bv = HEALTH_META[b.health].order; break
           case 'leadsReceived':     av = a.leadsReceived;    bv = b.leadsReceived;    break
           case 'qualificationRate': av = a.qualificationRate ?? -1; bv = b.qualificationRate ?? -1; break
-          case 'dealsInPeriod':     av = a.dealsInPeriod;    bv = b.dealsInPeriod;    break
+          case 'dealsTotal':        av = a.dealsTotal;       bv = b.dealsTotal;       break
           case 'closeRate':         av = a.closeRate ?? -1;  bv = b.closeRate ?? -1;  break
           case 'avgDealSize':       av = a.avgDealSize ?? -1; bv = b.avgDealSize ?? -1; break
           case 'commissionBooked':  av = a.commissionBooked; bv = b.commissionBooked; break
@@ -154,9 +133,6 @@ export function ContractorsTable({ contractors }: Props) {
 
         // Secondary sorts
         if (sortKey === 'niche') {
-          // Within niche: critical first, then by leads desc
-          const byHealth = HEALTH_META[a.health].order - HEALTH_META[b.health].order
-          if (byHealth !== 0) return byHealth
           return b.leadsReceived - a.leadsReceived
         }
         if (sortKey === 'commissionBooked') {
@@ -253,28 +229,25 @@ export function ContractorsTable({ contractors }: Props) {
           <thead>
             <tr>
               <th style={{ ...th, cursor: 'default' }}>Aannemer</th>
-              <th style={th} onClick={() => toggleSort('health')}>Status{arrow('health')}</th>
               <th style={{ ...th, cursor: 'default' }}>Model</th>
               <th style={{ ...th, minWidth: 120, cursor: 'default' }}>Pakketten</th>
               <th style={{ ...th, textAlign: 'right' }} onClick={() => toggleSort('leadsReceived')}>Leads{arrow('leadsReceived')}</th>
               <th style={{ ...th, textAlign: 'right' }} onClick={() => toggleSort('qualificationRate')}>Qual%{arrow('qualificationRate')}</th>
-              <th style={{ ...th, textAlign: 'right' }} onClick={() => toggleSort('dealsInPeriod')}>Deals{arrow('dealsInPeriod')}</th>
+              <th style={{ ...th, textAlign: 'right' }} onClick={() => toggleSort('dealsTotal')}>Deals{arrow('dealsTotal')}</th>
               <th style={{ ...th, textAlign: 'right' }} onClick={() => toggleSort('closeRate')}>Close%{arrow('closeRate')}</th>
               <th style={{ ...th, textAlign: 'right' }} onClick={() => toggleSort('avgDealSize')}>Gem. deal{arrow('avgDealSize')}</th>
-              <th style={{ ...th, textAlign: 'right' }} onClick={() => toggleSort('commissionBooked')}>Comm. MTD{arrow('commissionBooked')}</th>
+              <th style={{ ...th, textAlign: 'right' }} onClick={() => toggleSort('commissionBooked')}>Comm.{arrow('commissionBooked')}</th>
             </tr>
           </thead>
           <tbody>
             {sorted.length === 0 && (
               <tr>
-                <td colSpan={10} style={{ ...td, textAlign: 'center', color: 'var(--color-ink-faint)', padding: '32px' }}>
+                <td colSpan={9} style={{ ...td, textAlign: 'center', color: 'var(--color-ink-faint)', padding: '32px' }}>
                   Geen contractors gevonden
                 </td>
               </tr>
             )}
             {sorted.map(c => {
-              const health = HEALTH_META[c.health]
-
               const isSelected = c.id === selectedId
               return (
                 <tr
@@ -305,11 +278,6 @@ export function ContractorsTable({ contractors }: Props) {
                         {NICHE_LABEL[c.niche] ?? c.niche}
                       </span>
                     </div>
-                  </td>
-
-                  {/* Health */}
-                  <td style={td}>
-                    <Pill label={health.label} color={health.color} bg={health.bg} title={HEALTH_TOOLTIP[c.health]} />
                   </td>
 
                   {/* Model badges */}
@@ -370,7 +338,7 @@ export function ContractorsTable({ contractors }: Props) {
                   <td style={tdNum}>{fmtPct(c.qualificationRate)}</td>
 
                   {/* Deals */}
-                  <td style={tdNum}>{c.dealsInPeriod || <Dash />}</td>
+                  <td style={tdNum}>{c.dealsTotal || <Dash />}</td>
 
                   {/* Close% */}
                   <td style={tdNum}>{fmtPct(c.closeRate)}</td>

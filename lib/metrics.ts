@@ -559,7 +559,7 @@ export interface ContractorSummary {
   leadsReceived:     number
   qualifiedLeads:    number
   qualificationRate: number | null  // null for unfiltered/hands_off
-  dealsInPeriod:     number         // closed_deals count in period
+  dealsTotal:        number         // all-time closed_deals count
   closeRate:         number | null  // null when no deals or no leads — closed_deals / leads received
   avgDealSize:       number | null  // null for flat_fee/hands_off
   commissionBooked:  number
@@ -567,8 +567,7 @@ export interface ContractorSummary {
   pipelineValueEst:  number
   backlogDebt:       number         // open-stage leads >14d with no Monday activity
   lastActivity:      string | null  // ISO string of most recent lead update
-  health:            ContractorHealth
-  // Stage counts — period cohort (leads that entered in the date range)
+  // Stage counts — all-time (used by drilldown Performance tab)
   periodStages: {
     new: number; contacted: number; inspection: number; quote_sent: number
     won: number; lost: number; deferred: number
@@ -588,22 +587,12 @@ export interface ContractorSummary {
   }
 }
 
-export async function contractorLeaderboard(range: TimeRange): Promise<ContractorSummary[]> {
+export async function contractorLeaderboard(_range?: TimeRange): Promise<ContractorSummary[]> {
   const contractors    = await getActiveContractors()
   const activeIds      = contractors.map(c => c.id)
   const backlogCutoff  = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString()
-  const last30dCutoff  = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
-  const fromDate       = range.from.toISOString().slice(0, 10)
-  const toDate         = range.to.toISOString().slice(0, 10)
 
-  const [{ data: leads }, { data: projects }, { data: allLeads }, { data: backlogLeads }, invoiceResult, { data: activePacks }] = await Promise.all([
-    db()
-      .from('leads')
-      .select('contractor_id, canonical_stage, monday_updated_at')
-      .in('contractor_id', activeIds)
-      .gte('monday_created_at', range.from.toISOString())
-      .lte('monday_created_at', range.to.toISOString())
-      .limit(5000),
+  const [{ data: projects }, { data: allLeads }, { data: backlogLeads }, invoiceResult, { data: activePacks }] = await Promise.all([
     db()
       .from('projects')
       .select('contractor_id, aanneemsom, commissie, commissie_status')
@@ -612,7 +601,7 @@ export async function contractorLeaderboard(range: TimeRange): Promise<Contracto
       .from('leads')
       .select('contractor_id, canonical_stage, monday_updated_at, monday_created_at')
       .in('contractor_id', activeIds)
-      .limit(5000),
+      .limit(10000),
     db()
       .from('leads')
       .select('contractor_id')
@@ -623,9 +612,7 @@ export async function contractorLeaderboard(range: TimeRange): Promise<Contracto
     db()
       .from('closed_deals')
       .select('contractor_id, commission_amount')
-      .in('contractor_id', activeIds)
-      .gte('closed_at', fromDate)
-      .lte('closed_at', toDate),
+      .in('contractor_id', activeIds),
     db()
       .from('lead_packs')
       .select('id, contractor_id, niche, pack_type, units_promised, units_used, units_offset, started_at, completed_at')
@@ -655,26 +642,24 @@ export async function contractorLeaderboard(range: TimeRange): Promise<Contracto
   )
 
   return contractors.map(c => {
-    const cLeads    = (leads    ?? []).filter(l => l.contractor_id === c.id)
     const cProjects = (projects ?? []).filter(p => p.contractor_id === c.id)
     const cAllLeads = (allLeads ?? []).filter(l => l.contractor_id === c.id)
     const cBacklog  = (backlogLeads ?? []).filter(l => l.contractor_id === c.id)
 
     const isRetainer  = c.commission_model === 'retainer'
     const isHandsOff  = c.service_model === 'hands_off'
-    const isLeadsOnly = c.service_model === 'leads_only'
     const isUnfiltered = c.qualification_model === 'unfiltered'
 
-    const total        = cLeads.length
-    const qualified    = cLeads.filter(l => ['inspection', 'quote_sent', 'won', 'deferred'].includes(l.canonical_stage)).length
+    const total        = cAllLeads.length
+    const qualified    = cAllLeads.filter(l => ['inspection', 'quote_sent', 'won', 'deferred'].includes(l.canonical_stage)).length
     const quoteSentNow = cAllLeads.filter(l => l.canonical_stage === 'quote_sent').length
 
-    // Deals and close rate: source of truth is closed_deals table (not leads.canonical_stage).
-    // Denominator is all leads received in period — same number as leadsReceived column.
-    const dealsInPeriod = closedDeals.filter(d => d.contractor_id === c.id).length
-    const closeRate = (dealsInPeriod === 0 || total === 0)
+    // Deals and close rate: source of truth is closed_deals table, all-time.
+    // Denominator is all leads received all-time — same number as leadsReceived column.
+    const dealsTotal = closedDeals.filter(d => d.contractor_id === c.id).length
+    const closeRate = (dealsTotal === 0 || total === 0)
       ? null
-      : Math.round((dealsInPeriod / total) * 1000) / 10
+      : Math.round((dealsTotal / total) * 1000) / 10
 
     // Avg deal size from actual project aanneemsom data
     const dealsWithAmount = cProjects.filter(p => p.aanneemsom && p.aanneemsom > 0)
@@ -711,53 +696,6 @@ export async function contractorLeaderboard(range: TimeRange): Promise<Contracto
 
     const qualRate = (isUnfiltered || isHandsOff) ? null
                        : (total > 0 ? Math.round(qualified / total * 1000) / 10 : null)
-
-    // All-time metrics for status evaluation (period metrics used for display only)
-    const wonAllTime   = cAllLeads.filter(l => l.canonical_stage === 'won').length
-    const quoteAllTime = cAllLeads.filter(l => l.canonical_stage === 'quote_sent' || l.canonical_stage === 'won').length
-    const closeRateAllTime = quoteAllTime > 0 ? (wonAllTime / quoteAllTime) * 100 : 0
-
-    // How long has this contractor been active (days since first lead created)
-    const firstLeadDate = cAllLeads.reduce<string | null>((min, l) => {
-      if (!l.monday_created_at) return min
-      return min === null || l.monday_created_at < min ? l.monday_created_at : min
-    }, null)
-    const daysActive = firstLeadDate
-      ? Math.floor((Date.now() - new Date(firstLeadDate).getTime()) / 86_400_000)
-      : 0
-
-    // Leads created in the last 30 days (for inactief check)
-    const recentLeads = cAllLeads.filter(l => l.monday_created_at && l.monday_created_at >= last30dCutoff).length
-
-    // At least one quote_sent lead >30 days old — guards Let op against active pipelines
-    const oldQuoteCutoff = new Date(Date.now() - 30 * 86_400_000).toISOString()
-    const hasStaleQuote  = cAllLeads.some(
-      l => l.canonical_stage === 'quote_sent' && l.monday_created_at && l.monday_created_at < oldQuoteCutoff
-    )
-
-    // Performing and Let op are only meaningful for full_sales contractors who track
-    // their pipeline through quote_sent → won. leads_only boards have no quote_sent
-    // stage, so close rate is artificially 100% (won/won), making Performing fire
-    // incorrectly. Skip both checks for leads_only.
-    const canEvaluateClosing = !isLeadsOnly
-
-    // Health decision tree — first match wins
-    let health: ContractorHealth
-    if (recentLeads === 0) {
-      health = 'idle'              // Inactief: no leads in last 30 days
-    } else if (c.relationship_status === 'at_risk') {
-      health = 'critical'          // Kritiek: manual at_risk flag
-    } else if (isHandsOff) {
-      health = 'active'            // Lopend: hands_off, no pipeline visibility
-    } else if (daysActive < 60 || cAllLeads.length < 10) {
-      health = 'insufficient-data' // Onvoldoende data: too new or too few leads
-    } else if (canEvaluateClosing && wonAllTime >= 1 && closeRateAllTime > 15) {
-      health = 'on-track'          // Performing: proven closer with real pipeline data
-    } else if (canEvaluateClosing && quoteAllTime >= 5 && hasStaleQuote && closeRateAllTime < 15) {
-      health = 'warning'           // Let op: stale quotes + consistently low close rate
-    } else {
-      health = 'active'            // Lopend: fallback
-    }
 
     const cPacks = (activePacks ?? []).filter(p => p.contractor_id === c.id)
     const packSummary = cPacks.length === 0
@@ -797,7 +735,7 @@ export async function contractorLeaderboard(range: TimeRange): Promise<Contracto
       leadsReceived:        total,
       qualifiedLeads:       qualified,
       qualificationRate:    qualRate,
-      dealsInPeriod,
+      dealsTotal,
       closeRate,
       avgDealSize,
       commissionBooked:     commBooked,
@@ -805,16 +743,15 @@ export async function contractorLeaderboard(range: TimeRange): Promise<Contracto
       pipelineValueEst:     pipeEst,
       backlogDebt:          cBacklog.length,
       lastActivity,
-      health,
       activePacks:          packSummary,
       periodStages: {
-        new:        cLeads.filter(l => l.canonical_stage === 'new').length,
-        contacted:  cLeads.filter(l => l.canonical_stage === 'contacted').length,
-        inspection: cLeads.filter(l => l.canonical_stage === 'inspection').length,
-        quote_sent: cLeads.filter(l => l.canonical_stage === 'quote_sent').length,
-        won:        cLeads.filter(l => l.canonical_stage === 'won').length,
-        lost:       cLeads.filter(l => l.canonical_stage === 'lost').length,
-        deferred:   cLeads.filter(l => l.canonical_stage === 'deferred').length,
+        new:        cAllLeads.filter(l => l.canonical_stage === 'new').length,
+        contacted:  cAllLeads.filter(l => l.canonical_stage === 'contacted').length,
+        inspection: cAllLeads.filter(l => l.canonical_stage === 'inspection').length,
+        quote_sent: cAllLeads.filter(l => l.canonical_stage === 'quote_sent').length,
+        won:        cAllLeads.filter(l => l.canonical_stage === 'won').length,
+        lost:       cAllLeads.filter(l => l.canonical_stage === 'lost').length,
+        deferred:   cAllLeads.filter(l => l.canonical_stage === 'deferred').length,
       },
       snapshotStages: {
         new:        cAllLeads.filter(l => l.canonical_stage === 'new').length,
