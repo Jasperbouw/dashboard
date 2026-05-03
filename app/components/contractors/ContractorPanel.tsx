@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from 'react'
 import useSWR from 'swr'
 import type { ContractorSummary } from '../../../lib/metrics'
 import { supabase } from '../../../lib/supabase'
-import { LocatieTab } from './LocatieTab'
 import { PakkettanTab } from './PakkettanTab'
 
 const fetcher = (url: string) =>
@@ -57,14 +56,13 @@ const QUAL_LABEL: Record<string, string> = {
 
 // ── Tabs ─────────────────────────────────────────────────────────────────────
 
-type Tab = 'performance' | 'financieel' | 'pakketten' | 'info' | 'locatie'
+type Tab = 'performance' | 'financieel' | 'pakketten' | 'info'
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'performance', label: 'Performance' },
   { id: 'financieel',  label: 'Financieel'  },
   { id: 'pakketten',   label: 'Pakketten'   },
   { id: 'info',        label: 'Info'        },
-  { id: 'locatie',     label: 'Locatie'     },
 ]
 
 // ── Performance tab ───────────────────────────────────────────────────────────
@@ -2052,7 +2050,6 @@ export function ContractorPanel({ contractor, onClose, onPacksChanged }: Props) 
               {tab === 'financieel'  && <FinancieelTab contractorId={contractor.id} />}
               {tab === 'pakketten'   && <PakkettanTab contractorId={contractor.id} onPacksChanged={onPacksChanged} />}
               {tab === 'info'        && <InfoTab contractor={contractor} />}
-              {tab === 'locatie'     && <LocatieTab contractorId={contractor.id} contractorName={contractor.name} />}
             </div>
           </>
         )}
