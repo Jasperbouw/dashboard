@@ -78,27 +78,37 @@ function ProgressBar({ pct, warn }: { pct: number; warn: boolean }) {
   )
 }
 
-// ── New pack modal ────────────────────────────────────────────────────────────
+// ── Pack modal (create + edit) ────────────────────────────────────────────────
 
 const EMPTY_FORM = {
-  niche: '',
-  pack_type: 'lead_based' as 'lead_based' | 'budget_based',
+  niche:          '',
+  pack_type:      'lead_based' as 'lead_based' | 'budget_based',
   units_promised: '',
-  amount_paid: '',
-  started_at: new Date().toISOString().slice(0, 10),
-  notes: '',
+  amount_paid:    '',
+  started_at:     new Date().toISOString().slice(0, 10),
+  notes:          '',
 }
 
-function NewPackModal({
+function PackModal({
   contractorId,
+  pack,
   onClose,
   onSaved,
 }: {
   contractorId: string
+  pack?: LeadPack
   onClose: () => void
   onSaved: (pack: LeadPack) => void
 }) {
-  const [form, setForm] = useState(EMPTY_FORM)
+  const isEdit = pack != null
+  const [form, setForm] = useState(isEdit ? {
+    niche:          pack.niche,
+    pack_type:      pack.pack_type,
+    units_promised: String(pack.units_promised),
+    amount_paid:    pack.amount_paid != null ? String(pack.amount_paid) : '',
+    started_at:     pack.started_at.slice(0, 10),
+    notes:          pack.notes ?? '',
+  } : EMPTY_FORM)
   const [saving, setSaving] = useState(false)
   const [err, setErr] = useState<string | null>(null)
 
@@ -114,13 +124,20 @@ function NewPackModal({
     }
     setSaving(true)
     setErr(null)
-    const r = await fetch(`/api/contractors/${contractorId}/lead-packs`, {
-      method: 'POST',
+    const url    = isEdit
+      ? `/api/contractors/${contractorId}/lead-packs/${pack.id}`
+      : `/api/contractors/${contractorId}/lead-packs`
+    const method = isEdit ? 'PATCH' : 'POST'
+    const r = await fetch(url, {
+      method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        ...form,
+        niche:          form.niche,
+        pack_type:      form.pack_type,
         units_promised: Number(form.units_promised),
-        amount_paid: form.amount_paid ? Number(form.amount_paid) : null,
+        amount_paid:    form.amount_paid ? Number(form.amount_paid) : null,
+        started_at:     form.started_at,
+        notes:          form.notes || null,
       }),
     })
     setSaving(false)
@@ -162,7 +179,7 @@ function NewPackModal({
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <span style={{ fontWeight: 600, fontSize: 'var(--font-size-md)', color: 'var(--color-ink)' }}>
-            Nieuw pakket
+            {isEdit ? 'Pakket bewerken' : 'Nieuw pakket'}
           </span>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: 'var(--color-ink-faint)', lineHeight: 1 }}>×</button>
         </div>
@@ -258,7 +275,7 @@ function NewPackModal({
                 fontSize: 'var(--font-size-sm)', fontWeight: 500, opacity: saving ? 0.7 : 1,
               }}
             >
-              {saving ? 'Bezig…' : 'Aanmaken'}
+              {saving ? 'Bezig…' : isEdit ? 'Opslaan' : 'Aanmaken'}
             </button>
           </div>
         </form>
@@ -384,11 +401,13 @@ function ActivePackCard({
   contractorId,
   onUpdate,
   onClose: onMarkClosed,
+  onEdit,
 }: {
   pack: LeadPack
   contractorId: string
   onUpdate: (updated: LeadPack) => void
   onClose: (id: string) => void
+  onEdit: () => void
 }) {
   const [spendModal, setSpendModal] = useState(false)
   const [closing, setClosing] = useState(false)
@@ -511,6 +530,17 @@ function ActivePackCard({
         {/* Actions */}
         <div style={{ display: 'flex', gap: 6 }}>
           <button
+            onClick={onEdit}
+            style={{
+              fontSize: 'var(--font-size-xs)', padding: '4px 10px',
+              background: 'none', border: '1px solid var(--color-border)',
+              borderRadius: 'var(--radius-sm)', cursor: 'pointer',
+              color: 'var(--color-ink-muted)',
+            }}
+          >
+            Bewerken
+          </button>
+          <button
             onClick={markCompleted} disabled={closing}
             style={{
               fontSize: 'var(--font-size-xs)', padding: '4px 10px',
@@ -549,6 +579,7 @@ export function PakkettanTab({ contractorId }: { contractorId: string }) {
 
   const [showNew, setShowNew]         = useState(false)
   const [showHistory, setShowHistory] = useState(false)
+  const [editPack, setEditPack]       = useState<LeadPack | null>(null)
 
   const packs = rawPacks ?? []
 
@@ -582,10 +613,18 @@ export function PakkettanTab({ contractorId }: { contractorId: string }) {
   return (
     <>
       {showNew && (
-        <NewPackModal
+        <PackModal
           contractorId={contractorId}
           onClose={() => setShowNew(false)}
           onSaved={pack => { addPack(pack); setShowNew(false) }}
+        />
+      )}
+      {editPack && (
+        <PackModal
+          contractorId={contractorId}
+          pack={editPack}
+          onClose={() => setEditPack(null)}
+          onSaved={() => { mutate(); setEditPack(null) }}
         />
       )}
 
@@ -631,6 +670,7 @@ export function PakkettanTab({ contractorId }: { contractorId: string }) {
                 contractorId={contractorId}
                 onUpdate={updatePack}
                 onClose={removePack}
+                onEdit={() => setEditPack(pack)}
               />
             ))}
           </div>
