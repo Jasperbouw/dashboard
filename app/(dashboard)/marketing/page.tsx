@@ -135,34 +135,25 @@ export default async function MarketingPage() {
           </button>
         </div>
 
-        {/* Empty state */}
-        <div style={{
-          padding:   '56px 20px',
-          textAlign: 'center',
-        }}>
-          <div style={{
-            fontSize:     32,
-            marginBottom: 12,
-            opacity:      0.25,
-          }}>
-            ✦
+        {stats.totalHooks === 0 ? (
+          /* Empty state */
+          <div style={{ padding: '56px 20px', textAlign: 'center' }}>
+            <div style={{ fontSize: 32, marginBottom: 12, opacity: 0.25 }}>✦</div>
+            <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-ink-muted)', margin: 0 }}>
+              Hook library is leeg. Begin met hooks toevoegen om de agent te starten.
+            </p>
+            <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)', marginTop: 6, marginBottom: 0 }}>
+              Hook management beschikbaar in Phase 2
+            </p>
           </div>
-          <p style={{
-            fontSize:  'var(--font-size-sm)',
-            color:     'var(--color-ink-muted)',
-            margin:    0,
-          }}>
-            Hook library is leeg. Begin met hooks toevoegen om de agent te starten.
-          </p>
-          <p style={{
-            fontSize:  'var(--font-size-xs)',
-            color:     'var(--color-ink-faint)',
-            marginTop: 6,
-            marginBottom: 0,
-          }}>
-            Hook management beschikbaar in Phase 2
-          </p>
-        </div>
+        ) : (
+          /* Hooks loaded — full list UI comes in Phase 2 */
+          <div style={{ padding: '32px 20px', textAlign: 'center' }}>
+            <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-ink-muted)', margin: 0 }}>
+              {stats.totalHooks} hooks geladen. Hook management UI beschikbaar in Phase 2.
+            </p>
+          </div>
+        )}
       </div>
 
     </div>
