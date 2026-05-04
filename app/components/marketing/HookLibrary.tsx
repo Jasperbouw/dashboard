@@ -8,15 +8,16 @@ import type { Hook } from './HookModal'
 
 const fetcher = (url: string) => fetch(url).then(r => { if (!r.ok) throw new Error(r.statusText); return r.json() })
 
-const NICHE_ORDER = ['bouw', 'dakkapel', 'daken', 'extras'] as const
+// Marketing agent scope: bouw, daken, dakkapel only.
+// Extras is excluded here; it still appears throughout the rest of the dashboard.
+const NICHE_ORDER = ['bouw', 'dakkapel', 'daken'] as const
 const NICHE_LABEL: Record<string, string> = {
-  bouw: 'Bouw', daken: 'Daken', dakkapel: 'Dakkapel', extras: 'Extras',
+  bouw: 'Bouw', daken: 'Daken', dakkapel: 'Dakkapel',
 }
 const NICHE_COLOR: Record<string, { color: string; bg: string }> = {
   bouw:     { color: 'var(--color-info)',    bg: 'var(--color-info-subtle)'    },
   daken:    { color: 'var(--color-success)', bg: 'var(--color-success-subtle)' },
   dakkapel: { color: 'var(--color-quote)',   bg: 'var(--color-quote-subtle)'   },
-  extras:   { color: 'var(--color-warning)', bg: 'var(--color-warning-subtle)' },
 }
 const STATUS_META: Record<string, { label: string; color: string; bg: string }> = {
   testing: { label: 'Testing', color: 'var(--color-info)',    bg: 'var(--color-info-subtle)'    },

@@ -15,11 +15,12 @@ export interface Hook {
   updated_at:     string
 }
 
-const NICHES = [
+// Marketing agent only operates on these three niches.
+// Extras is intentionally excluded here; it remains in the rest of the dashboard.
+const MARKETING_NICHES = [
   { value: 'bouw',     label: 'Bouw'     },
   { value: 'daken',    label: 'Daken'    },
   { value: 'dakkapel', label: 'Dakkapel' },
-  { value: 'extras',   label: 'Extras'   },
 ]
 
 const STATUSES = [
@@ -112,7 +113,11 @@ export function HookModal({ hook, defaultNiche, onSaved, onClose }: Props) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <label style={lbl}>Niche *</label>
               <select value={form.niche} onChange={e => set('niche', e.target.value)} style={inp}>
-                {NICHES.map(n => <option key={n.value} value={n.value}>{n.label}</option>)}
+                {MARKETING_NICHES.map(n => <option key={n.value} value={n.value}>{n.label}</option>)}
+                {/* Legacy: show extras as disabled if editing an existing extras hook */}
+                {form.niche === 'extras' && (
+                  <option value="extras" disabled>Extras (legacy — kies een andere niche)</option>
+                )}
               </select>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>

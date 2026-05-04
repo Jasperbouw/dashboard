@@ -9,12 +9,15 @@ async function fetchPageData() {
   const now = new Date()
   const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
 
+  // Marketing agent scope: bouw, daken, dakkapel only.
+  const MARKETING_NICHES = ['bouw', 'daken', 'dakkapel']
+
   const [totalHooks, winnerHooks, creativesWeek, pendingReview, hooksData] = await Promise.all([
-    db.from('hooks').select('*', { count: 'exact', head: true }),
-    db.from('hooks').select('*', { count: 'exact', head: true }).eq('status', 'winner'),
+    db.from('hooks').select('*', { count: 'exact', head: true }).in('niche', MARKETING_NICHES),
+    db.from('hooks').select('*', { count: 'exact', head: true }).eq('status', 'winner').in('niche', MARKETING_NICHES),
     db.from('creatives').select('*', { count: 'exact', head: true }).gte('created_at', weekAgo),
     db.from('creatives').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-    db.from('hooks').select('*').order('niche').order('created_at', { ascending: false }),
+    db.from('hooks').select('*').in('niche', MARKETING_NICHES).order('niche').order('created_at', { ascending: false }),
   ])
 
   return {
