@@ -140,11 +140,11 @@ export function WinnersLibrary({ initialWinners }: Props) {
                           onMouseLeave={e => { if (!w.is_winner) (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--color-border)' }}
                         >
                           {/* Image */}
-                          <div style={{ position: 'relative', paddingTop: '56.25%', background: 'var(--color-surface)' }}>
+                          <div style={{ position: 'relative', paddingTop: '100%', background: '#1a1a1a' }}>
                             <img
                               src={w.thumbnail_url ?? w.image_url}
                               alt={w.overlay_text ?? 'winner'}
-                              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain' }}
                             />
                             {w.is_winner && (
                               <span style={{
