@@ -7,22 +7,18 @@ export async function PATCH(
 ) {
   const { id } = await params
   let body: Record<string, unknown>
-  try { body = await req.json() } catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }) }
-
-  const { name, niche, description, visual_concept, status } = body as {
-    name?: string; niche?: string; description?: string
-    visual_concept?: string | null; status?: string
+  try { body = await req.json() } catch {
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
+  const allowed = ['overlay_text', 'notes', 'spend', 'impressions', 'ctr', 'cpl', 'leads']
   const patch: Record<string, unknown> = { updated_at: new Date().toISOString() }
-  if (name        !== undefined) patch.name           = name?.trim()
-  if (niche       !== undefined) patch.niche          = niche
-  if (description !== undefined) patch.description    = description?.trim()
-  if ('visual_concept' in body)  patch.visual_concept = visual_concept?.trim() || null
-  if (status      !== undefined) patch.status         = status
+  for (const key of allowed) {
+    if (key in body) patch[key] = body[key] === '' ? null : body[key]
+  }
 
   const { data, error } = await serverClient()
-    .from('hooks')
+    .from('winners')
     .update(patch)
     .eq('id', id)
     .select()
@@ -37,7 +33,17 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params
-  const { error } = await serverClient().from('hooks').delete().eq('id', id)
+  const db = serverClient()
+
+  const { data: winner } = await db.from('winners').select('image_url').eq('id', id).single()
+  if (winner?.image_url) {
+    // Extract storage path from public URL
+    const url  = new URL(winner.image_url)
+    const path = url.pathname.replace(/^\/storage\/v1\/object\/public\/winner-uploads\//, '')
+    if (path) await db.storage.from('winner-uploads').remove([path])
+  }
+
+  const { error } = await db.from('winners').delete().eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return new NextResponse(null, { status: 204 })
 }
