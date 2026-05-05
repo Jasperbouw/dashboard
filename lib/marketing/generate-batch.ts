@@ -1,5 +1,5 @@
 import { serverClient } from '../supabase-server'
-import { anthropic } from '../anthropic'
+import { getAnthropic } from '../anthropic'
 import { generateImage } from '../gemini'
 
 // Creatives to generate per niche per daily batch
@@ -93,7 +93,13 @@ Analyseer de winning triggers in de afbeeldingen en teksten, pas die triggers to
 Geef je antwoord als raw JSON array — geen markdown, geen extra tekst.`,
   }
 
-  const message = await anthropic.messages.create({
+  // Temporary diagnostics — remove after confirming key reaches runtime
+  const _anthKey = process.env.ANTHROPIC_API_KEY
+  const _gooKey  = process.env.GOOGLE_API_KEY
+  console.log('[debug] ANTHROPIC_API_KEY present:', !!_anthKey, '| length:', _anthKey?.length ?? 0, '| prefix:', _anthKey?.slice(0, 12) ?? 'undefined', '| suffix:', _anthKey?.slice(-4) ?? 'undefined')
+  console.log('[debug] GOOGLE_API_KEY present:', !!_gooKey, '| length:', _gooKey?.length ?? 0, '| prefix:', _gooKey?.slice(0, 8) ?? 'undefined')
+
+  const message = await getAnthropic().messages.create({
     model:      'claude-sonnet-4-6',
     max_tokens: 2048,
     system:     SYSTEM_PROMPT,
