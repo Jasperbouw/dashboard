@@ -58,16 +58,14 @@ export function DailyFeed() {
 
   async function triggerGenerate() {
     setGenerating(true); setGenError(''); setGenResult('')
-    const r = await fetch('/api/marketing/generate-batch', {
-      method:  'POST',
-      headers: { 'x-sync-secret': '' }, // filled by server env — UI trigger only
-    })
+    // Cookie is sent automatically (same-origin). No secret header needed from browser.
+    const r = await fetch('/api/marketing/generate-batch', { method: 'POST' })
     const j = await r.json().catch(() => ({}))
     setGenerating(false)
     if (!r.ok || !j.ok) {
       setGenError((j as { error?: string }).error ?? 'Genereren mislukt')
     } else {
-      setGenResult(`Batch klaar: ${j.creatives} creatives gegenereerd${j.errors?.length ? ` (${j.errors.length} errors)` : ''}`)
+      setGenResult(`Batch klaar: ${j.creatives} creatives gegenereerd${j.errors?.length ? ` (${j.errors.length} fouten)` : ''}`)
       setDate(todayStr())
       mutate()
     }
@@ -110,9 +108,13 @@ export function DailyFeed() {
         <button
           onClick={triggerGenerate}
           disabled={generating}
-          style={{ padding: '5px 12px', background: 'none', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', cursor: generating ? 'default' : 'pointer', fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-muted)', opacity: generating ? 0.6 : 1 }}
+          title={generating ? 'Dit duurt 30–60 seconden…' : undefined}
+          style={{ padding: '5px 12px', background: 'none', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', cursor: generating ? 'default' : 'pointer', fontSize: 'var(--font-size-xs)', color: generating ? 'var(--color-ink-faint)' : 'var(--color-ink-muted)', opacity: generating ? 0.7 : 1, display: 'flex', alignItems: 'center', gap: 6 }}
         >
-          {generating ? 'Genereren…' : '⚡ Genereer nu'}
+          {generating && (
+            <span style={{ display: 'inline-block', width: 10, height: 10, border: '2px solid var(--color-border)', borderTopColor: 'var(--color-ink-muted)', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+          )}
+          {generating ? 'Bezig met genereren…' : '⚡ Genereer nu'}
         </button>
       </div>
 

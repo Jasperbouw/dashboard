@@ -7,7 +7,8 @@ const MAX_AGE_MS  = 30 * 24 * 60 * 60 * 1000 // 30 days
 const PUBLIC = [
   '/login',
   '/api/auth/',
-  '/api/sync/',       // Vercel cron + manual sync (uses CRON_SECRET/x-sync-secret)
+  '/api/sync/',                       // Vercel cron + manual sync (uses CRON_SECRET/x-sync-secret)
+  '/api/marketing/generate-batch',    // Vercel cron + dashboard trigger (own auth check)
   '/api/energie-lead/', // Webhook receivers
   '/api/leadbyte/',
   '/_next/',

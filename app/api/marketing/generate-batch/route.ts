@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { generateDailyBatch } from '../../../../lib/marketing/generate-batch'
+import { verifyDashboardCookie } from '../../../../lib/auth'
 
-// Manual trigger requires x-sync-secret header.
-// Vercel Cron fires with Authorization: Bearer <CRON_SECRET>.
+// Three auth paths (route is in PUBLIC middleware list, so handles own auth):
+// 1. x-sync-secret header  — manual CLI/curl trigger
+// 2. Authorization: Bearer  — Vercel Cron
+// 3. bouwcheck_auth cookie  — dashboard user clicking "Genereer nu"
 function isAuthorized(req: NextRequest): boolean {
   const syncSecret = req.headers.get('x-sync-secret')
   if (syncSecret && syncSecret === process.env.SYNC_SECRET) return true
@@ -11,6 +14,7 @@ function isAuthorized(req: NextRequest): boolean {
     const token = auth.replace(/^Bearer\s+/i, '')
     if (token === process.env.CRON_SECRET) return true
   }
+  if (verifyDashboardCookie(req)) return true
   return false
 }
 
