@@ -4,6 +4,7 @@ import { useState, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import type { ContractorSummary } from '../../../lib/metrics'
 import { ContractorPanel } from './ContractorPanel'
+import { NewContractorModal } from './NewContractorModal'
 
 // ── Display helpers ───────────────────────────────────────────────────────────
 
@@ -92,8 +93,9 @@ export function ContractorsTable({ contractors }: Props) {
   const [sortDir, setSortDir]       = useState<'asc' | 'desc'>('asc')
   const [nicheFilter, setNiche]     = useState<string | null>(null)
   const [serviceFilter, setService] = useState<string | null>(null)
-  const [modelFilter, setModel]     = useState<string | null>(null)
-  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [modelFilter,   setModel]     = useState<string | null>(null)
+  const [selectedId,    setSelectedId] = useState<string | null>(null)
+  const [newModalOpen,  setNewModalOpen] = useState(false)
 
   const selectedContractor = useMemo(
     () => contractors.find(c => c.id === selectedId) ?? null,
@@ -220,6 +222,13 @@ export function ContractorsTable({ contractors }: Props) {
         <span style={{ marginLeft: 'auto', fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)', alignSelf: 'center' }}>
           {sorted.length} contractors
         </span>
+
+        <button
+          onClick={() => setNewModalOpen(true)}
+          style={{ padding: '5px 12px', background: 'var(--color-accent)', color: '#fff', border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: 'var(--font-size-xs)', fontWeight: 500, whiteSpace: 'nowrap' }}
+        >
+          + Nieuwe aannemer
+        </button>
       </div>
 
       {/* Table */}
@@ -367,6 +376,13 @@ export function ContractorsTable({ contractors }: Props) {
         onClose={closePanel}
         onPacksChanged={() => router.refresh()}
       />
+
+      {newModalOpen && (
+        <NewContractorModal
+          onSaved={() => { setNewModalOpen(false); router.refresh() }}
+          onClose={() => setNewModalOpen(false)}
+        />
+      )}
     </div>
   )
 }
