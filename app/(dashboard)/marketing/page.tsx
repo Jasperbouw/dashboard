@@ -1,5 +1,6 @@
 import { serverClient } from '../../../lib/supabase-server'
 import { WinnersLibrary } from '../../components/marketing/WinnersLibrary'
+import { DailyFeed } from '../../components/marketing/DailyFeed'
 import type { Winner } from '../../components/marketing/types'
 
 export const dynamic = 'force-dynamic'
@@ -39,10 +40,15 @@ export default async function MarketingPage() {
   const { stats, winners } = await fetchPageData()
 
   const statCards = [
-    { label: 'Totaal winners',    value: String(stats.totalWinners),        sub: 'CPL ≤ €12'                 },
-    { label: 'Beste CPL',         value: fmtCpl(stats.bestCpl),             sub: 'Laagste CPL ooit'          },
-    { label: 'Creatives (7d)',    value: String(stats.creativesWeek),       sub: 'Gegenereerd deze week'     },
-    { label: 'Wacht op review',   value: String(stats.pendingReview),       sub: 'Status: pending'           },
+    { label: 'Totaal winners',  value: String(stats.totalWinners),  sub: 'CPL ≤ €12' },
+    { label: 'Beste CPL',       value: fmtCpl(stats.bestCpl),       sub: 'Laagste CPL ooit' },
+    {
+      label: 'Creatives (7d)',
+      value: String(stats.creativesWeek),
+      sub: 'Gegenereerd deze week',
+      tooltip: '~€0,40 per dag aan AI kosten (Claude + Gemini)',
+    },
+    { label: 'Wacht op review', value: String(stats.pendingReview), sub: 'Status: pending' },
   ]
 
   return (
@@ -62,8 +68,13 @@ export default async function MarketingPage() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 32 }}>
         {statCards.map(s => (
           <div key={s.label} style={{ padding: 16, background: 'var(--color-surface)', border: '1px solid var(--color-border-subtle)', borderRadius: 'var(--radius-lg)' }}>
-            <div style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 600, color: 'var(--color-ink-faint)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>
+            <div style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 600, color: 'var(--color-ink-faint)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
               {s.label}
+              {'tooltip' in s && (
+                <span title={s.tooltip} style={{ cursor: 'help', color: 'var(--color-ink-faint)', fontSize: 10, border: '1px solid var(--color-border)', borderRadius: '50%', width: 14, height: 14, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>
+                  i
+                </span>
+              )}
             </div>
             <div style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 600, color: 'var(--color-ink)', fontVariantNumeric: 'tabular-nums' }}>
               {s.value}
@@ -78,21 +89,8 @@ export default async function MarketingPage() {
       {/* Winners library */}
       <WinnersLibrary initialWinners={winners} />
 
-      {/* Daily output feed — Phase 2 placeholder */}
-      <div style={{
-        marginTop: 24,
-        background: 'var(--color-surface)',
-        border: '1px solid var(--color-border-subtle)',
-        borderRadius: 'var(--radius-lg)',
-        padding: '20px',
-      }}>
-        <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-ink)', marginBottom: 8 }}>
-          Daily output feed
-        </div>
-        <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)' }}>
-          Output verschijnt hier zodra de generation engine draait — Phase 2
-        </div>
-      </div>
+      {/* Daily output feed */}
+      <DailyFeed />
 
     </div>
   )

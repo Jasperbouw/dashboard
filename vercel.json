@@ -4,6 +4,10 @@
     {
       "path": "/api/sync/monday",
       "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/marketing/generate-batch",
+      "schedule": "0 7 * * *"
     }
   ]
 }
