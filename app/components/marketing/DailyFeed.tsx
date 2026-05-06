@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import useSWR from 'swr'
+import useSWR, { useSWRConfig } from 'swr'
 import { NICHE_COLOR, NICHE_LABEL } from './types'
 import { RejectionModal } from './RejectionModal'
 import type { RejectionReason } from './rejection-reasons'
@@ -40,6 +40,7 @@ export function DailyFeed() {
 
   // Rejection modal state
   const [modalId, setModalId] = useState<string | null>(null)
+  const { mutate: globalMutate } = useSWRConfig()
 
   const { data: creatives, mutate } = useSWR<Creative[]>(
     `/api/marketing/creatives?status=pending&date=${date}`,
@@ -59,6 +60,8 @@ export function DailyFeed() {
     setActing(null)
     setActioned(prev => new Set([...prev, id]))
     mutate()
+    // Invalidate the approved archive SWR cache so it reflects the new creative
+    globalMutate((key: unknown) => typeof key === 'string' && key.includes('status=published'))
   }
 
   async function rejectCreative(id: string, reason: RejectionReason, notes: string) {

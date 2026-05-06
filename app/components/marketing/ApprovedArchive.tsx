@@ -52,7 +52,7 @@ export function ApprovedArchive() {
   const since = sinceDate(range)
   const key   = `/api/marketing/creatives?status=published${niche ? `&niche=${niche}` : ''}${since ? `&since=${encodeURIComponent(since)}` : ''}`
 
-  const { data: creatives, mutate } = useSWR<ApprovedCreative[]>(key, fetcher, {
+  const { data: creatives, error, mutate } = useSWR<ApprovedCreative[]>(key, fetcher, {
     revalidateOnFocus: false,
     dedupingInterval:  10_000,
   })
@@ -119,12 +119,14 @@ export function ApprovedArchive() {
       <div style={{ padding: 16 }}>
         {items.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '32px 20px' }}>
-            <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-ink-muted)', marginBottom: 6 }}>
-              {creatives === undefined
-                ? 'Laden…'
-                : 'Nog geen goedgekeurde creatives.'}
+            <div style={{ fontSize: 'var(--font-size-sm)', color: error ? 'var(--color-critical)' : 'var(--color-ink-muted)', marginBottom: 6 }}>
+              {error
+                ? `Fout bij laden: ${error.message}`
+                : creatives === undefined
+                  ? 'Laden…'
+                  : 'Nog geen goedgekeurde creatives.'}
             </div>
-            {creatives !== undefined && (
+            {!error && creatives !== undefined && (
               <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)' }}>
                 Klik 👍 op een creative in de output feed om hem hier te bewaren.
               </div>
