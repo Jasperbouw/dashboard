@@ -18,6 +18,11 @@ interface WinnerRow {
   spend:        number | null
 }
 
+interface RejectionRow {
+  rejection_reason: string
+  rejection_notes:  string | null
+}
+
 interface Concept {
   prompt:            string
   copy_headline:     string
@@ -56,6 +61,61 @@ VISUAL STYLE VOOR PROMPTS:
 - Mix van achtergronden: werf, woonhuis, before/after splits, vakmensen aan het werk, materialen
 - Text overlays op donkere balk onderaan of bovenaan, wit op donker achtergrond`
 
+// ── Rejection context: last 14 days ──────────────────────────────────────────
+
+const REJECTION_LABEL: Record<string, string> = {
+  boring:        'Saai / geen trigger',
+  off_brand:     'Niet passend bij merk',
+  wrong_text:    'Tekst overlay klopt niet',
+  wrong_niche:   'Verkeerde niche / context',
+  fluff:         'Te vaag / fluff copy',
+  unrealistic:   'Onrealistisch beeld',
+  wrong_overlay: 'Overlay slecht geplaatst',
+  other:         'Anders',
+}
+
+async function getRejectionContext(niche: string): Promise<string | null> {
+  const db      = serverClient()
+  const cutoff  = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString()
+
+  const { data } = await db
+    .from('creatives')
+    .select('rejection_reason, rejection_notes')
+    .eq('niche', niche)
+    .eq('status', 'rejected')
+    .not('rejection_reason', 'is', null)
+    .gte('reviewed_at', cutoff)
+
+  if (!data || data.length === 0) return null
+
+  // Group by reason
+  const counts: Record<string, number> = {}
+  const notesByReason: Record<string, string[]> = {}
+
+  for (const row of data as RejectionRow[]) {
+    const r = row.rejection_reason
+    counts[r] = (counts[r] ?? 0) + 1
+    if (row.rejection_notes) {
+      notesByReason[r] = notesByReason[r] ?? []
+      notesByReason[r].push(row.rejection_notes)
+    }
+  }
+
+  const lines = Object.entries(counts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([reason, count]) => {
+      const label = REJECTION_LABEL[reason] ?? reason
+      const notes = notesByReason[reason]
+      const noteStr = notes?.length ? ` — toelichting: "${notes.join('"; "')}"` : ''
+      return `  - ${label} (${count}x)${noteStr}`
+    })
+
+  return `AFGEWEZEN IN AFGELOPEN 14 DAGEN (VERMIJD DEZE PATRONEN):
+${lines.join('\n')}
+
+Zorg dat je nieuwe concepts NIET in deze valkuilen vallen.`
+}
+
 // ── Claude call: get concepts for one niche ───────────────────────────────────
 
 async function generateConcepts(
@@ -82,22 +142,17 @@ async function generateConcepts(
     source: { type: 'url' as const, url: w.image_url },
   }))
 
-  const textBlock = {
-    type: 'text' as const,
-    text: `Genereer ${count} nieuwe ${niche} creatives voor vandaag.
+  const rejectionContext = await getRejectionContext(niche)
+
+  const userText = `Genereer ${count} nieuwe ${niche} creatives voor vandaag.
 
 WINNERS VOOR DEZE NICHE (zie afbeeldingen hierboven):
 ${winnerSummary}
-
+${rejectionContext ? '\n' + rejectionContext + '\n' : ''}
 Analyseer de winning triggers in de afbeeldingen en teksten, pas die triggers toe op ${count} NIEUWE visuele hoeken.
-Geef je antwoord als raw JSON array — geen markdown, geen extra tekst.`,
-  }
+Geef je antwoord als raw JSON array — geen markdown, geen extra tekst.`
 
-  // Temporary diagnostics — remove after confirming key reaches runtime
-  const _anthKey = process.env.ANTHROPIC_API_KEY
-  const _gooKey  = process.env.GOOGLE_API_KEY
-  console.log('[debug] ANTHROPIC_API_KEY present:', !!_anthKey, '| length:', _anthKey?.length ?? 0, '| prefix:', _anthKey?.slice(0, 12) ?? 'undefined', '| suffix:', _anthKey?.slice(-4) ?? 'undefined')
-  console.log('[debug] GOOGLE_API_KEY present:', !!_gooKey, '| length:', _gooKey?.length ?? 0, '| prefix:', _gooKey?.slice(0, 8) ?? 'undefined')
+  const textBlock = { type: 'text' as const, text: userText }
 
   const message = await getAnthropic().messages.create({
     model:      'claude-sonnet-4-6',
@@ -235,7 +290,7 @@ export async function generateDailyBatch(): Promise<BatchResult> {
 
   // 3. Update batch
   const finalStatus = totalCreatives === 0 ? 'failed'
-    : errors.length > 0 ? 'complete' // partial success still complete
+    : errors.length > 0 ? 'complete'
     : 'complete'
 
   await db.from('creative_batches').update({

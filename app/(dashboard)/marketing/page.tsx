@@ -1,31 +1,55 @@
 import { serverClient } from '../../../lib/supabase-server'
 import { WinnersLibrary } from '../../components/marketing/WinnersLibrary'
 import { DailyFeed } from '../../components/marketing/DailyFeed'
+import { ApprovedArchive } from '../../components/marketing/ApprovedArchive'
 import type { Winner } from '../../components/marketing/types'
 
 export const dynamic = 'force-dynamic'
 
-async function fetchPageData() {
-  const db  = serverClient()
-  const now = new Date()
-  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
+const REJECTION_LABEL: Record<string, string> = {
+  boring:        'Saai / geen trigger',
+  off_brand:     'Niet passend bij merk',
+  wrong_text:    'Tekst overlay klopt niet',
+  wrong_niche:   'Verkeerde niche / context',
+  fluff:         'Te vaag / fluff copy',
+  unrealistic:   'Onrealistisch beeld',
+  wrong_overlay: 'Overlay slecht geplaatst',
+  other:         'Anders',
+}
 
-  const [totalWinners, bestCpl, creativesWeek, pendingReview, winnersData] = await Promise.all([
+async function fetchPageData() {
+  const db      = serverClient()
+  const now     = new Date()
+  const weekAgo = new Date(now.getTime() -  7 * 24 * 60 * 60 * 1000).toISOString()
+  const fortAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString()
+
+  const [totalWinners, bestCpl, creativesWeek, pendingReview, rejectionsData, winnersData] = await Promise.all([
     db.from('winners').select('*', { count: 'exact', head: true }).eq('is_winner', true),
     db.from('winners').select('cpl').eq('is_winner', true).order('cpl', { ascending: true }).limit(1),
     db.from('creatives').select('*', { count: 'exact', head: true }).gte('created_at', weekAgo),
     db.from('creatives').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+    db.from('creatives').select('rejection_reason').eq('status', 'rejected').not('rejection_reason', 'is', null).gte('reviewed_at', fortAgo),
     db.from('winners').select('*').order('uploaded_at', { ascending: false }),
   ])
 
   const minCpl = (bestCpl.data?.[0]?.cpl ?? null) as number | null
 
+  // Count rejections per reason to find top reason
+  const rejCounts: Record<string, number> = {}
+  for (const row of rejectionsData.data ?? []) {
+    const r = (row as { rejection_reason: string }).rejection_reason
+    rejCounts[r] = (rejCounts[r] ?? 0) + 1
+  }
+  const topReason = Object.entries(rejCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null
+
   return {
     stats: {
-      totalWinners:  totalWinners.count ?? 0,
-      bestCpl:       minCpl,
-      creativesWeek: creativesWeek.count ?? 0,
-      pendingReview: pendingReview.count ?? 0,
+      totalWinners:    totalWinners.count ?? 0,
+      bestCpl:         minCpl,
+      creativesWeek:   creativesWeek.count ?? 0,
+      pendingReview:   pendingReview.count ?? 0,
+      rejections14d:   rejectionsData.count ?? (rejectionsData.data?.length ?? 0),
+      topRejection:    topReason,
     },
     winners: (winnersData.data ?? []) as Winner[],
   }
@@ -49,6 +73,11 @@ export default async function MarketingPage() {
       tooltip: '~€0,40 per dag aan AI kosten (Claude + Gemini)',
     },
     { label: 'Wacht op review', value: String(stats.pendingReview), sub: 'Status: pending' },
+    {
+      label: 'Afwijzingen 14d',
+      value: String(stats.rejections14d),
+      sub: stats.topRejection ? `Meest: ${REJECTION_LABEL[stats.topRejection] ?? stats.topRejection}` : 'Geen afwijzingen',
+    },
   ]
 
   return (
@@ -65,7 +94,7 @@ export default async function MarketingPage() {
       </div>
 
       {/* Stats row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 32 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 14, marginBottom: 32 }}>
         {statCards.map(s => (
           <div key={s.label} style={{ padding: 16, background: 'var(--color-surface)', border: '1px solid var(--color-border-subtle)', borderRadius: 'var(--radius-lg)' }}>
             <div style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 600, color: 'var(--color-ink-faint)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -91,6 +120,9 @@ export default async function MarketingPage() {
 
       {/* Daily output feed */}
       <DailyFeed />
+
+      {/* Approved archive */}
+      <ApprovedArchive />
 
     </div>
   )

@@ -11,21 +11,40 @@ export async function PATCH(
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  const { status, rejection_reason } = body as {
-    status: 'published' | 'rejected'; rejection_reason?: string
+  const { status, rejection_reason, rejection_notes } = body as {
+    status: 'published' | 'rejected' | 'pending'
+    rejection_reason?: string
+    rejection_notes?:  string
   }
 
-  if (!['published', 'rejected'].includes(status)) {
-    return NextResponse.json({ error: 'status must be published or rejected' }, { status: 400 })
+  if (!['published', 'rejected', 'pending'].includes(status)) {
+    return NextResponse.json({ error: 'status must be published, rejected, or pending' }, { status: 400 })
+  }
+
+  if (status === 'rejected' && !rejection_reason) {
+    return NextResponse.json({ error: 'rejection_reason is required when rejecting' }, { status: 400 })
+  }
+
+  const update: Record<string, unknown> = { status }
+
+  if (status === 'rejected') {
+    update.rejection_reason = rejection_reason ?? null
+    update.rejection_notes  = rejection_notes  ?? null
+    update.reviewed_at      = new Date().toISOString()
+  } else if (status === 'published') {
+    update.rejection_reason = null
+    update.rejection_notes  = null
+    update.reviewed_at      = new Date().toISOString()
+  } else {
+    // pending = revert to unreviewed
+    update.rejection_reason = null
+    update.rejection_notes  = null
+    update.reviewed_at      = null
   }
 
   const { data, error } = await serverClient()
     .from('creatives')
-    .update({
-      status,
-      rejection_reason: status === 'rejected' ? (rejection_reason ?? null) : null,
-      reviewed_at:      new Date().toISOString(),
-    })
+    .update(update)
     .eq('id', id)
     .select()
     .single()
