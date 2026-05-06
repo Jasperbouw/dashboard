@@ -22,7 +22,7 @@ function sinceDate(range: '7d' | '30d' | 'all'): string {
   if (range === 'all') return ''
   const d = new Date()
   d.setDate(d.getDate() - (range === '7d' ? 7 : 30))
-  return d.toISOString()
+  return d.toISOString().slice(0, 10)  // date-only keeps SWR key stable across re-renders
 }
 
 function fmtApproved(iso: string | null) {
