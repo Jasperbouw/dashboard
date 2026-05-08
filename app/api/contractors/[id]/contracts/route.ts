@@ -3,7 +3,14 @@ import { serverClient } from '../../../../../lib/supabase-server'
 import fs from 'fs'
 import path from 'path'
 
-const TEMPLATE_PATH = path.join(process.cwd(), 'public', 'templates', 'samenwerkingsovereenkomst-standaard.html')
+const TEMPLATES_DIR = path.join(process.cwd(), 'public', 'templates')
+
+const ALLOWED_TEMPLATES = new Set(['standaard', 'hollands-prefab'])
+
+function templatePath(slug: string): string {
+  const safe = ALLOWED_TEMPLATES.has(slug) ? slug : 'standaard'
+  return path.join(TEMPLATES_DIR, `samenwerkingsovereenkomst-${safe}.html`)
+}
 
 export async function GET(
   _req: NextRequest,
@@ -56,7 +63,7 @@ export async function POST(
   // Fetch contractor name
   const { data: contractor } = await db
     .from('contractors')
-    .select('name, commission_rate, commission_model')
+    .select('name, commission_rate, commission_model, contract_template')
     .eq('id', id)
     .single()
 
@@ -75,7 +82,7 @@ export async function POST(
 
   let template: string
   try {
-    template = fs.readFileSync(TEMPLATE_PATH, 'utf-8')
+    template = fs.readFileSync(templatePath(contractor.contract_template ?? 'standaard'), 'utf-8')
   } catch {
     return NextResponse.json({ error: 'Template not found' }, { status: 500 })
   }
