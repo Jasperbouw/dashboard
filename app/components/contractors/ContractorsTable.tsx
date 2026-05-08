@@ -375,6 +375,7 @@ export function ContractorsTable({ contractors }: Props) {
         contractor={selectedContractor}
         onClose={closePanel}
         onPacksChanged={() => router.refresh()}
+        onEdited={() => router.refresh()}
       />
 
       {newModalOpen && (

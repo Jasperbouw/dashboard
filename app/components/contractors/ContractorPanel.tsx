@@ -5,6 +5,7 @@ import useSWR from 'swr'
 import type { ContractorSummary } from '../../../lib/metrics'
 import { supabase } from '../../../lib/supabase'
 import { PakkettanTab } from './PakkettanTab'
+import { EditContractorModal } from './EditContractorModal'
 
 const fetcher = (url: string) =>
   fetch(url).then(r => { if (!r.ok) throw new Error(r.statusText); return r.json() })
@@ -1900,13 +1901,15 @@ interface Props {
   contractor:      ContractorSummary | null
   onClose:         () => void
   onPacksChanged?: () => void
+  onEdited?:       () => void
 }
 
 const PANEL_WIDTH = 560
 
-export function ContractorPanel({ contractor, onClose, onPacksChanged }: Props) {
-  const [tab, setTab] = useState<Tab>('performance')
-  const [mounted, setMounted] = useState(false)
+export function ContractorPanel({ contractor, onClose, onPacksChanged, onEdited }: Props) {
+  const [tab,      setTab]      = useState<Tab>('performance')
+  const [mounted,  setMounted]  = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
 
   // Reset tab when switching contractors
   useEffect(() => {
@@ -1933,6 +1936,17 @@ export function ContractorPanel({ contractor, onClose, onPacksChanged }: Props) 
 
   return (
     <>
+      {editOpen && contractor && (
+        <EditContractorModal
+          contractorId={contractor.id}
+          onClose={() => setEditOpen(false)}
+          onSaved={() => {
+            setEditOpen(false)
+            onEdited?.()
+          }}
+        />
+      )}
+
       {/* Backdrop */}
       <div
         onClick={onClose}
@@ -2008,17 +2022,30 @@ export function ContractorPanel({ contractor, onClose, onPacksChanged }: Props) 
                   </div>
                 </div>
 
-                <button
-                  onClick={onClose}
-                  style={{
-                    background: 'none', border: 'none', cursor: 'pointer',
-                    color: 'var(--color-ink-faint)', fontSize: 18, lineHeight: 1,
-                    padding: '2px 4px', borderRadius: 'var(--radius-sm)',
-                  }}
-                  aria-label="Sluiten"
-                >
-                  ✕
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <button
+                    onClick={() => setEditOpen(true)}
+                    style={{
+                      background: 'none', border: '1px solid var(--color-border)', cursor: 'pointer',
+                      color: 'var(--color-ink-muted)', fontSize: 'var(--font-size-xs)',
+                      padding: '4px 10px', borderRadius: 'var(--radius-sm)',
+                      display: 'flex', alignItems: 'center', gap: 5,
+                    }}
+                  >
+                    ✏ Bewerken
+                  </button>
+                  <button
+                    onClick={onClose}
+                    style={{
+                      background: 'none', border: 'none', cursor: 'pointer',
+                      color: 'var(--color-ink-faint)', fontSize: 18, lineHeight: 1,
+                      padding: '2px 4px', borderRadius: 'var(--radius-sm)',
+                    }}
+                    aria-label="Sluiten"
+                  >
+                    ✕
+                  </button>
+                </div>
               </div>
 
               {/* Tabs */}
