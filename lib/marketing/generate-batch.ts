@@ -3,7 +3,7 @@ import { getAnthropic } from '../anthropic'
 import { generateImage } from '../gemini'
 
 // Creatives to generate per niche per daily batch
-const NICHE_COUNTS: Record<string, number> = { bouw: 3, dakkapel: 3, daken: 2 }
+const NICHE_COUNTS: Record<string, number> = { bouw: 1, dakkapel: 1, daken: 1 }
 const NICHES = ['bouw', 'dakkapel', 'daken'] as const
 
 interface WinnerRow {
