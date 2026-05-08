@@ -46,7 +46,7 @@ export async function PATCH(
     commission_rate?:   number
     monday_board_id?:   string
     account_label?:     string
-    notes?:             string
+    notes?:             string | null
   }
 
   const db = serverClient()
@@ -101,7 +101,7 @@ export async function PATCH(
   if (service_model    !== undefined) contractorPatch.service_model    = service_model
   if (commission_model !== undefined) contractorPatch.commission_model = commission_model
   if (commission_rate  !== undefined) contractorPatch.commission_rate  = Number(commission_rate)
-  if (notes            !== undefined) contractorPatch.notes            = notes.trim() || null
+  if (notes            !== undefined) contractorPatch.notes            = notes?.trim() || null
 
   if (Object.keys(contractorPatch).length > 0) {
     const { error } = await db.from('contractors').update(contractorPatch).eq('id', id)
