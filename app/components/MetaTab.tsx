@@ -108,7 +108,7 @@ function num(n: number) {
   return n.toLocaleString('nl-NL')
 }
 function cplColor(cpl: number | null) {
-  if (!cpl) return '#4a5568'
+  if (!cpl) return '#8b949e'
   if (cpl <= 4) return '#10b981'
   if (cpl <= 7) return '#f59e0b'
   return '#ef4444'
@@ -160,7 +160,7 @@ export default function MetaTab() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
         <div>
           <h1 style={{ fontSize: 20, fontWeight: 600, color: '#e2e8f0', margin: 0 }}>Meta Ads</h1>
-          <p style={{ fontSize: 12, color: '#4a5568', marginTop: 4 }}>
+          <p style={{ fontSize: 12, color: '#8b949e', marginTop: 4 }}>
             {metaData ? `Geïmporteerd op ${metaData.importedAt}` : 'Importeer een CSV uit Ads Manager'}
           </p>
         </div>
@@ -171,7 +171,7 @@ export default function MetaTab() {
                 padding: '7px 14px', borderRadius: 8, fontSize: 12, fontWeight: 500, cursor: 'pointer',
                 background: sub === s ? '#6366f120' : 'transparent',
                 border: `1px solid ${sub === s ? '#6366f1' : '#1a1a2e'}`,
-                color: sub === s ? '#6366f1' : '#4a5568',
+                color: sub === s ? '#6366f1' : '#8b949e',
               }}>
               {s.charAt(0).toUpperCase() + s.slice(1)}
             </button>
@@ -237,7 +237,7 @@ function CampagnesTab({ data, dragging, error, inputRef, onDrop, onDragOver, onD
           <div style={{ fontSize: 13, fontWeight: 500, color: '#e2e8f0' }}>
             {data ? 'Nieuw rapport importeren' : 'CSV rapport importeren'}
           </div>
-          <div style={{ fontSize: 11, color: '#4a5568', marginTop: 2 }}>
+          <div style={{ fontSize: 11, color: '#8b949e', marginTop: 2 }}>
             Exporteer in Ads Manager → Rapporten → CSV downloaden · Sleep hier of klik
           </div>
         </div>
@@ -256,11 +256,11 @@ function CampagnesTab({ data, dragging, error, inputRef, onDrop, onDragOver, onD
             {[
               { label: 'Totaal besteed',  value: eur(totalSpend),                                color: '#6366f1' },
               { label: 'Totaal leads',    value: num(totalLeads),                                color: '#10b981' },
-              { label: 'Gem. CPL',        value: avgCPL > 0 ? eur(avgCPL, 2) : '—',             color: avgCPL > 0 ? cplColor(avgCPL) : '#4a5568' },
+              { label: 'Gem. CPL',        value: avgCPL > 0 ? eur(avgCPL, 2) : '—',             color: avgCPL > 0 ? cplColor(avgCPL) : '#8b949e' },
               { label: 'Gem. CPM',        value: avgCPM > 0 ? eur(avgCPM, 2) : '—',             color: '#38bdf8' },
             ].map(k => (
               <div key={k.label} style={CARD}>
-                <div style={{ fontSize: 11, color: '#4a5568', marginBottom: 8 }}>{k.label}</div>
+                <div style={{ fontSize: 11, color: '#8b949e', marginBottom: 8 }}>{k.label}</div>
                 <div style={{ fontSize: 24, fontWeight: 700, color: k.color }}>{k.value}</div>
               </div>
             ))}
@@ -269,11 +269,11 @@ function CampagnesTab({ data, dragging, error, inputRef, onDrop, onDragOver, onD
           {/* CPL chart */}
           {chartData.length > 0 && (
             <div style={{ ...CARD, marginBottom: 16 }}>
-              <div style={{ fontSize: 12, fontWeight: 500, color: '#8896a8', marginBottom: 14 }}>CPL per campagne (laag → hoog)</div>
+              <div style={{ fontSize: 12, fontWeight: 500, color: '#c9d1d9', marginBottom: 14 }}>CPL per campagne (laag → hoog)</div>
               <ResponsiveContainer width="100%" height={180}>
                 <BarChart data={chartData} layout="vertical" margin={{ left: 0, right: 24 }}>
-                  <XAxis type="number" tick={{ fill: '#4a5568', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => `€${v}`} />
-                  <YAxis type="category" dataKey="name" tick={{ fill: '#8896a8', fontSize: 10 }} axisLine={false} tickLine={false} width={155} />
+                  <XAxis type="number" tick={{ fill: '#8b949e', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => `€${v}`} />
+                  <YAxis type="category" dataKey="name" tick={{ fill: '#c9d1d9', fontSize: 10 }} axisLine={false} tickLine={false} width={155} />
                   <Tooltip
                     contentStyle={{ background: '#1a1a2e', border: 'none', borderRadius: 8, color: '#e2e8f0', fontSize: 11 }}
                     formatter={(v: unknown) => [`€${(v as number).toFixed(2)}`, 'CPL']}
@@ -292,7 +292,7 @@ function CampagnesTab({ data, dragging, error, inputRef, onDrop, onDragOver, onD
               <thead>
                 <tr style={{ borderBottom: '1px solid #1a1a2e' }}>
                   {['Campagne', 'Besteed', 'Impressies', 'Bereik', 'Freq', 'CTR', 'CPM', 'Leads', 'CPL'].map(h => (
-                    <th key={h} style={{ textAlign: 'left', padding: '9px 14px', fontSize: 10, fontWeight: 500, color: '#4a5568', whiteSpace: 'nowrap' }}>{h}</th>
+                    <th key={h} style={{ textAlign: 'left', padding: '9px 14px', fontSize: 10, fontWeight: 500, color: '#8b949e', whiteSpace: 'nowrap' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -303,11 +303,11 @@ function CampagnesTab({ data, dragging, error, inputRef, onDrop, onDragOver, onD
                       <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={c.name}>{c.name}</div>
                     </td>
                     <td style={{ padding: '8px 14px', color: '#6366f1', fontWeight: 600 }}>{eur(c.spend, 2)}</td>
-                    <td style={{ padding: '8px 14px', color: '#8896a8' }}>{num(c.impressions)}</td>
-                    <td style={{ padding: '8px 14px', color: '#8896a8' }}>{num(c.reach)}</td>
-                    <td style={{ padding: '8px 14px', color: c.frequency >= 3 ? '#f59e0b' : '#8896a8' }}>{c.frequency.toFixed(2)}</td>
-                    <td style={{ padding: '8px 14px', color: '#8896a8' }}>{c.ctr.toFixed(2)}%</td>
-                    <td style={{ padding: '8px 14px', color: '#8896a8' }}>{c.cpm > 0 ? eur(c.cpm, 2) : '—'}</td>
+                    <td style={{ padding: '8px 14px', color: '#c9d1d9' }}>{num(c.impressions)}</td>
+                    <td style={{ padding: '8px 14px', color: '#c9d1d9' }}>{num(c.reach)}</td>
+                    <td style={{ padding: '8px 14px', color: c.frequency >= 3 ? '#f59e0b' : '#c9d1d9' }}>{c.frequency.toFixed(2)}</td>
+                    <td style={{ padding: '8px 14px', color: '#c9d1d9' }}>{c.ctr.toFixed(2)}%</td>
+                    <td style={{ padding: '8px 14px', color: '#c9d1d9' }}>{c.cpm > 0 ? eur(c.cpm, 2) : '—'}</td>
                     <td style={{ padding: '8px 14px', color: '#10b981', fontWeight: 600 }}>{c.leads > 0 ? c.leads : '—'}</td>
                     <td style={{ padding: '8px 14px', fontWeight: c.cpl ? 600 : 400, color: cplColor(c.cpl) }}>
                       {c.cpl ? eur(c.cpl, 2) : '—'}
@@ -321,7 +321,7 @@ function CampagnesTab({ data, dragging, error, inputRef, onDrop, onDragOver, onD
       )}
 
       {campaigns.length === 0 && !error && (
-        <div style={{ ...CARD, textAlign: 'center', padding: '48px 32px', color: '#374151', fontSize: 13 }}>
+        <div style={{ ...CARD, textAlign: 'center', padding: '48px 32px', color: '#8b949e', fontSize: 13 }}>
           Importeer een CSV om je campagnedata te zien
         </div>
       )}
@@ -373,19 +373,19 @@ function AuditTab() {
       {/* Health score */}
       <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr', gap: 16 }}>
         <div style={{ ...CARD, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ fontSize: 11, color: '#4a5568', marginBottom: 8, letterSpacing: 1, fontWeight: 600 }}>HEALTH SCORE</div>
+          <div style={{ fontSize: 11, color: '#8b949e', marginBottom: 8, letterSpacing: 1, fontWeight: 600 }}>HEALTH SCORE</div>
           <div style={{ fontSize: 52, fontWeight: 800, color: gradeColor, lineHeight: 1 }}>{totalScore}</div>
-          <div style={{ fontSize: 14, color: '#374151' }}>/100</div>
+          <div style={{ fontSize: 14, color: '#8b949e' }}>/100</div>
           <div style={{ marginTop: 8, padding: '3px 12px', background: gradeColor + '20', border: `1px solid ${gradeColor}40`, borderRadius: 4, fontSize: 12, color: gradeColor, fontWeight: 700 }}>Grade F</div>
-          <div style={{ fontSize: 10, color: '#374151', marginTop: 8 }}>Rapport: 17 mrt 2026</div>
+          <div style={{ fontSize: 10, color: '#8b949e', marginTop: 8 }}>Rapport: 17 mrt 2026</div>
         </div>
         <div style={CARD}>
-          <div style={{ fontSize: 12, fontWeight: 500, color: '#8896a8', marginBottom: 14 }}>Score per categorie</div>
+          <div style={{ fontSize: 12, fontWeight: 500, color: '#c9d1d9', marginBottom: 14 }}>Score per categorie</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {AUDIT_SCORES.map(s => (
               <div key={s.label}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 5 }}>
-                  <span style={{ color: '#8896a8' }}>{s.label} <span style={{ color: '#374151', fontSize: 10 }}>({s.weight})</span></span>
+                  <span style={{ color: '#c9d1d9' }}>{s.label} <span style={{ color: '#8b949e', fontSize: 10 }}>({s.weight})</span></span>
                   <span style={{ color: s.color, fontWeight: 600 }}>{s.score}/100</span>
                 </div>
                 <div style={{ height: 5, background: '#1a1a2e', borderRadius: 3 }}>
@@ -400,18 +400,18 @@ function AuditTab() {
       {/* Period performance */}
       <div style={CARD}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-          <div style={{ fontSize: 12, fontWeight: 500, color: '#8896a8' }}>Campagneprestaties — {period}</div>
+          <div style={{ fontSize: 12, fontWeight: 500, color: '#c9d1d9' }}>Campagneprestaties — {period}</div>
           <div style={{ display: 'flex', gap: 16, fontSize: 12 }}>
-            <span style={{ color: '#4a5568' }}>Besteed: <span style={{ color: '#6366f1', fontWeight: 600 }}>{eur(totalSpend)}</span></span>
-            <span style={{ color: '#4a5568' }}>Leads: <span style={{ color: '#10b981', fontWeight: 600 }}>{totalLeads}</span></span>
-            <span style={{ color: '#4a5568' }}>Blended CPL: <span style={{ color: '#f59e0b', fontWeight: 600 }}>{eur(blendedCPL, 2)}</span></span>
+            <span style={{ color: '#8b949e' }}>Besteed: <span style={{ color: '#6366f1', fontWeight: 600 }}>{eur(totalSpend)}</span></span>
+            <span style={{ color: '#8b949e' }}>Leads: <span style={{ color: '#10b981', fontWeight: 600 }}>{totalLeads}</span></span>
+            <span style={{ color: '#8b949e' }}>Blended CPL: <span style={{ color: '#f59e0b', fontWeight: 600 }}>{eur(blendedCPL, 2)}</span></span>
           </div>
         </div>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
           <thead>
             <tr style={{ borderBottom: '1px solid #1a1a2e' }}>
               {['Campagne', 'Leads', 'CPL', 'Besteed', 'CTR', 'Freq', 'Trend'].map(h => (
-                <th key={h} style={{ textAlign: 'left', padding: '7px 12px', fontSize: 10, fontWeight: 500, color: '#4a5568' }}>{h}</th>
+                <th key={h} style={{ textAlign: 'left', padding: '7px 12px', fontSize: 10, fontWeight: 500, color: '#8b949e' }}>{h}</th>
               ))}
             </tr>
           </thead>
@@ -422,16 +422,16 @@ function AuditTab() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     {c.verdict === 'scale' && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', flexShrink: 0, display: 'inline-block' }} />}
                     {c.verdict === 'fix' && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#ef4444', flexShrink: 0, display: 'inline-block' }} />}
-                    {c.verdict === 'ok' && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#374151', flexShrink: 0, display: 'inline-block' }} />}
+                    {c.verdict === 'ok' && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#8b949e', flexShrink: 0, display: 'inline-block' }} />}
                     <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</span>
                   </div>
                 </td>
                 <td style={{ padding: '7px 12px', color: '#10b981', fontWeight: 600 }}>{c.leads}</td>
                 <td style={{ padding: '7px 12px', fontWeight: 600, color: cplColor(c.cpl) }}>{eur(c.cpl, 2)}</td>
                 <td style={{ padding: '7px 12px', color: '#6366f1' }}>{eur(c.spend, 2)}</td>
-                <td style={{ padding: '7px 12px', color: '#8896a8' }}>{c.ctr}</td>
-                <td style={{ padding: '7px 12px', color: c.freq >= 2.8 ? '#f59e0b' : '#8896a8' }}>{c.freq}</td>
-                <td style={{ padding: '7px 12px', color: '#4a5568', fontSize: 11 }}>{c.trend}</td>
+                <td style={{ padding: '7px 12px', color: '#c9d1d9' }}>{c.ctr}</td>
+                <td style={{ padding: '7px 12px', color: c.freq >= 2.8 ? '#f59e0b' : '#c9d1d9' }}>{c.freq}</td>
+                <td style={{ padding: '7px 12px', color: '#8b949e', fontSize: 11 }}>{c.trend}</td>
               </tr>
             ))}
           </tbody>
@@ -440,7 +440,7 @@ function AuditTab() {
 
       {/* Critical alerts */}
       <div style={CARD}>
-        <div style={{ fontSize: 12, fontWeight: 500, color: '#8896a8', marginBottom: 14 }}>🔴 Kritieke alerts</div>
+        <div style={{ fontSize: 12, fontWeight: 500, color: '#c9d1d9', marginBottom: 14 }}>🔴 Kritieke alerts</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {[
             { title: 'Events Manager blokkerende fout', desc: 'Events Manager → Datasets → Pixel Noble Men → Review Events → bevestig ownership van custom events. Blokkeert account-level ad features.' },
@@ -449,7 +449,7 @@ function AuditTab() {
           ].map((a, i) => (
             <div key={i} style={{ background: '#ef444410', border: '1px solid #ef444430', borderRadius: 8, padding: '12px 14px' }}>
               <div style={{ fontSize: 12, fontWeight: 600, color: '#ef4444', marginBottom: 4 }}>{a.title}</div>
-              <div style={{ fontSize: 11, color: '#8896a8', lineHeight: 1.5 }}>{a.desc}</div>
+              <div style={{ fontSize: 11, color: '#c9d1d9', lineHeight: 1.5 }}>{a.desc}</div>
             </div>
           ))}
         </div>
@@ -457,22 +457,22 @@ function AuditTab() {
 
       {/* Quick wins */}
       <div style={CARD}>
-        <div style={{ fontSize: 12, fontWeight: 500, color: '#8896a8', marginBottom: 14 }}>⚡ Quick wins deze week</div>
+        <div style={{ fontSize: 12, fontWeight: 500, color: '#c9d1d9', marginBottom: 14 }}>⚡ Quick wins deze week</div>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
           <thead>
             <tr style={{ borderBottom: '1px solid #1a1a2e' }}>
               {['#', 'Actie', 'Tijd', 'Impact'].map(h => (
-                <th key={h} style={{ textAlign: 'left', padding: '6px 12px', fontSize: 10, fontWeight: 500, color: '#4a5568' }}>{h}</th>
+                <th key={h} style={{ textAlign: 'left', padding: '6px 12px', fontSize: 10, fontWeight: 500, color: '#8b949e' }}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {QUICK_WINS.map((w, i) => (
               <tr key={i} style={{ borderBottom: i < QUICK_WINS.length - 1 ? '1px solid #0f0f1a' : 'none' }}>
-                <td style={{ padding: '7px 12px', color: '#374151', fontWeight: 600 }}>{i + 1}</td>
+                <td style={{ padding: '7px 12px', color: '#8b949e', fontWeight: 600 }}>{i + 1}</td>
                 <td style={{ padding: '7px 12px', color: '#e2e8f0' }}>{w.action}</td>
                 <td style={{ padding: '7px 12px', color: '#6366f1', whiteSpace: 'nowrap' }}>{w.effort}</td>
-                <td style={{ padding: '7px 12px', color: '#8896a8', fontSize: 11 }}>{w.impact}</td>
+                <td style={{ padding: '7px 12px', color: '#c9d1d9', fontSize: 11 }}>{w.impact}</td>
               </tr>
             ))}
           </tbody>
@@ -492,18 +492,18 @@ const PLATFORM_MIX = [
 ]
 
 const SEASONS = [
-  { month: 'Jan', mult: '0.7×', note: 'Testen', color: '#374151' },
-  { month: 'Feb', mult: '0.8×', note: 'Opbouwen', color: '#374151' },
+  { month: 'Jan', mult: '0.7×', note: 'Testen', color: '#8b949e' },
+  { month: 'Feb', mult: '0.8×', note: 'Opbouwen', color: '#8b949e' },
   { month: 'Mrt', mult: '1.2×', note: '🔥 Piek', color: '#10b981' },
   { month: 'Apr', mult: '1.3×', note: '🔥 Piek', color: '#10b981' },
   { month: 'Mei', mult: '1.3×', note: '🔥 Piek', color: '#10b981' },
-  { month: 'Jun', mult: '1.0×', note: 'Stabiel', color: '#8896a8' },
-  { month: 'Jul', mult: '0.9×', note: 'Dip', color: '#374151' },
-  { month: 'Aug', mult: '0.9×', note: 'Vakantie', color: '#374151' },
+  { month: 'Jun', mult: '1.0×', note: 'Stabiel', color: '#c9d1d9' },
+  { month: 'Jul', mult: '0.9×', note: 'Dip', color: '#8b949e' },
+  { month: 'Aug', mult: '0.9×', note: 'Vakantie', color: '#8b949e' },
   { month: 'Sep', mult: '1.2×', note: '🔥 Piek', color: '#10b981' },
   { month: 'Okt', mult: '1.1×', note: 'Vraag', color: '#f59e0b' },
-  { month: 'Nov', mult: '0.8×', note: 'CPMs stijgen', color: '#374151' },
-  { month: 'Dec', mult: '0.6×', note: 'Alleen retarg', color: '#374151' },
+  { month: 'Nov', mult: '0.8×', note: 'CPMs stijgen', color: '#8b949e' },
+  { month: 'Dec', mult: '0.6×', note: 'Alleen retarg', color: '#8b949e' },
 ]
 
 const ROADMAP = [
@@ -518,12 +518,12 @@ function StrategieTab() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Platform mix */}
       <div style={CARD}>
-        <div style={{ fontSize: 12, fontWeight: 500, color: '#8896a8', marginBottom: 14 }}>Aanbevolen platformmix</div>
+        <div style={{ fontSize: 12, fontWeight: 500, color: '#c9d1d9', marginBottom: 14 }}>Aanbevolen platformmix</div>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
           <thead>
             <tr style={{ borderBottom: '1px solid #1a1a2e' }}>
               {['Platform', 'Rol', 'Budget %', 'Doel CPL', 'Max CPL'].map(h => (
-                <th key={h} style={{ textAlign: 'left', padding: '6px 12px', fontSize: 10, fontWeight: 500, color: '#4a5568' }}>{h}</th>
+                <th key={h} style={{ textAlign: 'left', padding: '6px 12px', fontSize: 10, fontWeight: 500, color: '#8b949e' }}>{h}</th>
               ))}
             </tr>
           </thead>
@@ -536,7 +536,7 @@ function StrategieTab() {
                     <span style={{ color: '#e2e8f0', fontWeight: 500 }}>{p.platform}</span>
                   </div>
                 </td>
-                <td style={{ padding: '8px 12px', color: '#4a5568' }}>{p.role}</td>
+                <td style={{ padding: '8px 12px', color: '#8b949e' }}>{p.role}</td>
                 <td style={{ padding: '8px 12px', color: p.color, fontWeight: 600 }}>{p.budget}</td>
                 <td style={{ padding: '8px 12px', color: '#10b981' }}>{p.cpl}</td>
                 <td style={{ padding: '8px 12px', color: '#ef4444' }}>{p.maxCpl}</td>
@@ -544,21 +544,21 @@ function StrategieTab() {
             ))}
           </tbody>
         </table>
-        <div style={{ fontSize: 11, color: '#374151', marginTop: 10 }}>* B2B budget is apart van B2C — strikt gescheiden houden</div>
+        <div style={{ fontSize: 11, color: '#8b949e', marginTop: 10 }}>* B2B budget is apart van B2C — strikt gescheiden houden</div>
       </div>
 
       {/* Seasonality */}
       <div style={CARD}>
-        <div style={{ fontSize: 12, fontWeight: 500, color: '#8896a8', marginBottom: 14 }}>Seizoensstrategie (budget multiplier)</div>
+        <div style={{ fontSize: 12, fontWeight: 500, color: '#c9d1d9', marginBottom: 14 }}>Seizoensstrategie (budget multiplier)</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: 6 }}>
           {SEASONS.map(s => (
             <div key={s.month} style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 10, color: '#4a5568', marginBottom: 4 }}>{s.month}</div>
+              <div style={{ fontSize: 10, color: '#8b949e', marginBottom: 4 }}>{s.month}</div>
               <div style={{
                 padding: '6px 4px', borderRadius: 6, fontSize: 12, fontWeight: 700,
                 background: s.color + '20', color: s.color, border: `1px solid ${s.color}40`,
               }}>{s.mult}</div>
-              <div style={{ fontSize: 9, color: '#374151', marginTop: 3, lineHeight: 1.2 }}>{s.note}</div>
+              <div style={{ fontSize: 9, color: '#8b949e', marginTop: 3, lineHeight: 1.2 }}>{s.note}</div>
             </div>
           ))}
         </div>
@@ -566,7 +566,7 @@ function StrategieTab() {
 
       {/* Roadmap */}
       <div style={CARD}>
-        <div style={{ fontSize: 12, fontWeight: 500, color: '#8896a8', marginBottom: 14 }}>30-dagenplan</div>
+        <div style={{ fontSize: 12, fontWeight: 500, color: '#c9d1d9', marginBottom: 14 }}>30-dagenplan</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
           {ROADMAP.map((r, i) => (
             <div key={i} style={{ background: '#0a0a0f', border: '1px solid #1a1a2e', borderRadius: 8, padding: '12px 14px' }}>
@@ -575,8 +575,8 @@ function StrategieTab() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {r.items.map((item, j) => (
                   <div key={j} style={{ display: 'flex', gap: 7, alignItems: 'flex-start' }}>
-                    <div style={{ width: 4, height: 4, borderRadius: '50%', background: '#374151', marginTop: 5, flexShrink: 0 }} />
-                    <span style={{ fontSize: 11, color: '#8896a8', lineHeight: 1.4 }}>{item}</span>
+                    <div style={{ width: 4, height: 4, borderRadius: '50%', background: '#8b949e', marginTop: 5, flexShrink: 0 }} />
+                    <span style={{ fontSize: 11, color: '#c9d1d9', lineHeight: 1.4 }}>{item}</span>
                   </div>
                 ))}
               </div>
@@ -587,7 +587,7 @@ function StrategieTab() {
 
       {/* 70/20/10 framework */}
       <div style={CARD}>
-        <div style={{ fontSize: 12, fontWeight: 500, color: '#8896a8', marginBottom: 14 }}>70/20/10 Budgetframework (per partner)</div>
+        <div style={{ fontSize: 12, fontWeight: 500, color: '#c9d1d9', marginBottom: 14 }}>70/20/10 Budgetframework (per partner)</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
           {[
             { pct: '70%', label: 'Proven', desc: 'Bewezen ROI behouden', where: 'Meta B2C (actief + winstgevend)', color: '#10b981' },
@@ -597,8 +597,8 @@ function StrategieTab() {
             <div key={t.pct} style={{ background: '#0a0a0f', border: '1px solid #1a1a2e', borderRadius: 8, padding: '14px 16px' }}>
               <div style={{ fontSize: 28, fontWeight: 800, color: t.color }}>{t.pct}</div>
               <div style={{ fontSize: 12, fontWeight: 600, color: '#e2e8f0', margin: '4px 0 2px' }}>{t.label}</div>
-              <div style={{ fontSize: 11, color: '#4a5568', marginBottom: 8 }}>{t.desc}</div>
-              <div style={{ fontSize: 11, color: '#374151', borderTop: '1px solid #1a1a2e', paddingTop: 8 }}>{t.where}</div>
+              <div style={{ fontSize: 11, color: '#8b949e', marginBottom: 8 }}>{t.desc}</div>
+              <div style={{ fontSize: 11, color: '#8b949e', borderTop: '1px solid #1a1a2e', paddingTop: 8 }}>{t.where}</div>
             </div>
           ))}
         </div>

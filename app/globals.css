@@ -13,8 +13,8 @@
 
   /* ── Text ───────────────────────────────────────────────── */
   --color-ink:            #e6edf3;
-  --color-ink-muted:      #8b949e;
-  --color-ink-faint:      #484f58;
+  --color-ink-muted:      #c9d1d9;
+  --color-ink-faint:      #8b949e;
 
   /* ── Semantic — status and health ───────────────────────── */
   --color-critical:        #f85149;
