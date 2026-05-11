@@ -1,6 +1,7 @@
 import { serverClient } from '../supabase-server'
 import { getAnthropic } from '../anthropic'
 import { generateImage } from '../gemini'
+import { NICHE_VISUAL_SPECS } from './niche-visual-specs'
 
 // Creatives to generate per niche per daily batch
 const NICHE_COUNTS: Record<string, number> = { bouw: 1, dakkapel: 1, daken: 1 }
@@ -57,9 +58,8 @@ VISUAL STYLE VOOR PROMPTS:
 - Photorealistic, Dutch context (rijtjeshuizen, NL straten, typisch Nederlandse woningen)
 - 1:1 aspect ratio, Facebook/Instagram ad format
 - Voeg text overlay specs toe in de prompt (positie, kleur, grootte)
-- GEEN complete huizen met schuine daken als 'dakkapel' — dakkapel = klein dakkapelmodule met eigen zadeldak op een bestaand dak
-- Mix van achtergronden: werf, woonhuis, before/after splits, vakmensen aan het werk, materialen
-- Text overlays op donkere balk onderaan of bovenaan, wit op donker achtergrond`
+- Text overlays op donkere balk onderaan of bovenaan, wit op donker achtergrond
+- Niche-specifieke visuele constraints worden per verzoek meegegeven — volg ze strikt op`
 
 // ── Rejection context: last 14 days ──────────────────────────────────────────
 
@@ -144,12 +144,26 @@ async function generateConcepts(
 
   const rejectionContext = await getRejectionContext(niche)
 
+  const spec = NICHE_VISUAL_SPECS[niche]
+  const visualSpecBlock = spec ? `
+VERPLICHTE VISUELE SPECIFICATIES — NIET ONDERHANDELBAAR:
+Onderwerp: ${spec.subject}
+
+MOET AANWEZIG ZIJN IN ELKE AFBEELDING:
+${spec.must_include.map(i => `- ${i}`).join('\n')}
+
+VERBODEN — GEBRUIK DIT NOOIT:
+${spec.forbidden.map(f => `- ${f}`).join('\n')}
+
+Visuele stijl: ${spec.style}
+` : ''
+
   const userText = `Genereer ${count} nieuwe ${niche} creatives voor vandaag.
 
 WINNERS VOOR DEZE NICHE (zie afbeeldingen hierboven):
 ${winnerSummary}
-${rejectionContext ? '\n' + rejectionContext + '\n' : ''}
-Analyseer de winning triggers in de afbeeldingen en teksten, pas die triggers toe op ${count} NIEUWE visuele hoeken.
+${rejectionContext ? '\n' + rejectionContext + '\n' : ''}${visualSpecBlock}
+Analyseer de winning triggers in de afbeeldingen en teksten, pas die triggers toe op ${count} NIEUWE visuele hoeken die ALLE bovenstaande visuele specs naleven.
 Geef je antwoord als raw JSON array — geen markdown, geen extra tekst.`
 
   const textBlock = { type: 'text' as const, text: userText }
