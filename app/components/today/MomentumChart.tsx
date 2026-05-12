@@ -35,13 +35,13 @@ export function MomentumChart({ data }: Props) {
       <BarChart data={data} barSize={20} margin={{ top: 4, right: 0, bottom: 0, left: -24 }}>
         <XAxis
           dataKey="label"
-          tick={{ fontSize: 11, fill: 'var(--color-ink-faint)', fontFamily: 'inherit' }}
+          tick={{ fontSize: 11, fill: '#8b949e', fontFamily: 'inherit' }}
           axisLine={false}
           tickLine={false}
         />
         <YAxis
           allowDecimals={false}
-          tick={{ fontSize: 11, fill: 'var(--color-ink-faint)', fontFamily: 'inherit' }}
+          tick={{ fontSize: 11, fill: '#8b949e', fontFamily: 'inherit' }}
           axisLine={false}
           tickLine={false}
           width={32}

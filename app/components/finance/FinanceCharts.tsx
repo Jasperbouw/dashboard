@@ -69,8 +69,8 @@ export function FinanceCharts({ trend, byNiche, top5, selectedMonth, periodLabel
         <SectionTitle>Commissie laatste 6 maanden</SectionTitle>
         <ResponsiveContainer width="100%" height={180}>
           <BarChart data={trend} barCategoryGap="30%">
-            <XAxis dataKey="label" tick={{ fill: 'var(--color-ink-faint)', fontSize: 12 }} axisLine={false} tickLine={false} />
-            <YAxis tickFormatter={v => `€${(v / 1000).toFixed(0)}k`} tick={{ fill: 'var(--color-ink-faint)', fontSize: 12 }} axisLine={false} tickLine={false} width={48} />
+            <XAxis dataKey="label" tick={{ fill: '#8b949e', fontSize: 12 }} axisLine={false} tickLine={false} />
+            <YAxis tickFormatter={v => `€${(v / 1000).toFixed(0)}k`} tick={{ fill: '#8b949e', fontSize: 12 }} axisLine={false} tickLine={false} width={48} />
             <RechartTooltip content={<EurTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
             <Bar dataKey="amount" radius={[4, 4, 0, 0]} minPointSize={4}>
               {trend.map(entry => (
@@ -80,7 +80,7 @@ export function FinanceCharts({ trend, byNiche, top5, selectedMonth, periodLabel
           </BarChart>
         </ResponsiveContainer>
         {!hasData && (
-          <p style={{ textAlign: 'center', fontSize: 'var(--font-size-sm)', color: 'var(--color-ink-faint)', marginTop: 8 }}>
+          <p style={{ textAlign: 'center', fontSize: 'var(--font-size-sm)', color: '#8b949e', marginTop: 8 }}>
             Nog geen deals geboekt in deze periode
           </p>
         )}
@@ -90,12 +90,12 @@ export function FinanceCharts({ trend, byNiche, top5, selectedMonth, periodLabel
       <Card>
         <SectionTitle>Commissie per niche — {periodLabel}</SectionTitle>
         {byNiche.every(n => n.amount === 0) ? (
-          <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-ink-faint)' }}>Geen data</p>
+          <p style={{ fontSize: 'var(--font-size-sm)', color: '#8b949e' }}>Geen data</p>
         ) : (
           <ResponsiveContainer width="100%" height={160}>
             <BarChart data={byNiche} layout="vertical" barCategoryGap="20%">
-              <XAxis type="number" tickFormatter={v => `€${v.toLocaleString('nl-NL')}`} tick={{ fill: 'var(--color-ink-faint)', fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis dataKey="label" type="category" width={72} tick={{ fill: 'var(--color-ink-faint)', fontSize: 12 }} axisLine={false} tickLine={false} />
+              <XAxis type="number" tickFormatter={v => `€${v.toLocaleString('nl-NL')}`} tick={{ fill: '#8b949e', fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis dataKey="label" type="category" width={72} tick={{ fill: '#8b949e', fontSize: 12 }} axisLine={false} tickLine={false} />
               <RechartTooltip content={<EurTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
               <Bar dataKey="amount" fill={SUCCESS} radius={[0, 4, 4, 0]} minPointSize={4} />
             </BarChart>
@@ -107,7 +107,7 @@ export function FinanceCharts({ trend, byNiche, top5, selectedMonth, periodLabel
       <Card>
         <SectionTitle>Top aannemers — {periodLabel}</SectionTitle>
         {top5.every(r => r.amount === 0) ? (
-          <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-ink-faint)' }}>Geen data</p>
+          <p style={{ fontSize: 'var(--font-size-sm)', color: '#8b949e' }}>Geen data</p>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>

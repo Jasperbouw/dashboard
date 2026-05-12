@@ -14,7 +14,7 @@
   /* ── Text ───────────────────────────────────────────────── */
   --color-ink:            #e6edf3;
   --color-ink-muted:      #e6edf3;
-  --color-ink-faint:      #8b949e;
+  --color-ink-faint:      #e6edf3;
 
   /* ── Semantic — status and health ───────────────────────── */
   --color-critical:        #f85149;

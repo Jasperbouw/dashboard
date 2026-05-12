@@ -24,7 +24,7 @@ function staleness(iso: string): 'ok' | 'warning' | 'critical' {
 }
 
 const COLOR: Record<'ok' | 'warning' | 'critical', string> = {
-  ok:       'var(--color-ink-faint)',
+  ok:       '#8b949e',
   warning:  'var(--color-warning)',
   critical: 'var(--color-critical)',
 }
@@ -40,7 +40,7 @@ export function LastSynced({ syncedAt }: Props) {
 
   if (!syncedAt) {
     return (
-      <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)' }}>
+      <span style={{ fontSize: 'var(--font-size-xs)', color: '#8b949e' }}>
         · Nooit gesynchroniseerd
       </span>
     )

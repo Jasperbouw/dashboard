@@ -5,7 +5,7 @@ interface Props {
   color?: string
 }
 
-export function Sparkline({ data, width = 64, height = 24, color = 'var(--color-ink-faint)' }: Props) {
+export function Sparkline({ data, width = 64, height = 24, color = '#8b949e' }: Props) {
   if (!data || data.length < 2) return null
 
   const min = Math.min(...data)
