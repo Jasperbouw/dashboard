@@ -354,6 +354,58 @@ function RowMenu({
   )
 }
 
+// ── Delete confirm modal ──────────────────────────────────────────────────────
+
+function DeleteConfirmModal({
+  deal,
+  deleting,
+  onConfirm,
+  onCancel,
+}: {
+  deal:      Deal
+  deleting:  boolean
+  onConfirm: () => void
+  onCancel:  () => void
+}) {
+  return (
+    <div
+      style={{ position: 'fixed', inset: 0, zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(0,0,0,0.5)' }}
+      onClick={e => { if (e.target === e.currentTarget) onCancel() }}
+    >
+      <div style={{ width: '100%', maxWidth: 400, background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-xl)', overflow: 'hidden' }}>
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border-subtle)' }}>
+          <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-ink)' }}>Deal verwijderen?</span>
+        </div>
+        <div style={{ padding: 20 }}>
+          <p style={{ margin: '0 0 16px', fontSize: 'var(--font-size-sm)', color: 'var(--color-ink-muted)' }}>
+            Weet je zeker dat je deze deal wilt verwijderen? Dit kan niet ongedaan worden gemaakt.
+          </p>
+          <div style={{ background: 'var(--color-surface-raised)', border: '1px solid var(--color-border-subtle)', borderRadius: 'var(--radius-md)', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: 'var(--font-size-xs)', color: '#8b949e' }}>Klant</span>
+              <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 500, color: 'var(--color-ink)' }}>{deal.client_name}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: 'var(--font-size-xs)', color: '#8b949e' }}>Contractor</span>
+              <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink)' }}>{deal.contractor?.name ?? '—'}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: 'var(--font-size-xs)', color: '#8b949e' }}>Deal waarde</span>
+              <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-ink)' }}>{fmtEur(Number(deal.deal_value))}</span>
+            </div>
+          </div>
+        </div>
+        <div style={{ padding: '14px 20px', borderTop: '1px solid var(--color-border-subtle)', display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+          <button onClick={onCancel} style={{ padding: '7px 14px', background: 'none', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', cursor: 'pointer', color: 'var(--color-ink-muted)', fontSize: 'var(--font-size-xs)' }}>Annuleren</button>
+          <button onClick={onConfirm} disabled={deleting} style={{ padding: '7px 16px', background: 'var(--color-critical)', color: '#fff', border: 'none', borderRadius: 'var(--radius-sm)', cursor: deleting ? 'default' : 'pointer', fontSize: 'var(--font-size-xs)', fontWeight: 500, opacity: deleting ? 0.7 : 1 }}>
+            {deleting ? 'Verwijderen…' : 'Verwijderen'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function DealsPage() {
@@ -390,6 +442,10 @@ export default function DealsPage() {
   const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(null)
   const menuType = useRef<'deal' | 'ab'>('deal')
 
+  // Delete confirmation
+  const [deleteDealTarget, setDeleteDealTarget] = useState<Deal | null>(null)
+  const [deleting,         setDeleting]         = useState(false)
+
   function openMenu(e: React.MouseEvent, id: string, type: 'deal' | 'ab') {
     e.stopPropagation()
     if (menuId === id) { setMenuId(null); return }
@@ -400,10 +456,11 @@ export default function DealsPage() {
   }
 
   useEffect(() => {
+    if (!menuId) return
     function close() { setMenuId(null); setMenuPos(null) }
     document.addEventListener('click', close)
     return () => document.removeEventListener('click', close)
-  }, [])
+  }, [menuId])
 
   // Filter
   const { from, to } = periodRange(filterPeriod)
@@ -450,10 +507,13 @@ export default function DealsPage() {
     textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4, display: 'block',
   }
 
-  async function deleteDeal(id: string) {
-    if (!confirm('Deal verwijderen?')) return
-    await fetch(`/api/deals/closed/${id}`, { method: 'DELETE' })
-    mutateDeals(prev => (prev ?? []).filter(d => d.id !== id), false)
+  async function confirmDeleteDeal() {
+    if (!deleteDealTarget) return
+    setDeleting(true)
+    await fetch(`/api/deals/closed/${deleteDealTarget.id}`, { method: 'DELETE' })
+    mutateDeals(prev => (prev ?? []).filter(d => d.id !== deleteDealTarget!.id), false)
+    setDeleting(false)
+    setDeleteDealTarget(null)
   }
 
   async function deleteAB(id: string) {
@@ -689,7 +749,7 @@ export default function DealsPage() {
       {menuId && menuPos && menuDeal && (
         <RowMenu pos={menuPos}
           onEdit={() => { setEditDeal(menuDeal); setDealModal(true); setMenuId(null) }}
-          onDelete={() => { deleteDeal(menuDeal.id); setMenuId(null) }}
+          onDelete={() => { setDeleteDealTarget(menuDeal); setMenuId(null) }}
         />
       )}
       {menuId && menuPos && menuAB && (
@@ -730,6 +790,14 @@ export default function DealsPage() {
             setAdBudgetModal(false); setEditAdBudget(null)
           }}
           onClose={() => { setAdBudgetModal(false); setEditAdBudget(null) }}
+        />
+      )}
+      {deleteDealTarget && (
+        <DeleteConfirmModal
+          deal={deleteDealTarget}
+          deleting={deleting}
+          onConfirm={confirmDeleteDeal}
+          onCancel={() => setDeleteDealTarget(null)}
         />
       )}
     </div>
