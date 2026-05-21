@@ -18,8 +18,8 @@ function fmtAgo(iso: string): string {
 
 function staleness(iso: string): 'ok' | 'warning' | 'critical' {
   const mins = (Date.now() - new Date(iso).getTime()) / 60_000
-  if (mins > 120) return 'critical'
-  if (mins > 30)  return 'warning'
+  if (mins > 150) return 'critical'  // >2.5h — two missed hourly syncs
+  if (mins > 90)  return 'warning'   // >1.5h — one missed or overdue sync
   return 'ok'
 }
 
