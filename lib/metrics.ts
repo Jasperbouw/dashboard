@@ -1,5 +1,7 @@
-import { SupabaseClient } from '@supabase/supabase-js'
-import { serverClient } from './supabase-server'
+import { SupabaseClient }  from '@supabase/supabase-js'
+import { unstable_cache }  from 'next/cache'
+import { cache }           from 'react'
+import { serverClient }    from './supabase-server'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -101,14 +103,14 @@ export async function getContractor(contractorId: string): Promise<ContractorRow
   return data as ContractorRow | null
 }
 
-export async function getActiveContractors(): Promise<ContractorRow[]> {
+export const getActiveContractors = cache(async (): Promise<ContractorRow[]> => {
   const { data } = await db()
     .from('contractors')
     .select('*')
     .eq('active', true)
     .order('name')
   return (data ?? []) as ContractorRow[]
-}
+})
 
 // ── Low-level helpers ─────────────────────────────────────────────────────────
 
@@ -531,6 +533,11 @@ export async function unroutedLeads(range: TimeRange): Promise<number> {
 
 // ── Contractor leaderboard (batch-efficient) ──────────────────────────────────
 // Fetches all data in 2 queries and computes per-contractor metrics in JS.
+// TODO(egress): fetchAllContractorLeads() does a full paginated scan of ALL leads
+// for active contractors (no date filter). At 3k+ leads this is already the largest
+// single read in the codebase (~500KB+). Once lead volume passes ~5k rows, add
+// unstable_cache here (same 300s TTL pattern as the funnel functions below) or
+// replace with a server-side GROUP BY aggregate. Track: egress audit 2026-05.
 
 export type ContractorHealth =
   | 'on-track'          // 60+ days active, ≥1 won deal, close rate >15%  → Performing
@@ -1416,3 +1423,44 @@ export async function openOffertesStats(): Promise<OpenOffertesStats> {
 
   return { total: total ?? 0, fullSalesCount: fullSalesCount ?? 0 }
 }
+
+// ── Cached funnel query wrappers (300s TTL) ───────────────────────────────────
+// Used exclusively by /funnel page. The page stays force-dynamic (searchParams),
+// but the underlying DB calls are served from Next.js data cache on repeated
+// visits with the same date range. Arguments are ISO strings so they're
+// serialisable as cache keys.
+
+export const cachedCurrentStageDistribution = unstable_cache(
+  (fromISO: string, toISO: string) =>
+    currentStageDistribution({ from: new Date(fromISO), to: new Date(toISO) }),
+  ['funnel-stage-dist'],
+  { revalidate: 300, tags: ['funnel'] },
+)
+
+export const cachedCampaignPerformance = unstable_cache(
+  (fromISO: string, toISO: string) =>
+    campaignPerformance({ from: new Date(fromISO), to: new Date(toISO) }),
+  ['funnel-campaign-perf'],
+  { revalidate: 300, tags: ['funnel'] },
+)
+
+export const cachedNichePerformance = unstable_cache(
+  (fromISO: string, toISO: string) =>
+    nichePerformance({ from: new Date(fromISO), to: new Date(toISO) }),
+  ['funnel-niche-perf'],
+  { revalidate: 300, tags: ['funnel'] },
+)
+
+export const cachedFunnelTransitions = unstable_cache(
+  (fromISO: string, toISO: string) =>
+    funnelTransitions({ from: new Date(fromISO), to: new Date(toISO) }),
+  ['funnel-transitions'],
+  { revalidate: 300, tags: ['funnel'] },
+)
+
+export const cachedDoorlooptijdenAggregate = unstable_cache(
+  (fromISO: string, toISO: string) =>
+    doorlooptijdenAggregate({ from: new Date(fromISO), to: new Date(toISO) }),
+  ['funnel-doorlooptijden'],
+  { revalidate: 300, tags: ['funnel'] },
+)

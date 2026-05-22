@@ -1,11 +1,10 @@
 import {
-  currentStageDistribution,
-  campaignPerformance,
-  nichePerformance,
-  funnelTransitions,
-  doorlooptijdenAggregate,
+  cachedCurrentStageDistribution,
+  cachedCampaignPerformance,
+  cachedNichePerformance,
+  cachedFunnelTransitions,
+  cachedDoorlooptijdenAggregate,
   currentMonth,
-  type TimeRange,
 } from '../../../lib/metrics'
 import { DateRangePicker }        from '../../components/ui/DateRangePicker'
 import { StageDistributionChart } from '../../components/funnel/StageDistributionChart'
@@ -86,15 +85,16 @@ export default async function FunnelPage({ searchParams }: Props) {
   const toDate   = params.to   ? new Date(params.to + 'T23:59:59.999Z') : def.to
   const fromStr  = params.from ?? def.from.toISOString().slice(0, 10)
   const toStr    = params.to   ?? def.to.toISOString().slice(0, 10)
-  const range: TimeRange = { from: fromDate, to: toDate }
+  const fromISO  = fromDate.toISOString()
+  const toISO    = toDate.toISOString()
 
   const funnelT0 = Date.now()
   const [distribution, campaigns, niches, funnel, doorlooptijden] = await Promise.all([
-    timedFn('currentStageDistribution', currentStageDistribution(range)),
-    timedFn('campaignPerformance',      campaignPerformance(range)),
-    timedFn('nichePerformance',         nichePerformance(range)),
-    timedFn('funnelTransitions',        funnelTransitions(range)),
-    timedFn('doorlooptijdenAggregate',  doorlooptijdenAggregate(range)),
+    timedFn('currentStageDistribution', cachedCurrentStageDistribution(fromISO, toISO)),
+    timedFn('campaignPerformance',      cachedCampaignPerformance(fromISO, toISO)),
+    timedFn('nichePerformance',         cachedNichePerformance(fromISO, toISO)),
+    timedFn('funnelTransitions',        cachedFunnelTransitions(fromISO, toISO)),
+    timedFn('doorlooptijdenAggregate',  cachedDoorlooptijdenAggregate(fromISO, toISO)),
   ])
   console.log(`[funnel] total-db: ${Date.now() - funnelT0}ms`)
 
