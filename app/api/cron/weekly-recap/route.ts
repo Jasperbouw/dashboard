@@ -54,38 +54,38 @@ function amsterdamMidnightMs(year: number, month: number, day: number): number {
   return Date.UTC(year, month, day) - offsetMs
 }
 
-function weekWindow(): { from: string; to: string; label: string } {
+// weekOffset=0 → current week (Monday 00:00 AMS → now)
+// weekOffset=1 → previous week (same shape, shifted back 7 days)
+function weekWindow(weekOffset = 0): { from: string; to: string; label: string } {
   const now = new Date()
 
-  // Current date and day-of-week in Amsterdam timezone
+  // Shift reference point back by weekOffset weeks
+  const refNow = new Date(now.getTime() - weekOffset * 7 * 24 * 60 * 60 * 1000)
+
+  // Amsterdam date + weekday at the reference time
   const p = new Intl.DateTimeFormat('en-US', {
     timeZone: 'Europe/Amsterdam',
     year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'short',
-  }).formatToParts(now)
+  }).formatToParts(refNow)
   const year    = Number(p.find(x => x.type === 'year')!.value)
-  const month   = Number(p.find(x => x.type === 'month')!.value) - 1  // 0-indexed
+  const month   = Number(p.find(x => x.type === 'month')!.value) - 1
   const day     = Number(p.find(x => x.type === 'day')!.value)
-  const weekday = p.find(x => x.type === 'weekday')!.value  // 'Sun' | 'Mon' | ...
+  const weekday = p.find(x => x.type === 'weekday')!.value
 
-  // Day-of-week index: 0=Sun, 1=Mon, …, 6=Sat
-  const DOW           = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-  const dow           = DOW.indexOf(weekday)
-  // Days since the most recent Sunday (0 if today is Sunday)
-  const daysSinceSun  = dow
+  // Days since Monday: Mon=0, Tue=1, …, Sun=6
+  const DOW          = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+  const dow          = DOW.indexOf(weekday)
+  const daysSinceMon = (dow + 6) % 7
 
-  // Week window: Monday 00:00 AMS → Monday 00:00 AMS (exclusive), 7-day span
-  // "to" = Monday after the most recent Sunday (= next day if today is Sunday)
-  const toDay  = day - daysSinceSun + 1
-  const toMs   = amsterdamMidnightMs(year, month, toDay)
-  const fromMs = toMs - 7 * 24 * 60 * 60 * 1000
-
-  const to   = new Date(toMs)
-  const from = new Date(fromMs)
+  // from = Monday 00:00 AMS of the reference week
+  const from = new Date(amsterdamMidnightMs(year, month, day - daysSinceMon))
+  // to   = reference moment (now, or now shifted back weekOffset weeks)
+  const to   = refNow
 
   const fmt = new Intl.DateTimeFormat('nl-NL', {
     timeZone: 'Europe/Amsterdam', day: 'numeric', month: 'long',
   })
-  const label = `${fmt.format(from)} – ${fmt.format(new Date(toMs - 1))}`
+  const label = `${fmt.format(from)} – ${fmt.format(to)}`
 
   return { from: from.toISOString(), to: to.toISOString(), label }
 }
@@ -270,9 +270,11 @@ async function handler(req: NextRequest) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
   }
 
-  const now   = new Date()
-  const force = new URL(req.url).searchParams.get('force') === 'true'
-  const hour  = getAmsterdamHour(now)
+  const now        = new Date()
+  const params     = new URL(req.url).searchParams
+  const force      = params.get('force') === 'true'
+  const weekOffset = Math.max(0, parseInt(params.get('weekOffset') ?? '0', 10) || 0)
+  const hour       = getAmsterdamHour(now)
 
   // Only execute at 11:xx Amsterdam time (bypass with ?force=true for testing)
   if (!force && hour !== 11) {
@@ -284,7 +286,7 @@ async function handler(req: NextRequest) {
   }
 
   try {
-    const { from, to, label } = weekWindow()
+    const { from, to, label } = weekWindow(weekOffset)
     const { totals, byNiche } = await fetchWeekStats(from, to)
     const message = buildMessage(label, totals, byNiche)
 
