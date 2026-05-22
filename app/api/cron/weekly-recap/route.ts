@@ -239,27 +239,26 @@ function buildMessage(
   return lines.join('\n')
 }
 
-// ── Wassenger ─────────────────────────────────────────────────────────────────
+// ── WasenderAPI ───────────────────────────────────────────────────────────────
+// Endpoint: POST https://wasenderapi.com/api/send-message
+// Auth:     Authorization: Bearer <WASENDER_API_KEY>
+// Body:     { to: "<groupJID>@g.us", text: "<message>" }
 
 async function sendWhatsApp(message: string): Promise<void> {
-  const apiKey   = process.env.WASSENGER_API_KEY
-  const groupId  = process.env.WASSENGER_GROUP_ID
-  const deviceId = process.env.WASSENGER_DEVICE_ID
+  const apiKey  = process.env.WASENDER_API_KEY
+  const groupId = process.env.WASENDER_GROUP_ID  // WhatsApp group JID, e.g. "120363xxxxxx@g.us"
 
-  if (!apiKey || !groupId) throw new Error('Missing WASSENGER_API_KEY or WASSENGER_GROUP_ID')
+  if (!apiKey || !groupId) throw new Error('Missing WASENDER_API_KEY or WASENDER_GROUP_ID')
 
-  const body: Record<string, string> = { group: groupId, message }
-  if (deviceId) body.device = deviceId
-
-  const res = await fetch('https://api.wassenger.com/v1/messages', {
+  const res = await fetch('https://wasenderapi.com/api/send-message', {
     method:  'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-    body:    JSON.stringify(body),
+    body:    JSON.stringify({ to: groupId, text: message }),
   })
 
   if (!res.ok) {
     const text = await res.text().catch(() => `HTTP ${res.status}`)
-    throw new Error(`Wassenger error ${res.status}: ${text}`)
+    throw new Error(`WasenderAPI error ${res.status}: ${text}`)
   }
 }
 
@@ -290,7 +289,7 @@ async function handler(req: NextRequest) {
     const { totals, byNiche } = await fetchWeekStats(from, to)
     const message = buildMessage(label, totals, byNiche)
 
-    if (force && !process.env.WASSENGER_API_KEY) {
+    if (force && !process.env.WASENDER_API_KEY) {
       // Test mode: return message preview without sending
       return NextResponse.json({ ok: true, preview: true, from, to, message, totals })
     }
