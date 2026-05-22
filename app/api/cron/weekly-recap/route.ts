@@ -233,7 +233,13 @@ function buildMessage(
     if (!s || s.leads === 0) continue
     lines.push('')
     lines.push(`*${NICHE_LABEL[niche]}* (${s.leads} leads)`)
-    lines.push(`Doorgezet: ${s.doorgezet} • Inspecties: ${s.inspecties} • Offertes: ${s.offertes}`)
+    if (niche === 'bouw') {
+      lines.push(`Doorgezet: ${s.doorgezet}`)
+      lines.push(`Inspecties: ${s.inspecties}`)
+      lines.push(`Offertes: ${s.offertes}`)
+    } else {
+      lines.push(`Doorgezet: ${s.doorgezet}`)
+    }
   }
 
   return lines.join('\n')
