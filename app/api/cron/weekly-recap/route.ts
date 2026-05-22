@@ -245,16 +245,15 @@ function buildMessage(
 // Body:     { to: "<groupJID>@g.us", text: "<message>" }
 
 async function sendWhatsApp(message: string): Promise<void> {
-  const apiKey   = process.env.WASENDER_API_KEY
-  const groupId  = process.env.WASENDER_GROUP_ID   // WhatsApp group JID, e.g. "120363xxxxxx@g.us"
-  const deviceId = process.env.WASENDER_DEVICE_ID  // numeric device/session ID from manage URL
+  const apiKey  = process.env.WASENDER_API_KEY?.trim()
+  const groupId = process.env.WASENDER_GROUP_ID?.trim()  // WhatsApp group JID, e.g. "120363xxxxxx@g.us"
 
   if (!apiKey || !groupId) throw new Error('Missing WASENDER_API_KEY or WASENDER_GROUP_ID')
 
-  const res = await fetch('https://wasenderapi.com/api/send-group-message', {
+  const res = await fetch('https://wasenderapi.com/api/send-message', {
     method:  'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-    body:    JSON.stringify({ groupId, text: message }),
+    body:    JSON.stringify({ to: groupId, text: message }),
   })
 
   if (!res.ok) {
