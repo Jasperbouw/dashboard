@@ -253,7 +253,7 @@ async function sendWhatsApp(message: string): Promise<void> {
   const res = await fetch('https://wasenderapi.com/api/send-message', {
     method:  'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-    body:    JSON.stringify({ groupId, text: message }),
+    body:    JSON.stringify({ to: groupId, text: message }),
   })
 
   if (!res.ok) {
