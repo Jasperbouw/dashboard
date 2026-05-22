@@ -7,6 +7,12 @@ const INSPECTION_STATUSES       = ['Inspectie gepland', 'Afspraak gepland']
 const QUOTE_STATUSES            = ['Offerte verzonden', 'Offerte verstuurd', 'Laatste poging']
 // Dakkapel routing is group-based within DCN DK board — these group titles signal doorgezet
 const DAKKAPEL_ROUTING_STATUSES = ['Doorgestuurd', 'Duurt', 'Christiaan']
+
+// "bouw" bundles all construction-related work:
+//   aanbouw / renovatie / verbouw (Hollands Prefab, Vastgoed Groep, T-Bouw, Flair,
+//   Prefab Op Maat, Bouwcombinatie Amsterdam, Prefab Gelderland)
+//   + nieuwbouw (Prefab Nieuwbouw) + zwembad (Prefab Zwembaden)
+// All nine contractors carry niche='bouw' in the contractors table.
 const ACTIVE_NICHES             = ['daken', 'dakkapel', 'bouw'] as const
 
 type Niche = typeof ACTIVE_NICHES[number]
@@ -33,17 +39,53 @@ function isAuthorized(req: NextRequest): boolean {
 
 // ── Date helpers ──────────────────────────────────────────────────────────────
 
+// Returns the UTC timestamp of midnight Amsterdam for the given Amsterdam calendar date.
+// Uses the offset at noon UTC (stable across DST transitions that happen near midnight).
+function amsterdamMidnightMs(year: number, month: number, day: number): number {
+  const noonUTC = Date.UTC(year, month, day, 12)
+  const p = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Europe/Amsterdam',
+    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
+  }).formatToParts(new Date(noonUTC))
+  const h         = Number(p.find(x => x.type === 'hour')!.value) % 24
+  const m         = Number(p.find(x => x.type === 'minute')!.value)
+  const s         = Number(p.find(x => x.type === 'second')!.value)
+  const offsetMs  = (h * 3600 + m * 60 + s - 43200) * 1000  // delta vs noon UTC
+  return Date.UTC(year, month, day) - offsetMs
+}
+
 function weekWindow(): { from: string; to: string; label: string } {
   const now = new Date()
-  // Sunday at cron time — week = last Monday 00:00 UTC to today 00:00 UTC
-  const to   = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
-  const from = new Date(to.getTime() - 7 * 24 * 60 * 60 * 1000)
+
+  // Current date and day-of-week in Amsterdam timezone
+  const p = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Europe/Amsterdam',
+    year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'short',
+  }).formatToParts(now)
+  const year    = Number(p.find(x => x.type === 'year')!.value)
+  const month   = Number(p.find(x => x.type === 'month')!.value) - 1  // 0-indexed
+  const day     = Number(p.find(x => x.type === 'day')!.value)
+  const weekday = p.find(x => x.type === 'weekday')!.value  // 'Sun' | 'Mon' | ...
+
+  // Day-of-week index: 0=Sun, 1=Mon, …, 6=Sat
+  const DOW           = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+  const dow           = DOW.indexOf(weekday)
+  // Days since the most recent Sunday (0 if today is Sunday)
+  const daysSinceSun  = dow
+
+  // Week window: Monday 00:00 AMS → Monday 00:00 AMS (exclusive), 7-day span
+  // "to" = Monday after the most recent Sunday (= next day if today is Sunday)
+  const toDay  = day - daysSinceSun + 1
+  const toMs   = amsterdamMidnightMs(year, month, toDay)
+  const fromMs = toMs - 7 * 24 * 60 * 60 * 1000
+
+  const to   = new Date(toMs)
+  const from = new Date(fromMs)
 
   const fmt = new Intl.DateTimeFormat('nl-NL', {
-    timeZone: 'Europe/Amsterdam',
-    day: 'numeric', month: 'long',
+    timeZone: 'Europe/Amsterdam', day: 'numeric', month: 'long',
   })
-  const label = `${fmt.format(from)} – ${fmt.format(new Date(to.getTime() - 1))}`
+  const label = `${fmt.format(from)} – ${fmt.format(new Date(toMs - 1))}`
 
   return { from: from.toISOString(), to: to.toISOString(), label }
 }
