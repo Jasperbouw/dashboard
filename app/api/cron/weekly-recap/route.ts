@@ -253,7 +253,7 @@ async function sendWhatsApp(message: string): Promise<void> {
 
   const res = await fetch('https://api.wassenger.com/v1/messages', {
     method:  'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: apiKey },
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
     body:    JSON.stringify(body),
   })
 
