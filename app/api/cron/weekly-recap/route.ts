@@ -54,38 +54,46 @@ function amsterdamMidnightMs(year: number, month: number, day: number): number {
   return Date.UTC(year, month, day) - offsetMs
 }
 
-// weekOffset=0 → current week (Monday 00:00 AMS → now)
-// weekOffset=1 → previous week (same shape, shifted back 7 days)
+// Rolling 7-day window ending at the most recent Sunday 11:00 AMS at or before now.
+// weekOffset=0 → window ending this past Sunday 11:00 AMS
+// weekOffset=N → same window shifted back N × 7 days
+// On a non-Sunday (e.g. force=true testing), the end snaps to the most recent Sunday 11:00.
 function weekWindow(weekOffset = 0): { from: string; to: string; label: string } {
   const now = new Date()
 
   // Shift reference point back by weekOffset weeks
   const refNow = new Date(now.getTime() - weekOffset * 7 * 24 * 60 * 60 * 1000)
 
-  // Amsterdam date + weekday at the reference time
+  // Amsterdam date + hour at refNow
   const p = new Intl.DateTimeFormat('en-US', {
     timeZone: 'Europe/Amsterdam',
     year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'short',
+    hour: '2-digit', hour12: false,
   }).formatToParts(refNow)
   const year    = Number(p.find(x => x.type === 'year')!.value)
   const month   = Number(p.find(x => x.type === 'month')!.value) - 1
   const day     = Number(p.find(x => x.type === 'day')!.value)
   const weekday = p.find(x => x.type === 'weekday')!.value
+  const hour    = Number(p.find(x => x.type === 'hour')!.value) % 24
 
-  // Days since Monday: Mon=0, Tue=1, …, Sun=6
-  const DOW          = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-  const dow          = DOW.indexOf(weekday)
-  const daysSinceMon = (dow + 6) % 7
+  // Days to go back to reach the most recent Sunday 11:00 AMS ≤ refNow
+  // If it's Sunday before 11:00, that Sunday's 11:00 is still in the future → go back 7 days
+  const DOW      = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+  const dow      = DOW.indexOf(weekday)
+  const daysBack = (dow === 0 && hour < 11) ? 7 : dow
 
-  // from = Monday 00:00 AMS of the reference week
-  const from = new Date(amsterdamMidnightMs(year, month, day - daysSinceMon))
-  // to   = reference moment (now, or now shifted back weekOffset weeks)
-  const to   = refNow
+  // to   = Sunday 11:00 AMS  (Amsterdam midnight of that Sunday + 11 h)
+  const to   = new Date(amsterdamMidnightMs(year, month, day - daysBack) + 11 * 60 * 60 * 1000)
+  // from = exactly 7 days before to  (previous Sunday 11:00 AMS)
+  const from = new Date(to.getTime() - 7 * 24 * 60 * 60 * 1000)
 
+  // Label: "DD maand – DD maand" using first and last calendar day of the window
+  // Window is Sun 11:00 → Sun 11:00, so the last full day is Saturday → subtract 1 day
+  const endDisplay = new Date(to.getTime() - 24 * 60 * 60 * 1000)
   const fmt = new Intl.DateTimeFormat('nl-NL', {
     timeZone: 'Europe/Amsterdam', day: 'numeric', month: 'long',
   })
-  const label = `${fmt.format(from)} – ${fmt.format(to)}`
+  const label = `${fmt.format(from)} – ${fmt.format(endDisplay)}`
 
   return { from: from.toISOString(), to: to.toISOString(), label }
 }
