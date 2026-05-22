@@ -52,6 +52,7 @@ const STAGE_MAP: Record<string, string> = {
   // inspection
   'inspectie gepland':                                 'inspection',
   'afspraak gepland':                                  'inspection',
+  'christiaan gepland':                                'inspection',
   // quote_sent
   'offerte verzonden':                                 'quote_sent',
   'offerte verstuurd':                                 'quote_sent',

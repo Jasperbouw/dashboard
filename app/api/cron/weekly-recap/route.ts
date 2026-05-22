@@ -3,9 +3,11 @@ import { serverClient } from '../../../../lib/supabase-server'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const INSPECTION_STATUSES = ['Inspectie gepland', 'Afspraak gepland']
-const QUOTE_STATUSES      = ['Offerte verzonden', 'Offerte verstuurd', 'Laatste poging']
-const ACTIVE_NICHES       = ['daken', 'dakkapel', 'bouw'] as const
+const INSPECTION_STATUSES       = ['Inspectie gepland', 'Afspraak gepland']
+const QUOTE_STATUSES            = ['Offerte verzonden', 'Offerte verstuurd', 'Laatste poging']
+// Dakkapel routing is group-based within DCN DK board — these group titles signal doorgezet
+const DAKKAPEL_ROUTING_STATUSES = ['Doorgestuurd', 'Duurt', 'Christiaan']
+const ACTIVE_NICHES             = ['daken', 'dakkapel', 'bouw'] as const
 
 type Niche = typeof ACTIVE_NICHES[number]
 
@@ -91,7 +93,7 @@ async function fetchWeekStats(from: string, to: string): Promise<{
     db.from('contractors').select('id, niche, active'),
     db.from('lead_status_changes')
       .select('lead_id, to_status, leads!inner(contractor_id, board_id)')
-      .in('to_status', [...INSPECTION_STATUSES, ...QUOTE_STATUSES])
+      .in('to_status', [...INSPECTION_STATUSES, ...QUOTE_STATUSES, ...DAKKAPEL_ROUTING_STATUSES])
       .gte('changed_at', from)
       .lt('changed_at', to),
   ])
@@ -116,7 +118,10 @@ async function fetchWeekStats(from: string, to: string): Promise<{
   const byNiche = Object.fromEntries(ACTIVE_NICHES.map(n => [n, empty()])) as Record<Niche, NicheStats>
   const totals  = empty()
 
-  // Leads pass
+  // ── Leads pass — counts + doorgezet for Daken/Bouw ───────────────────────
+  // Dakkapel doorgezet is event-based (group transitions), handled in the
+  // changes pass below. Daken/Bouw doorgezet = created on contractor board
+  // and not lost (board-move happens at creation for those niches).
   for (const l of leadsData ?? []) {
     const niche = resolveNiche(l.contractor_id, l.board_id)
     if (!niche) continue
@@ -125,21 +130,30 @@ async function fetchWeekStats(from: string, to: string): Promise<{
     byNiche[niche].leads++
     totals.leads++
 
-    // Doorgezet = lead exists on a contractor board (contractor_id IS NOT NULL)
-    if (l.contractor_id && l.canonical_stage !== 'lost') {
+    if (niche !== 'dakkapel' && l.contractor_id && l.canonical_stage !== 'lost') {
       byNiche[niche].doorgezet++
       totals.doorgezet++
     }
   }
 
-  // Stage transitions pass — deduplicated per lead per stage bucket
-  const inspSeen = new Set<string>()
-  const offSeen  = new Set<string>()
+  // ── Changes pass — inspecties, offertes, + Dakkapel doorgezet ────────────
+  // All sets deduplicate per lead_id so each lead counts at most once per bucket.
+  const inspSeen          = new Set<string>()
+  const offSeen           = new Set<string>()
+  const dakkapelDoorgezet = new Set<string>()
 
   for (const c of (changesData ?? []) as unknown as ChangeRow[]) {
     if (!c.leads) continue
     const niche = resolveNiche(c.leads.contractor_id, c.leads.board_id)
     if (!niche) continue
+
+    // Dakkapel doorgezet: first routing event per lead wins
+    if (niche === 'dakkapel' && DAKKAPEL_ROUTING_STATUSES.includes(c.to_status)
+        && !dakkapelDoorgezet.has(c.lead_id)) {
+      dakkapelDoorgezet.add(c.lead_id)
+      byNiche.dakkapel.doorgezet++
+      totals.doorgezet++
+    }
 
     if (INSPECTION_STATUSES.includes(c.to_status) && !inspSeen.has(c.lead_id)) {
       inspSeen.add(c.lead_id)
