@@ -242,7 +242,7 @@ function buildMessage(
 // ── WasenderAPI ───────────────────────────────────────────────────────────────
 // Endpoint: POST https://wasenderapi.com/api/send-message
 // Auth:     Authorization: Bearer <WASENDER_API_KEY>
-// Body:     { to: "<groupJID>@g.us", text: "<message>" }
+// Body:     { groupId: "<groupJID>@g.us", text: "<message>" }
 
 async function sendWhatsApp(message: string): Promise<void> {
   const apiKey  = process.env.WASENDER_API_KEY?.trim()
@@ -253,7 +253,7 @@ async function sendWhatsApp(message: string): Promise<void> {
   const res = await fetch('https://wasenderapi.com/api/send-message', {
     method:  'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-    body:    JSON.stringify({ to: groupId, text: message }),
+    body:    JSON.stringify({ groupId, text: message }),
   })
 
   if (!res.ok) {
