@@ -9,7 +9,6 @@ const PUBLIC = [
   '/api/auth/',
   '/api/sync/',                       // Vercel cron + manual sync (uses CRON_SECRET/x-sync-secret)
   '/api/cron/',                       // Vercel cron jobs (own auth check via CRON_SECRET)
-  '/api/marketing/generate-batch',    // Vercel cron + dashboard trigger (own auth check)
   '/api/energie-lead/', // Webhook receivers
   '/api/leadbyte/',
   '/_next/',
