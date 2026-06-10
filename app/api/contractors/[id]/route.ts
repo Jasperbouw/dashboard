@@ -160,3 +160,26 @@ export async function PATCH(
   const { data: updated } = await db.from('contractors').select('*').eq('id', id).single()
   return NextResponse.json({ ...(updated ?? {}), warnings: warnings.length ? warnings : undefined })
 }
+
+// DELETE — verwijder contractor + boards_config + account_label_mapping
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params
+  const db = serverClient()
+
+  const { data: existing } = await db.from('contractors').select('id').eq('id', id).maybeSingle()
+  if (!existing) return NextResponse.json({ error: 'Contractor niet gevonden' }, { status: 404 })
+
+  // Delete related rows first (FK constraints)
+  await Promise.all([
+    db.from('boards_config').delete().eq('contractor_id', id),
+    db.from('account_label_mapping').delete().eq('contractor_id', id),
+  ])
+
+  const { error } = await db.from('contractors').delete().eq('id', id)
+  if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+
+  return NextResponse.json({ ok: true })
+}

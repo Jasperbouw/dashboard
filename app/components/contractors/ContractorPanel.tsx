@@ -1902,20 +1902,45 @@ interface Props {
   onClose:         () => void
   onPacksChanged?: () => void
   onEdited?:       () => void
+  onDeleted?:      () => void
 }
 
 const PANEL_WIDTH = 560
 
-export function ContractorPanel({ contractor, onClose, onPacksChanged, onEdited }: Props) {
-  const [tab,      setTab]      = useState<Tab>('performance')
-  const [mounted,  setMounted]  = useState(false)
-  const [editOpen, setEditOpen] = useState(false)
+export function ContractorPanel({ contractor, onClose, onPacksChanged, onEdited, onDeleted }: Props) {
+  const [tab,        setTab]        = useState<Tab>('performance')
+  const [mounted,    setMounted]    = useState(false)
+  const [editOpen,   setEditOpen]   = useState(false)
+  const [confirmDel, setConfirmDel] = useState(false)
+  const [deleting,   setDeleting]   = useState(false)
+  const [delError,   setDelError]   = useState<string | null>(null)
 
-  // Reset tab when switching contractors
+  async function handleDelete() {
+    if (!contractor) return
+    setDeleting(true)
+    setDelError(null)
+    try {
+      const res = await fetch(`/api/contractors/${contractor.id}`, { method: 'DELETE' })
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        setDelError(body.error ?? 'Verwijderen mislukt')
+        setDeleting(false)
+        return
+      }
+      onClose()
+      onDeleted?.()
+    } catch {
+      setDelError('Netwerk fout')
+      setDeleting(false)
+    }
+  }
+
+  // Reset tab + delete state when switching contractors
   useEffect(() => {
     if (contractor) {
       setTab('performance')
-      // Defer mount flag one frame so CSS transition fires
+      setConfirmDel(false)
+      setDelError(null)
       const id = requestAnimationFrame(() => setMounted(true))
       return () => cancelAnimationFrame(id)
     } else {
@@ -2023,17 +2048,64 @@ export function ContractorPanel({ contractor, onClose, onPacksChanged, onEdited 
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <button
-                    onClick={() => setEditOpen(true)}
-                    style={{
-                      background: 'none', border: '1px solid var(--color-border)', cursor: 'pointer',
-                      color: 'var(--color-ink-muted)', fontSize: 'var(--font-size-xs)',
-                      padding: '4px 10px', borderRadius: 'var(--radius-sm)',
-                      display: 'flex', alignItems: 'center', gap: 5,
-                    }}
-                  >
-                    ✏ Bewerken
-                  </button>
+                  {confirmDel ? (
+                    <>
+                      <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-critical)' }}>
+                        Zeker weten?
+                      </span>
+                      <button
+                        onClick={handleDelete}
+                        disabled={deleting}
+                        style={{
+                          background: 'var(--color-critical)', border: 'none', cursor: deleting ? 'default' : 'pointer',
+                          color: '#fff', fontSize: 'var(--font-size-xs)',
+                          padding: '4px 10px', borderRadius: 'var(--radius-sm)', opacity: deleting ? 0.6 : 1,
+                        }}
+                      >
+                        {deleting ? 'Verwijderen…' : 'Ja, verwijder'}
+                      </button>
+                      <button
+                        onClick={() => { setConfirmDel(false); setDelError(null) }}
+                        disabled={deleting}
+                        style={{
+                          background: 'none', border: '1px solid var(--color-border)', cursor: 'pointer',
+                          color: 'var(--color-ink-muted)', fontSize: 'var(--font-size-xs)',
+                          padding: '4px 10px', borderRadius: 'var(--radius-sm)',
+                        }}
+                      >
+                        Annuleer
+                      </button>
+                      {delError && (
+                        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-critical)' }}>
+                          {delError}
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => setEditOpen(true)}
+                        style={{
+                          background: 'none', border: '1px solid var(--color-border)', cursor: 'pointer',
+                          color: 'var(--color-ink-muted)', fontSize: 'var(--font-size-xs)',
+                          padding: '4px 10px', borderRadius: 'var(--radius-sm)',
+                          display: 'flex', alignItems: 'center', gap: 5,
+                        }}
+                      >
+                        ✏ Bewerken
+                      </button>
+                      <button
+                        onClick={() => setConfirmDel(true)}
+                        style={{
+                          background: 'none', border: '1px solid var(--color-border)', cursor: 'pointer',
+                          color: 'var(--color-critical)', fontSize: 'var(--font-size-xs)',
+                          padding: '4px 10px', borderRadius: 'var(--radius-sm)',
+                        }}
+                      >
+                        Verwijder
+                      </button>
+                    </>
+                  )}
                   <button
                     onClick={onClose}
                     style={{
