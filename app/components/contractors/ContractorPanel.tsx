@@ -1940,6 +1940,7 @@ export function ContractorPanel({ contractor, onClose, onPacksChanged, onEdited,
     if (contractor) {
       setTab('performance')
       setConfirmDel(false)
+      setDeleting(false)
       setDelError(null)
       const id = requestAnimationFrame(() => setMounted(true))
       return () => cancelAnimationFrame(id)
