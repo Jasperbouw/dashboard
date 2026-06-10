@@ -172,11 +172,12 @@ export async function DELETE(
   const { data: existing } = await db.from('contractors').select('id').eq('id', id).maybeSingle()
   if (!existing) return NextResponse.json({ error: 'Contractor niet gevonden' }, { status: 404 })
 
-  // Delete related rows first (FK constraints)
-  await Promise.all([
-    db.from('boards_config').delete().eq('contractor_id', id),
-    db.from('account_label_mapping').delete().eq('contractor_id', id),
-  ])
+  // Delete FK-dependent rows sequentially before touching contractors
+  const { error: boardErr } = await db.from('boards_config').delete().eq('contractor_id', id)
+  if (boardErr) return NextResponse.json({ error: `boards_config: ${boardErr.message}` }, { status: 400 })
+
+  const { error: labelErr } = await db.from('account_label_mapping').delete().eq('contractor_id', id)
+  if (labelErr) return NextResponse.json({ error: `account_label: ${labelErr.message}` }, { status: 400 })
 
   const { error } = await db.from('contractors').delete().eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
