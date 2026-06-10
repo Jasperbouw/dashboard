@@ -187,6 +187,9 @@ export async function DELETE(
   const { error: boardErr } = await db.from('boards_config').delete().eq('contractor_id', id)
   if (boardErr) return NextResponse.json({ error: `boards_config: ${boardErr.message}` }, { status: 400 })
 
+  const { error: projectsErr } = await db.from('projects').update({ contractor_id: null }).eq('contractor_id', id)
+  if (projectsErr) return NextResponse.json({ error: `projects: ${projectsErr.message}` }, { status: 400 })
+
   const { error: labelErr } = await db.from('account_label_mapping').delete().eq('contractor_id', id)
   if (labelErr) return NextResponse.json({ error: `account_label: ${labelErr.message}` }, { status: 400 })
 
