@@ -172,7 +172,18 @@ export async function DELETE(
   const { data: existing } = await db.from('contractors').select('id').eq('id', id).maybeSingle()
   if (!existing) return NextResponse.json({ error: 'Contractor niet gevonden' }, { status: 404 })
 
-  // Delete FK-dependent rows sequentially before touching contractors
+  // Look up board IDs for this contractor (needed to null leads.board_id)
+  const { data: boards } = await db.from('boards_config').select('id').eq('contractor_id', id)
+  const boardIds = (boards ?? []).map(b => b.id)
+
+  // Null out leads FKs so board + contractor rows can be deleted (preserve historical data)
+  if (boardIds.length > 0) {
+    const { error: e } = await db.from('leads').update({ board_id: null }).in('board_id', boardIds)
+    if (e) return NextResponse.json({ error: `leads.board_id: ${e.message}` }, { status: 400 })
+  }
+  const { error: leadContractorErr } = await db.from('leads').update({ contractor_id: null }).eq('contractor_id', id)
+  if (leadContractorErr) return NextResponse.json({ error: `leads.contractor_id: ${leadContractorErr.message}` }, { status: 400 })
+
   const { error: boardErr } = await db.from('boards_config').delete().eq('contractor_id', id)
   if (boardErr) return NextResponse.json({ error: `boards_config: ${boardErr.message}` }, { status: 400 })
 
