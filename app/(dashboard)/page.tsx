@@ -12,10 +12,13 @@ const NICHE_LABEL: Record<string, string> = {
   bouw: 'Bouw', daken: 'Daken', dakkapel: 'Dakkapel', extras: 'Extras',
 }
 
+function fmtEur(v: number) {
+  return `€${v.toLocaleString('nl-NL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
+}
+
 export default async function HomePage() {
   const now = new Date()
 
-  // Week window: Monday 00:00 → now (UTC-based, good enough for display)
   const daysSinceMon = (now.getDay() + 6) % 7
   const thisMonStart = new Date(now)
   thisMonStart.setDate(now.getDate() - daysSinceMon)
@@ -26,12 +29,10 @@ export default async function HomePage() {
   const lastMonStart = new Date(thisMonStart.getTime() - 7 * 86_400_000)
   const lastCutoff   = new Date(thisCutoff.getTime()   - 7 * 86_400_000)
 
-  // Month window
   const monthStart  = new Date(now.getFullYear(), now.getMonth(), 1)
   const monthEnd    = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
   const periodLabel = `${NL_MONTHS[now.getMonth()]} ${now.getFullYear()}`
-
-  const todayLabel = now.toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' })
+  const todayLabel  = now.toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' })
 
   const db = serverClient()
 
@@ -41,9 +42,11 @@ export default async function HomePage() {
     { count: lastWeekLeads },
     { count: monthLeads },
     { data: thisWeekLeadsRaw },
+    // canonical_stage included for qualifying ratio
     { data: monthLeadsRaw },
     { data: contractorsRaw },
     { data: boardsRaw },
+    { data: monthDeals },
   ] = await Promise.all([
     db.from('sync_runs').select('started_at').order('started_at', { ascending: false }).limit(1).single(),
     db.from('leads').select('*', { count: 'exact', head: true })
@@ -59,12 +62,15 @@ export default async function HomePage() {
       .gte('monday_created_at', thisMonStart.toISOString())
       .lte('monday_created_at', thisCutoff.toISOString())
       .limit(2000),
-    db.from('leads').select('contractor_id, board_id')
+    db.from('leads').select('contractor_id, board_id, canonical_stage')
       .gte('monday_created_at', monthStart.toISOString())
       .lte('monday_created_at', monthEnd.toISOString())
       .limit(3000),
     db.from('contractors').select('id, niche'),
     db.from('boards_config').select('id, niche'),
+    db.from('closed_deals').select('deal_value')
+      .gte('closed_at', monthStart.toISOString().slice(0, 10))
+      .lte('closed_at', monthEnd.toISOString().slice(0, 10)),
   ])
 
   // Niche lookup
@@ -75,22 +81,56 @@ export default async function HomePage() {
     (boardsRaw ?? []).filter(b => b.niche).map(b => [b.id as number, b.niche as string]),
   )
 
-  function nicheBreakdown(rows: Array<{ contractor_id: string | null; board_id: number | null }> | null) {
-    const counts: Record<string, number> = {}
-    for (const l of rows ?? []) {
-      const niche = l.contractor_id
-        ? (contractorNiche.get(l.contractor_id) ?? null)
-        : (l.board_id != null ? (boardNiche.get(l.board_id) ?? null) : null)
-      if (niche) counts[niche] = (counts[niche] ?? 0) + 1
-    }
-    return NICHE_ORDER
-      .filter(n => (counts[n] ?? 0) > 0)
-      .map(n => `${NICHE_LABEL[n]} ${counts[n]}`)
-      .join(' · ')
+  function resolveNiche(row: { contractor_id: string | null; board_id: number | null }): string | null {
+    return row.contractor_id
+      ? (contractorNiche.get(row.contractor_id) ?? null)
+      : (row.board_id != null ? (boardNiche.get(row.board_id) ?? null) : null)
   }
 
-  const weekNicheText  = nicheBreakdown(thisWeekLeadsRaw as Array<{ contractor_id: string | null; board_id: number | null }> | null)
-  const monthNicheText = nicheBreakdown(monthLeadsRaw    as Array<{ contractor_id: string | null; board_id: number | null }> | null)
+  // Week niche breakdown (display only)
+  const weekNicheText = (() => {
+    const counts: Record<string, number> = {}
+    for (const l of thisWeekLeadsRaw ?? []) {
+      const n = resolveNiche(l as { contractor_id: string | null; board_id: number | null })
+      if (n) counts[n] = (counts[n] ?? 0) + 1
+    }
+    return NICHE_ORDER.filter(n => (counts[n] ?? 0) > 0).map(n => `${NICHE_LABEL[n]} ${counts[n]}`).join(' · ')
+  })()
+
+  // Month niche breakdown + qualifying ratio per niche
+  const monthNicheText = (() => {
+    const counts: Record<string, number> = {}
+    for (const l of monthLeadsRaw ?? []) {
+      const n = resolveNiche(l as { contractor_id: string | null; board_id: number | null })
+      if (n) counts[n] = (counts[n] ?? 0) + 1
+    }
+    return NICHE_ORDER.filter(n => (counts[n] ?? 0) > 0).map(n => `${NICHE_LABEL[n]} ${counts[n]}`).join(' · ')
+  })()
+
+  // Qualifying ratio: leads that progressed past 'new' and didn't end as 'lost', per niche
+  const qualRatio = (() => {
+    type LeadRow = { contractor_id: string | null; board_id: number | null; canonical_stage: string | null }
+    const total:     Record<string, number> = {}
+    const qualified: Record<string, number> = {}
+    for (const l of (monthLeadsRaw ?? []) as LeadRow[]) {
+      const n = resolveNiche(l)
+      if (!n) continue
+      total[n] = (total[n] ?? 0) + 1
+      if (l.canonical_stage && l.canonical_stage !== 'new' && l.canonical_stage !== 'lost') {
+        qualified[n] = (qualified[n] ?? 0) + 1
+      }
+    }
+    return NICHE_ORDER
+      .filter(n => (total[n] ?? 0) > 0)
+      .map(n => ({
+        label: NICHE_LABEL[n] ?? n,
+        pct:   total[n] > 0 ? Math.round(((qualified[n] ?? 0) / total[n]) * 100) : 0,
+        total: total[n],
+      }))
+  })()
+
+  // Omzet deze maand
+  const omzetMaand = (monthDeals ?? []).reduce((s, d) => s + Number(d.deal_value), 0)
 
   const weekDiff  = (thisWeekLeads ?? 0) - (lastWeekLeads ?? 0)
   const diffColor = weekDiff > 0 ? '#3fb950' : weekDiff < 0 ? '#f85149' : 'var(--color-ink-faint)'
@@ -132,9 +172,7 @@ export default async function HomePage() {
         <div style={card}>
           <div style={cardLabel}>Leads deze week</div>
           <div style={cardValue}>{thisWeekLeads ?? 0}</div>
-          {weekNicheText && (
-            <div style={cardSub}>{weekNicheText}</div>
-          )}
+          {weekNicheText && <div style={cardSub}>{weekNicheText}</div>}
           <div style={{ ...cardSub, color: diffColor, marginTop: weekNicheText ? 6 : 10 }}>
             {diffSign} {Math.abs(weekDiff)} vs vorige week
           </div>
@@ -144,8 +182,46 @@ export default async function HomePage() {
         <div style={card}>
           <div style={cardLabel}>Leads {periodLabel}</div>
           <div style={cardValue}>{monthLeads ?? 0}</div>
-          {monthNicheText && (
-            <div style={cardSub}>{monthNicheText}</div>
+          {monthNicheText && <div style={cardSub}>{monthNicheText}</div>}
+        </div>
+
+        {/* Omzet deze maand */}
+        <div style={card}>
+          <div style={cardLabel}>Omzet {periodLabel}</div>
+          <div style={{ ...cardValue, fontSize: 36 }}>
+            {omzetMaand > 0 ? fmtEur(omzetMaand) : '—'}
+          </div>
+          <div style={cardSub}>Gesloten deals deze maand</div>
+        </div>
+
+        {/* Qualifying ratio per branche */}
+        <div style={card}>
+          <div style={cardLabel}>Qualifying ratio {periodLabel}</div>
+          {qualRatio.length === 0 ? (
+            <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-ink-faint)', marginTop: 8 }}>Geen data</div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 4 }}>
+              {qualRatio.map(({ label, pct, total }) => (
+                <div key={label}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                    <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-ink)', fontWeight: 500 }}>{label}</span>
+                    <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-ink)', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+                      {pct}%
+                    </span>
+                  </div>
+                  <div style={{ height: 4, borderRadius: 2, background: 'var(--color-surface-raised)', overflow: 'hidden' }}>
+                    <div style={{
+                      height: '100%', width: `${pct}%`, borderRadius: 2,
+                      background: pct >= 60 ? '#3fb950' : pct >= 35 ? '#58a6ff' : '#f85149',
+                      transition: 'width 0.3s',
+                    }} />
+                  </div>
+                  <div style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-ink-faint)', marginTop: 3 }}>
+                    {total} leads
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </div>
 
