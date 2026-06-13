@@ -34,12 +34,10 @@ function Card({ children, style }: { children: React.ReactNode; style?: React.CS
 }
 
 type TrendItem = { month: string; label: string; amount: number }
-type NicheItem = { name: string; label: string; amount: number }
 type Top5Item  = { id: string; name: string; niche: string; model: string; amount: number }
 
 interface Props {
   trend:         TrendItem[]
-  byNiche:       NicheItem[]
   top5:          Top5Item[]
   selectedMonth: string
   periodLabel:   string
@@ -58,7 +56,7 @@ function EurTooltip({ active, payload, label }: { active?: boolean; payload?: { 
   )
 }
 
-export function FinanceCharts({ trend, byNiche, top5, selectedMonth, periodLabel }: Props) {
+export function FinanceCharts({ trend, top5, selectedMonth, periodLabel }: Props) {
   const hasData = trend.some(t => t.amount > 0)
 
   return (
@@ -83,23 +81,6 @@ export function FinanceCharts({ trend, byNiche, top5, selectedMonth, periodLabel
           <p style={{ textAlign: 'center', fontSize: 'var(--font-size-sm)', color: '#8b949e', marginTop: 8 }}>
             Nog geen deals geboekt in deze periode
           </p>
-        )}
-      </Card>
-
-      {/* By niche */}
-      <Card>
-        <SectionTitle>Commissie per niche — {periodLabel}</SectionTitle>
-        {byNiche.every(n => n.amount === 0) ? (
-          <p style={{ fontSize: 'var(--font-size-sm)', color: '#8b949e' }}>Geen data</p>
-        ) : (
-          <ResponsiveContainer width="100%" height={160}>
-            <BarChart data={byNiche} layout="vertical" barCategoryGap="20%">
-              <XAxis type="number" tickFormatter={v => `€${v.toLocaleString('nl-NL')}`} tick={{ fill: '#8b949e', fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis dataKey="label" type="category" width={72} tick={{ fill: '#8b949e', fontSize: 12 }} axisLine={false} tickLine={false} />
-              <RechartTooltip content={<EurTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
-              <Bar dataKey="amount" fill={SUCCESS} radius={[0, 4, 4, 0]} minPointSize={4} />
-            </BarChart>
-          </ResponsiveContainer>
         )}
       </Card>
 

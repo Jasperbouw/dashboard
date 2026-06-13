@@ -7,7 +7,6 @@ import { TargetsSection } from '../../components/finance/TargetsSection'
 export const dynamic = 'force-dynamic'
 
 const NL_MONTHS = ['Jan', 'Feb', 'Mrt', 'Apr', 'Mei', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec']
-const NICHE_LABELS: Record<string, string> = { bouw: 'Bouw', daken: 'Daken', dakkapel: 'Dakkapel', extras: 'Extras', overig: 'Overig' }
 
 interface Props {
   searchParams: Promise<{ month?: string }>
@@ -140,15 +139,6 @@ export default async function FinancePage({ searchParams }: Props) {
     label: NL_MONTHS[parseInt(mo.split('-')[1]) - 1],
     amount,
   }))
-
-  // By niche (commission)
-  const NICHE_ORDER = ['bouw', 'daken', 'dakkapel', 'extras']
-  const byNicheRaw: Record<string, number> = Object.fromEntries(NICHE_ORDER.map(n => [n, 0]))
-  for (const d of deals) {
-    const niche = d.niche ?? 'overig'
-    byNicheRaw[niche] = (byNicheRaw[niche] ?? 0) + Number(d.commission_amount)
-  }
-  const byNiche = NICHE_ORDER.map(n => ({ name: n, label: NICHE_LABELS[n] ?? n, amount: byNicheRaw[n] ?? 0 }))
 
   // Top 5 contractors (commission)
   const contCommMap: Record<string, number> = {}
@@ -307,7 +297,6 @@ export default async function FinancePage({ searchParams }: Props) {
       {/* Charts */}
       <FinanceCharts
         trend={trend}
-        byNiche={byNiche}
         top5={top5}
         selectedMonth={selectedMonthKey}
         periodLabel={periodLabel}
