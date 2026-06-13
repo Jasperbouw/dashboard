@@ -47,6 +47,7 @@ export default async function HomePage() {
     { data: contractorsRaw },
     { data: boardsRaw },
     { data: monthDeals },
+    { data: ytdDeals },
   ] = await Promise.all([
     db.from('sync_runs').select('started_at').order('started_at', { ascending: false }).limit(1).single(),
     db.from('leads').select('*', { count: 'exact', head: true })
@@ -71,6 +72,9 @@ export default async function HomePage() {
     db.from('closed_deals').select('deal_value')
       .gte('closed_at', monthStart.toISOString().slice(0, 10))
       .lte('closed_at', monthEnd.toISOString().slice(0, 10)),
+    db.from('closed_deals').select('deal_value')
+      .gte('closed_at', `${now.getFullYear()}-01-01`)
+      .lte('closed_at', now.toISOString().slice(0, 10)),
   ])
 
   // Niche lookup
@@ -116,9 +120,12 @@ export default async function HomePage() {
       const n = resolveNiche(l)
       if (!n) continue
       total[n] = (total[n] ?? 0) + 1
-      if (l.canonical_stage && l.canonical_stage !== 'new' && l.canonical_stage !== 'lost') {
-        qualified[n] = (qualified[n] ?? 0) + 1
-      }
+      // Bouw/Daken: doorgezet = assigned to contractor board (contractor_id set)
+      // Dakkapel/Extras: use canonical_stage progression
+      const isQual = (n === 'bouw' || n === 'daken')
+        ? (l.contractor_id != null && l.canonical_stage !== 'lost')
+        : (!!l.canonical_stage && l.canonical_stage !== 'new' && l.canonical_stage !== 'lost')
+      if (isQual) qualified[n] = (qualified[n] ?? 0) + 1
     }
     return NICHE_ORDER
       .filter(n => (total[n] ?? 0) > 0)
@@ -129,8 +136,9 @@ export default async function HomePage() {
       }))
   })()
 
-  // Omzet deze maand
+  // Omzet deze maand + YTD
   const omzetMaand = (monthDeals ?? []).reduce((s, d) => s + Number(d.deal_value), 0)
+  const omzetYTD   = (ytdDeals   ?? []).reduce((s, d) => s + Number(d.deal_value), 0)
 
   const weekDiff  = (thisWeekLeads ?? 0) - (lastWeekLeads ?? 0)
   const diffColor = weekDiff > 0 ? '#3fb950' : weekDiff < 0 ? '#f85149' : 'var(--color-ink-faint)'
@@ -185,13 +193,19 @@ export default async function HomePage() {
           {monthNicheText && <div style={cardSub}>{monthNicheText}</div>}
         </div>
 
-        {/* Omzet deze maand */}
+        {/* Omzet deze maand + YTD */}
         <div style={card}>
           <div style={cardLabel}>Omzet {periodLabel}</div>
           <div style={{ ...cardValue, fontSize: 36 }}>
             {omzetMaand > 0 ? fmtEur(omzetMaand) : '—'}
           </div>
-          <div style={cardSub}>Gesloten deals deze maand</div>
+          <div style={{ ...cardSub, marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--color-border-subtle)' }}>
+            <span style={{ fontWeight: 600, color: 'var(--color-ink-muted)' }}>YTD {now.getFullYear()}</span>
+            {'  '}
+            <span style={{ fontWeight: 700, color: 'var(--color-ink)' }}>
+              {omzetYTD > 0 ? fmtEur(omzetYTD) : '—'}
+            </span>
+          </div>
         </div>
 
         {/* Qualifying ratio per branche */}
