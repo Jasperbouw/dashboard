@@ -3,7 +3,6 @@ import {
   cachedCampaignPerformance,
   cachedNichePerformance,
   cachedFunnelTransitions,
-  cachedDoorlooptijdenAggregate,
   currentMonth,
 } from '../../../lib/metrics'
 import { DateRangePicker }        from '../../components/ui/DateRangePicker'
@@ -11,7 +10,6 @@ import { StageDistributionChart } from '../../components/funnel/StageDistributio
 import { ConversionFunnel }       from '../../components/funnel/ConversionFunnel'
 import { NicheBreakdown }         from '../../components/funnel/NicheBreakdown'
 import { CampaignTable }          from '../../components/funnel/CampaignTable'
-import { DoorlooptijdenStrip }    from '../../components/funnel/DoorlooptijdenStrip'
 
 export const dynamic = 'force-dynamic'
 
@@ -89,12 +87,11 @@ export default async function FunnelPage({ searchParams }: Props) {
   const toISO    = toDate.toISOString()
 
   const funnelT0 = Date.now()
-  const [distribution, campaigns, niches, funnel, doorlooptijden] = await Promise.all([
+  const [distribution, campaigns, niches, funnel] = await Promise.all([
     timedFn('currentStageDistribution', cachedCurrentStageDistribution(fromISO, toISO)),
     timedFn('campaignPerformance',      cachedCampaignPerformance(fromISO, toISO)),
     timedFn('nichePerformance',         cachedNichePerformance(fromISO, toISO)),
     timedFn('funnelTransitions',        cachedFunnelTransitions(fromISO, toISO)),
-    timedFn('doorlooptijdenAggregate',  cachedDoorlooptijdenAggregate(fromISO, toISO)),
   ])
   console.log(`[funnel] total-db: ${Date.now() - funnelT0}ms`)
 
@@ -132,14 +129,6 @@ export default async function FunnelPage({ searchParams }: Props) {
         </div>
 
         <DateRangePicker from={fromStr} to={toStr} />
-      </div>
-
-      {/* ── Doorlooptijden strip ── */}
-      <div style={{ marginBottom: 28 }}>
-        <div style={{ marginBottom: 12 }}>
-          <SectionTitle>Gemiddelde doorlooptijden</SectionTitle>
-        </div>
-        <DoorlooptijdenStrip data={doorlooptijden} />
       </div>
 
       {/* ── Two-column: Stage distribution + Conversion funnel ── */}
