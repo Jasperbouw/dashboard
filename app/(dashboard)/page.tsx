@@ -226,7 +226,7 @@ export default async function HomePage() {
                   <div style={{ height: 4, borderRadius: 2, background: 'var(--color-surface-raised)', overflow: 'hidden' }}>
                     <div style={{
                       height: '100%', width: `${pct}%`, borderRadius: 2,
-                      background: pct >= 60 ? '#3fb950' : pct >= 35 ? '#58a6ff' : '#f85149',
+                      background: '#3fb950',
                       transition: 'width 0.3s',
                     }} />
                   </div>
