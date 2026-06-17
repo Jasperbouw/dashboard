@@ -76,7 +76,7 @@ export default async function HomePage() {
     db.from('closed_deals').select('deal_value')
       .gte('closed_at', `${now.getFullYear()}-01-01`)
       .lte('closed_at', now.toISOString().slice(0, 10)),
-    db.from('closed_deals').select('commission_amount').eq('commission_received', false),
+    db.from('closed_deals').select('commission_amount, commission_received_amount'),
   ])
 
   // Niche lookup
@@ -141,7 +141,7 @@ export default async function HomePage() {
   // Omzet deze maand + YTD + openstaande commissie
   const omzetMaand        = (monthDeals    ?? []).reduce((s, d) => s + Number(d.deal_value), 0)
   const omzetYTD          = (ytdDeals      ?? []).reduce((s, d) => s + Number(d.deal_value), 0)
-  const openstaandeComm   = (openCommDeals ?? []).reduce((s, d) => s + Number(d.commission_amount), 0)
+  const openstaandeComm   = (openCommDeals ?? []).reduce((s, d) => s + Math.max(0, Number(d.commission_amount) - Number(d.commission_received_amount ?? 0)), 0)
 
   const weekDiff  = (thisWeekLeads ?? 0) - (lastWeekLeads ?? 0)
   const diffColor = weekDiff > 0 ? '#3fb950' : weekDiff < 0 ? '#f85149' : 'var(--color-ink-faint)'

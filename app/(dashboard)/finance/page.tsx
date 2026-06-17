@@ -71,6 +71,7 @@ export default async function FinancePage({ searchParams }: Props) {
     { data: targetsRow },
     { data: trendDealsRaw },
     { data: ytdDealsRaw },
+    { data: openCommRaw },
   ] = await Promise.all([
     db.from('closed_deals')
       .select('deal_value, commission_amount, contractor_id, niche, closed_at')
@@ -96,6 +97,8 @@ export default async function FinancePage({ searchParams }: Props) {
       .select('deal_value, commission_amount')
       .gte('closed_at', ytdStart)
       .lte('closed_at', ytdEnd),
+    db.from('closed_deals')
+      .select('commission_amount, commission_received_amount'),
   ])
 
   type DealRow = { deal_value: number; commission_amount: number; contractor_id: string | null; niche: string | null; closed_at: string }
@@ -104,6 +107,9 @@ export default async function FinancePage({ searchParams }: Props) {
   const deals    = (dealsRaw    ?? []) as DealRow[]
   const adBudget = (adBudgetRaw ?? []) as ABRow[]
   const trendDeals = (trendDealsRaw ?? []) as { commission_amount: number; closed_at: string }[]
+
+  // Openstaande commissie (all-time)
+  const openstaandeComm = (openCommRaw ?? []).reduce((s, d) => s + Math.max(0, Number(d.commission_amount) - Number(d.commission_received_amount ?? 0)), 0)
 
   // Hero stats
   const totalDealValue  = deals.reduce((s, d) => s + Number(d.deal_value), 0)
@@ -243,6 +249,21 @@ export default async function FinancePage({ searchParams }: Props) {
           </div>
           <div style={{ fontSize: 'var(--font-size-xs)', marginTop: 4, color: adPnL >= 0 ? '#3fb950' : '#f85149' }}>
             {adPnL >= 0 ? '+' : '−'}{fmtEur(Math.abs(adPnL))} {adPnL >= 0 ? 'surplus' : 'tekort'}
+          </div>
+        </div>
+      </div>
+
+      {/* Openstaande commissie — all-time */}
+      <div style={{ marginBottom: 20 }}>
+        <div style={{ padding: '18px 20px', background: 'var(--color-surface)', border: '1px solid rgba(63,185,80,0.3)', borderRadius: 'var(--radius-xl)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 600, color: 'var(--color-ink-faint)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>
+              Openstaande commissie
+            </div>
+            <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)' }}>All-time — nog niet ontvangen</div>
+          </div>
+          <div style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 700, color: openstaandeComm > 0 ? '#3fb950' : 'var(--color-ink-faint)', fontVariantNumeric: 'tabular-nums' }}>
+            {openstaandeComm > 0 ? fmtEur(openstaandeComm) : '—'}
           </div>
         </div>
       </div>

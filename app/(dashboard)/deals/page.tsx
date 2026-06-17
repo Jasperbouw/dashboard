@@ -11,16 +11,17 @@ const SWR_OPTS = { revalidateOnFocus: false, dedupingInterval: 30_000 } as const
 interface Contractor { id: string; name: string; niche: string }
 
 interface Deal {
-  id:                  string
-  client_name:         string
-  contractor_id:       string | null
-  niche:               string | null
-  deal_value:          number
-  commission_amount:   number
-  commission_received: boolean
-  closed_at:           string
-  description:         string | null
-  contractor:          { name: string; niche: string } | null
+  id:                          string
+  client_name:                 string
+  contractor_id:               string | null
+  niche:                       string | null
+  deal_value:                  number
+  commission_amount:           number
+  commission_received:         boolean
+  commission_received_amount:  number
+  closed_at:                   string
+  description:                 string | null
+  contractor:                  { name: string; niche: string } | null
 }
 
 interface AdBudget {
@@ -481,19 +482,35 @@ export default function DealsPage() {
   const totalCommission      = filteredDeals.reduce((s, d) => s + Number(d.commission_amount), 0)
   const dealCount            = filteredDeals.length
   const avgCommPct           = totalDealValue > 0 ? (totalCommission / totalDealValue * 100) : 0
-  const openstaandeComm      = deals.filter(d => !d.commission_received).reduce((s, d) => s + Number(d.commission_amount), 0)
+  const openstaandeComm = deals.reduce((s, d) => s + Math.max(0, Number(d.commission_amount) - Number(d.commission_received_amount)), 0)
 
-  const [toggling, setToggling] = useState<string | null>(null)
+  const [editingCommId,  setEditingCommId]  = useState<string | null>(null)
+  const [editingCommAmt, setEditingCommAmt] = useState('')
+  const [savingComm,     setSavingComm]     = useState(false)
 
-  async function toggleCommission(id: string, current: boolean) {
-    setToggling(id)
-    mutateDeals(prev => (prev ?? []).map(d => d.id === id ? { ...d, commission_received: !current } : d), false)
+  function commStatus(d: Deal): 'open' | 'partial' | 'full' {
+    const recv = Number(d.commission_received_amount)
+    const total = Number(d.commission_amount)
+    if (recv <= 0) return 'open'
+    if (recv >= total) return 'full'
+    return 'partial'
+  }
+
+  async function saveReceivedAmount(id: string) {
+    const amt = parseFloat(editingCommAmt.replace(',', '.'))
+    if (isNaN(amt) || amt < 0) return
+    setSavingComm(true)
+    const total = deals.find(d => d.id === id)?.commission_amount ?? 0
+    mutateDeals(prev => (prev ?? []).map(d => d.id === id
+      ? { ...d, commission_received_amount: amt, commission_received: amt >= Number(d.commission_amount) }
+      : d), false)
     await fetch(`/api/deals/closed/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ commission_received: !current }),
+      body: JSON.stringify({ commission_received_amount: amt, commission_received: amt >= Number(total) }),
     })
-    setToggling(null)
+    setSavingComm(false)
+    setEditingCommId(null)
   }
 
   const selectStyle: React.CSSProperties = {
@@ -655,23 +672,37 @@ export default function DealsPage() {
                   <td style={{ ...tdStyle, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{fmtEur(Number(d.deal_value))}</td>
                   <td style={{ ...tdStyle, textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontWeight: 500, color: 'var(--color-success)' }}>{fmtEur(Number(d.commission_amount))}</td>
                   <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--color-ink-faint)', fontSize: 'var(--font-size-xs)' }}>{fmtPct(Number(d.commission_amount), Number(d.deal_value))}</td>
-                  <td style={{ ...tdStyle }}>
-                    <button
-                      onClick={() => toggleCommission(d.id, d.commission_received)}
-                      disabled={toggling === d.id}
-                      style={{
-                        display: 'inline-flex', alignItems: 'center', gap: 4,
-                        padding: '3px 10px', borderRadius: 12, border: '1px solid',
-                        fontSize: 'var(--font-size-2xs)', fontWeight: 600, cursor: 'pointer',
-                        opacity: toggling === d.id ? 0.5 : 1,
-                        background: d.commission_received ? 'rgba(63,185,80,0.12)' : 'transparent',
-                        borderColor: d.commission_received ? '#3fb950' : 'var(--color-border)',
-                        color: d.commission_received ? '#3fb950' : 'var(--color-ink-muted)',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {d.commission_received ? '✓ Ontvangen' : 'Openstaand'}
-                    </button>
+                  <td style={{ ...tdStyle, whiteSpace: 'nowrap' }}>
+                    {editingCommId === d.id ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }} onClick={e => e.stopPropagation()}>
+                        <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-ink-faint)' }}>€</span>
+                        <input
+                          autoFocus
+                          type="number" min="0" step="0.01"
+                          value={editingCommAmt}
+                          onChange={e => setEditingCommAmt(e.target.value)}
+                          onKeyDown={e => { if (e.key === 'Enter') saveReceivedAmount(d.id); if (e.key === 'Escape') setEditingCommId(null) }}
+                          style={{ width: 80, padding: '3px 6px', background: 'var(--color-surface-raised)', border: '1px solid var(--color-border)', borderRadius: 4, color: 'var(--color-ink)', fontSize: 'var(--font-size-xs)', outline: 'none' }}
+                        />
+                        <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-ink-faint)' }}>/ {fmtEur(Number(d.commission_amount))}</span>
+                        <button onClick={() => saveReceivedAmount(d.id)} disabled={savingComm} style={{ padding: '3px 8px', background: 'var(--color-accent)', color: '#fff', border: 'none', borderRadius: 4, fontSize: 'var(--font-size-2xs)', cursor: 'pointer' }}>✓</button>
+                        <button onClick={() => setEditingCommId(null)} style={{ padding: '3px 6px', background: 'none', border: '1px solid var(--color-border)', borderRadius: 4, fontSize: 'var(--font-size-2xs)', cursor: 'pointer', color: 'var(--color-ink-muted)' }}>✕</button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => { setEditingCommId(d.id); setEditingCommAmt(String(Number(d.commission_received_amount) || '')) }}
+                        style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 4,
+                          padding: '3px 10px', borderRadius: 12, border: '1px solid',
+                          fontSize: 'var(--font-size-2xs)', fontWeight: 600, cursor: 'pointer',
+                          background: commStatus(d) === 'full' ? 'rgba(63,185,80,0.12)' : commStatus(d) === 'partial' ? 'rgba(240,136,62,0.10)' : 'transparent',
+                          borderColor: commStatus(d) === 'full' ? '#3fb950' : commStatus(d) === 'partial' ? '#f0883e' : 'var(--color-border)',
+                          color: commStatus(d) === 'full' ? '#3fb950' : commStatus(d) === 'partial' ? '#f0883e' : 'var(--color-ink-muted)',
+                        }}
+                      >
+                        {commStatus(d) === 'full' ? '✓ Volledig' : commStatus(d) === 'partial' ? `Deels ${fmtEur(Number(d.commission_received_amount))}` : 'Openstaand'}
+                      </button>
+                    )}
                   </td>
                   <td style={{ ...tdStyle, width: 40, textAlign: 'center' }}>
                     <button onClick={ev => openMenu(ev, d.id, 'deal')}
