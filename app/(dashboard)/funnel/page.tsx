@@ -1,6 +1,5 @@
 import {
   cachedCurrentStageDistribution,
-  cachedCampaignPerformance,
   cachedNichePerformance,
   cachedFunnelTransitions,
   currentMonth,
@@ -9,7 +8,6 @@ import { DateRangePicker }        from '../../components/ui/DateRangePicker'
 import { StageDistributionChart } from '../../components/funnel/StageDistributionChart'
 import { ConversionFunnel }       from '../../components/funnel/ConversionFunnel'
 import { NicheBreakdown }         from '../../components/funnel/NicheBreakdown'
-import { CampaignTable }          from '../../components/funnel/CampaignTable'
 
 export const dynamic = 'force-dynamic'
 
@@ -87,9 +85,8 @@ export default async function FunnelPage({ searchParams }: Props) {
   const toISO    = toDate.toISOString()
 
   const funnelT0 = Date.now()
-  const [distribution, campaigns, niches, funnel] = await Promise.all([
+  const [distribution, niches, funnel] = await Promise.all([
     timedFn('currentStageDistribution', cachedCurrentStageDistribution(fromISO, toISO)),
-    timedFn('campaignPerformance',      cachedCampaignPerformance(fromISO, toISO)),
     timedFn('nichePerformance',         cachedNichePerformance(fromISO, toISO)),
     timedFn('funnelTransitions',        cachedFunnelTransitions(fromISO, toISO)),
   ])
@@ -153,22 +150,15 @@ export default async function FunnelPage({ searchParams }: Props) {
         </Card>
       </div>
 
-      {/* ── Niche + campaign section header ── */}
+      {/* ── Niche breakdown ── */}
       <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-        <SectionTitle>Verdeling, niches &amp; campagnes</SectionTitle>
+        <SectionTitle>Verdeling per niche</SectionTitle>
         <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)' }}>
           — {totalLeads} leads ({label})
         </span>
       </div>
-
-      {/* ── Niche breakdown ── */}
-      <div style={{ marginBottom: 28 }}>
-        <NicheBreakdown niches={niches} />
-      </div>
-
-      {/* ── Campaign table ── */}
       <div>
-        <CampaignTable campaigns={campaigns} />
+        <NicheBreakdown niches={niches} />
       </div>
 
     </div>

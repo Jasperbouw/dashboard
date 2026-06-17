@@ -213,7 +213,7 @@ export default async function HomePage() {
             <div>
               <span style={{ fontWeight: 600, color: 'var(--color-ink-muted)' }}>Openstaande commissie</span>
               {'  '}
-              <span style={{ fontWeight: 700, color: openstaandeComm > 0 ? '#f0883e' : 'var(--color-ink-faint)' }}>
+              <span style={{ fontWeight: 700, color: openstaandeComm > 0 ? '#3fb950' : 'var(--color-ink-faint)' }}>
                 {openstaandeComm > 0 ? fmtEur(openstaandeComm) : '—'}
               </span>
             </div>
@@ -225,30 +225,33 @@ export default async function HomePage() {
           <div style={cardLabel}>Qualifying ratio {periodLabel}</div>
           {qualRatio.length === 0 ? (
             <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-ink-faint)', marginTop: 8 }}>Geen data</div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 4 }}>
-              {qualRatio.map(({ label, pct, total }) => (
-                <div key={label}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-ink)', fontWeight: 500 }}>{label}</span>
-                    <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-ink)', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
-                      {pct}%
-                    </span>
+          ) : (() => {
+            const maxPct = Math.max(...qualRatio.map(r => r.pct), 1)
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 4 }}>
+                {qualRatio.map(({ label, pct, total }) => (
+                  <div key={label}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-ink)', fontWeight: 500 }}>{label}</span>
+                      <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-ink)', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+                        {pct}%
+                      </span>
+                    </div>
+                    <div style={{ height: 6, borderRadius: 3, background: 'var(--color-surface-raised)', overflow: 'hidden' }}>
+                      <div style={{
+                        height: '100%', width: `${Math.round((pct / maxPct) * 100)}%`, borderRadius: 3,
+                        background: '#3fb950',
+                        transition: 'width 0.3s',
+                      }} />
+                    </div>
+                    <div style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-ink-faint)', marginTop: 3 }}>
+                      {total} leads
+                    </div>
                   </div>
-                  <div style={{ height: 4, borderRadius: 2, background: 'var(--color-surface-raised)', overflow: 'hidden' }}>
-                    <div style={{
-                      height: '100%', width: `${pct}%`, borderRadius: 2,
-                      background: '#3fb950',
-                      transition: 'width 0.3s',
-                    }} />
-                  </div>
-                  <div style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-ink-faint)', marginTop: 3 }}>
-                    {total} leads
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )
+          })()}
         </div>
 
       </div>
