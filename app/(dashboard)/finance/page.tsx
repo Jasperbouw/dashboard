@@ -106,7 +106,7 @@ export default async function FinancePage({ searchParams }: Props) {
   type DealRow = { id: string; client_name: string; deal_value: number; commission_amount: number; commission_received: boolean; contractor_id: string | null; niche: string | null; closed_at: string; contractor: { name: string } | null }
   type ABRow   = { amount: number; contractor_id: string | null; received_at: string }
 
-  const deals    = (dealsRaw    ?? []) as DealRow[]
+  const deals    = (dealsRaw    ?? []) as unknown as DealRow[]
   const adBudget = (adBudgetRaw ?? []) as ABRow[]
   const trendDeals = (trendDealsRaw ?? []) as { commission_amount: number; closed_at: string }[]
 
