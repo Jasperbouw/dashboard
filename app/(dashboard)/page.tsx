@@ -202,14 +202,14 @@ export default async function HomePage() {
           <div style={{ ...cardValue, fontSize: 36 }}>
             {omzetMaand > 0 ? fmtEur(omzetMaand) : '—'}
           </div>
-          <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--color-border-subtle)', display: 'flex', flexDirection: 'column', gap: 5 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--font-size-2xs)', color: 'var(--color-ink-faint)' }}>
-              <span>YTD {now.getFullYear()}</span>
-              <span style={{ color: 'var(--color-ink-muted)', fontVariantNumeric: 'tabular-nums' }}>{omzetYTD > 0 ? fmtEur(omzetYTD) : '—'}</span>
+          <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--color-border-subtle)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div>
+              <div style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 600, color: 'var(--color-ink-faint)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>YTD {now.getFullYear()}</div>
+              <div style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700, color: 'var(--color-ink)', fontVariantNumeric: 'tabular-nums' }}>{omzetYTD > 0 ? fmtEur(omzetYTD) : '—'}</div>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--font-size-2xs)', color: 'var(--color-ink-faint)' }}>
-              <span>Openstaande commissie</span>
-              <span style={{ color: openstaandeComm > 0 ? '#3fb950' : 'var(--color-ink-faint)', fontVariantNumeric: 'tabular-nums' }}>{openstaandeComm > 0 ? fmtEur(openstaandeComm) : '—'}</span>
+            <div>
+              <div style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 600, color: 'var(--color-ink-faint)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>Openstaande commissie</div>
+              <div style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700, color: openstaandeComm > 0 ? '#3fb950' : 'var(--color-ink-faint)', fontVariantNumeric: 'tabular-nums' }}>{openstaandeComm > 0 ? fmtEur(openstaandeComm) : '—'}</div>
             </div>
           </div>
         </div>
