@@ -18,15 +18,10 @@ function getPreset(key: string): DateRange {
         from: isoDate(new Date(Date.UTC(y, m, 1))),
         to:   isoDate(new Date(Date.UTC(y, m + 1, 0))),
       }
-    case 'last_month':
-      return {
-        from: isoDate(new Date(Date.UTC(y, m - 1, 1))),
-        to:   isoDate(new Date(Date.UTC(y, m, 0))),
-      }
-    case 'last_30d':
-      return { from: isoDate(new Date(now.getTime() - 30 * 86_400_000)), to: today }
-    case 'last_90d':
-      return { from: isoDate(new Date(now.getTime() - 90 * 86_400_000)), to: today }
+    case 'this_week': {
+      const dow = now.getDay() === 0 ? 6 : now.getDay() - 1 // Mon=0
+      return { from: isoDate(new Date(now.getTime() - dow * 86_400_000)), to: today }
+    }
     case 'ytd':
       return { from: `${y}-01-01`, to: today }
     default:
@@ -35,11 +30,9 @@ function getPreset(key: string): DateRange {
 }
 
 const PRESETS = [
-  { label: 'Deze maand',  key: 'this_month' },
-  { label: 'Vorige maand', key: 'last_month' },
-  { label: 'Laatste 30d', key: 'last_30d' },
-  { label: 'Laatste 90d', key: 'last_90d' },
-  { label: 'YTD',         key: 'ytd' },
+  { label: 'Deze week',  key: 'this_week' },
+  { label: 'Deze maand', key: 'this_month' },
+  { label: 'YTD',        key: 'ytd' },
 ]
 
 interface Props {
