@@ -48,6 +48,7 @@ export default async function HomePage() {
     { data: boardsRaw },
     { data: monthDeals },
     { data: ytdDeals },
+    { data: openCommDeals },
   ] = await Promise.all([
     db.from('sync_runs').select('started_at').order('started_at', { ascending: false }).limit(1).single(),
     db.from('leads').select('*', { count: 'exact', head: true })
@@ -75,6 +76,7 @@ export default async function HomePage() {
     db.from('closed_deals').select('deal_value')
       .gte('closed_at', `${now.getFullYear()}-01-01`)
       .lte('closed_at', now.toISOString().slice(0, 10)),
+    db.from('closed_deals').select('commission_amount').eq('commission_received', false),
   ])
 
   // Niche lookup
@@ -136,9 +138,10 @@ export default async function HomePage() {
       }))
   })()
 
-  // Omzet deze maand + YTD
-  const omzetMaand = (monthDeals ?? []).reduce((s, d) => s + Number(d.deal_value), 0)
-  const omzetYTD   = (ytdDeals   ?? []).reduce((s, d) => s + Number(d.deal_value), 0)
+  // Omzet deze maand + YTD + openstaande commissie
+  const omzetMaand        = (monthDeals    ?? []).reduce((s, d) => s + Number(d.deal_value), 0)
+  const omzetYTD          = (ytdDeals      ?? []).reduce((s, d) => s + Number(d.deal_value), 0)
+  const openstaandeComm   = (openCommDeals ?? []).reduce((s, d) => s + Number(d.commission_amount), 0)
 
   const weekDiff  = (thisWeekLeads ?? 0) - (lastWeekLeads ?? 0)
   const diffColor = weekDiff > 0 ? '#3fb950' : weekDiff < 0 ? '#f85149' : 'var(--color-ink-faint)'
@@ -199,12 +202,21 @@ export default async function HomePage() {
           <div style={{ ...cardValue, fontSize: 36 }}>
             {omzetMaand > 0 ? fmtEur(omzetMaand) : '—'}
           </div>
-          <div style={{ ...cardSub, marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--color-border-subtle)' }}>
-            <span style={{ fontWeight: 600, color: 'var(--color-ink-muted)' }}>YTD {now.getFullYear()}</span>
-            {'  '}
-            <span style={{ fontWeight: 700, color: 'var(--color-ink)' }}>
-              {omzetYTD > 0 ? fmtEur(omzetYTD) : '—'}
-            </span>
+          <div style={{ ...cardSub, marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--color-border-subtle)', display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div>
+              <span style={{ fontWeight: 600, color: 'var(--color-ink-muted)' }}>YTD {now.getFullYear()}</span>
+              {'  '}
+              <span style={{ fontWeight: 700, color: 'var(--color-ink)' }}>
+                {omzetYTD > 0 ? fmtEur(omzetYTD) : '—'}
+              </span>
+            </div>
+            <div>
+              <span style={{ fontWeight: 600, color: 'var(--color-ink-muted)' }}>Openstaande commissie</span>
+              {'  '}
+              <span style={{ fontWeight: 700, color: openstaandeComm > 0 ? '#f0883e' : 'var(--color-ink-faint)' }}>
+                {openstaandeComm > 0 ? fmtEur(openstaandeComm) : '—'}
+              </span>
+            </div>
           </div>
         </div>
 

@@ -3,6 +3,7 @@ import { getActiveContractors } from '../../../lib/metrics'
 import { FinanceCharts } from '../../components/finance/FinanceCharts'
 import { MonthPicker } from '../../components/finance/MonthPicker'
 import { TargetsSection } from '../../components/finance/TargetsSection'
+import { DealsTable }    from '../../components/finance/DealsTable'
 
 export const dynamic = 'force-dynamic'
 
@@ -75,9 +76,10 @@ export default async function FinancePage({ searchParams }: Props) {
     { data: ytdDealsRaw },
   ] = await Promise.all([
     db.from('closed_deals')
-      .select('deal_value, commission_amount, contractor_id, niche, closed_at')
+      .select('id, client_name, deal_value, commission_amount, commission_received, contractor_id, niche, closed_at, contractor:contractors(name)')
       .gte('closed_at', monthStartDate)
-      .lte('closed_at', monthEndDate),
+      .lte('closed_at', monthEndDate)
+      .order('closed_at', { ascending: false }),
     db.from('ad_budget_revenue')
       .select('amount, contractor_id, received_at')
       .gte('received_at', monthStartDate)
@@ -101,7 +103,7 @@ export default async function FinancePage({ searchParams }: Props) {
       .in('niche', YTD_NICHES),
   ])
 
-  type DealRow = { deal_value: number; commission_amount: number; contractor_id: string | null; niche: string | null; closed_at: string }
+  type DealRow = { id: string; client_name: string; deal_value: number; commission_amount: number; commission_received: boolean; contractor_id: string | null; niche: string | null; closed_at: string; contractor: { name: string } | null }
   type ABRow   = { amount: number; contractor_id: string | null; received_at: string }
 
   const deals    = (dealsRaw    ?? []) as DealRow[]
@@ -256,6 +258,16 @@ export default async function FinancePage({ searchParams }: Props) {
         initial={targets}
         periodLabel={periodLabel}
       />
+
+      {/* Deals deze maand + commissie status */}
+      <div style={{ marginBottom: 28 }}>
+        <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-ink-faint)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 16 }}>
+          Deals {periodLabel}
+        </div>
+        <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-lg)', padding: '20px 24px' }}>
+          <DealsTable deals={deals} />
+        </div>
+      </div>
 
       {/* YTD — Bouw & high-value niches */}
       <div style={{ marginBottom: 28 }}>
