@@ -3,7 +3,6 @@ import { getActiveContractors } from '../../../lib/metrics'
 import { FinanceCharts } from '../../components/finance/FinanceCharts'
 import { MonthPicker } from '../../components/finance/MonthPicker'
 import { TargetsSection } from '../../components/finance/TargetsSection'
-import { DealsTable }    from '../../components/finance/DealsTable'
 
 export const dynamic = 'force-dynamic'
 
@@ -59,10 +58,8 @@ export default async function FinancePage({ searchParams }: Props) {
   const trendStart     = new Date(selYear, selMonth - 5, 1)
   const trendStartDate = trendStart.toISOString().slice(0, 10)
 
-  // YTD high-value niches (bouw + new high-value; excl. daken & dakkapel)
   const ytdStart = `${currentYear}-01-01`
   const ytdEnd   = now.toISOString().slice(0, 10)
-  const YTD_NICHES = ['bouw', 'zwembaden', 'pergolas', 'nieuwbouw']
 
   const db = serverClient()
   const contractors = await getActiveContractors()
@@ -76,10 +73,9 @@ export default async function FinancePage({ searchParams }: Props) {
     { data: ytdDealsRaw },
   ] = await Promise.all([
     db.from('closed_deals')
-      .select('id, client_name, deal_value, commission_amount, commission_received, contractor_id, niche, closed_at, contractor:contractors(name)')
+      .select('deal_value, commission_amount, contractor_id, niche, closed_at')
       .gte('closed_at', monthStartDate)
-      .lte('closed_at', monthEndDate)
-      .order('closed_at', { ascending: false }),
+      .lte('closed_at', monthEndDate),
     db.from('ad_budget_revenue')
       .select('amount, contractor_id, received_at')
       .gte('received_at', monthStartDate)
@@ -99,14 +95,13 @@ export default async function FinancePage({ searchParams }: Props) {
     db.from('closed_deals')
       .select('deal_value, commission_amount')
       .gte('closed_at', ytdStart)
-      .lte('closed_at', ytdEnd)
-      .in('niche', YTD_NICHES),
+      .lte('closed_at', ytdEnd),
   ])
 
-  type DealRow = { id: string; client_name: string; deal_value: number; commission_amount: number; commission_received: boolean; contractor_id: string | null; niche: string | null; closed_at: string; contractor: { name: string } | null }
+  type DealRow = { deal_value: number; commission_amount: number; contractor_id: string | null; niche: string | null; closed_at: string }
   type ABRow   = { amount: number; contractor_id: string | null; received_at: string }
 
-  const deals    = (dealsRaw    ?? []) as unknown as DealRow[]
+  const deals    = (dealsRaw    ?? []) as DealRow[]
   const adBudget = (adBudgetRaw ?? []) as ABRow[]
   const trendDeals = (trendDealsRaw ?? []) as { commission_amount: number; closed_at: string }[]
 
@@ -259,30 +254,20 @@ export default async function FinancePage({ searchParams }: Props) {
         periodLabel={periodLabel}
       />
 
-      {/* Deals deze maand + commissie status */}
-      <div style={{ marginBottom: 28 }}>
-        <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-ink-faint)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 16 }}>
-          Deals {periodLabel}
-        </div>
-        <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-lg)', padding: '20px 24px' }}>
-          <DealsTable deals={deals} />
-        </div>
-      </div>
-
       {/* YTD — Bouw & high-value niches */}
       <div style={{ marginBottom: 28 }}>
         <div style={{ marginBottom: 16 }}>
           <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-ink-faint)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-            YTD — Bouw &amp; high-value niches
+            YTD {currentYear}
           </div>
           <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-muted)', marginTop: 2 }}>
-            1 jan – vandaag · excl. daken &amp; dakkapel
+            1 jan – vandaag · alle niches
           </div>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
           {[
             { label: 'Gemiddelde deal value',       value: ytdEmpty ? '—' : fmtEur(ytdAvgDealValue),   sub: 'Gem. per deal' },
-            { label: 'Totale omzet bouwbedrijven',  value: ytdEmpty ? '—' : fmtEur(ytdTotalDealValue), sub: 'Deal waarde YTD' },
+            { label: 'Totale omzet',                value: ytdEmpty ? '—' : fmtEur(ytdTotalDealValue), sub: 'Deal waarde YTD' },
             { label: 'Onze commissie',              value: ytdEmpty ? '—' : fmtEur(ytdTotalComm),      sub: 'Commissie YTD' },
             { label: 'Aantal deals',                value: ytdEmpty ? '—' : String(ytdCount),           sub: 'Gesloten dit jaar' },
           ].map(c => (
@@ -301,7 +286,7 @@ export default async function FinancePage({ searchParams }: Props) {
         </div>
         {ytdEmpty && (
           <div style={{ marginTop: 10, fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)' }}>
-            Nog geen high-value deals dit jaar.
+            Nog geen deals dit jaar.
           </div>
         )}
       </div>

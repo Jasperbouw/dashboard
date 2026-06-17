@@ -11,15 +11,16 @@ const SWR_OPTS = { revalidateOnFocus: false, dedupingInterval: 30_000 } as const
 interface Contractor { id: string; name: string; niche: string }
 
 interface Deal {
-  id:                string
-  client_name:       string
-  contractor_id:     string | null
-  niche:             string | null
-  deal_value:        number
-  commission_amount: number
-  closed_at:         string
-  description:       string | null
-  contractor:        { name: string; niche: string } | null
+  id:                  string
+  client_name:         string
+  contractor_id:       string | null
+  niche:               string | null
+  deal_value:          number
+  commission_amount:   number
+  commission_received: boolean
+  closed_at:           string
+  description:         string | null
+  contractor:          { name: string; niche: string } | null
 }
 
 interface AdBudget {
@@ -476,10 +477,24 @@ export default function DealsPage() {
   })
 
   // Stats (from filtered deals)
-  const totalDealValue   = filteredDeals.reduce((s, d) => s + Number(d.deal_value), 0)
-  const totalCommission  = filteredDeals.reduce((s, d) => s + Number(d.commission_amount), 0)
-  const dealCount        = filteredDeals.length
-  const avgCommPct       = totalDealValue > 0 ? (totalCommission / totalDealValue * 100) : 0
+  const totalDealValue       = filteredDeals.reduce((s, d) => s + Number(d.deal_value), 0)
+  const totalCommission      = filteredDeals.reduce((s, d) => s + Number(d.commission_amount), 0)
+  const dealCount            = filteredDeals.length
+  const avgCommPct           = totalDealValue > 0 ? (totalCommission / totalDealValue * 100) : 0
+  const openstaandeComm      = deals.filter(d => !d.commission_received).reduce((s, d) => s + Number(d.commission_amount), 0)
+
+  const [toggling, setToggling] = useState<string | null>(null)
+
+  async function toggleCommission(id: string, current: boolean) {
+    setToggling(id)
+    mutateDeals(prev => (prev ?? []).map(d => d.id === id ? { ...d, commission_received: !current } : d), false)
+    await fetch(`/api/deals/closed/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ commission_received: !current }),
+    })
+    setToggling(null)
+  }
 
   const selectStyle: React.CSSProperties = {
     padding: '6px 10px', fontSize: 'var(--font-size-xs)',
@@ -569,16 +584,17 @@ export default function DealsPage() {
       </div>
 
       {/* Stat cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 14, marginBottom: 24 }}>
         {[
-          { label: 'Closed deals waarde', value: fmtEur(totalDealValue),  sub: `${dealCount} deal${dealCount !== 1 ? 's' : ''} geland` },
-          { label: 'Onze commissie',       value: fmtEur(totalCommission), sub: `Gem. ${avgCommPct.toFixed(1)}% commissie` },
-          { label: 'Aantal deals',         value: String(dealCount),       sub: 'Gesloten in periode' },
-          { label: 'Gem. commissie %',     value: avgCommPct > 0 ? `${avgCommPct.toFixed(1)}%` : '—', sub: 'Commissie / deal waarde' },
+          { label: 'Closed deals waarde',   value: fmtEur(totalDealValue),  sub: `${dealCount} deal${dealCount !== 1 ? 's' : ''} geland` },
+          { label: 'Onze commissie',         value: fmtEur(totalCommission), sub: `Gem. ${avgCommPct.toFixed(1)}% commissie` },
+          { label: 'Openstaande commissie',  value: openstaandeComm > 0 ? fmtEur(openstaandeComm) : '—', sub: 'Nog niet ontvangen (all-time)', highlight: true },
+          { label: 'Aantal deals',           value: String(dealCount),       sub: 'Gesloten in periode' },
+          { label: 'Gem. commissie %',       value: avgCommPct > 0 ? `${avgCommPct.toFixed(1)}%` : '—', sub: 'Commissie / deal waarde' },
         ].map(s => (
-          <div key={s.label} style={{ padding: '16px', background: 'var(--color-surface)', border: '1px solid var(--color-border-subtle)', borderRadius: 'var(--radius-lg)' }}>
+          <div key={s.label} style={{ padding: '16px', background: 'var(--color-surface)', border: `1px solid ${'highlight' in s && s.highlight ? 'rgba(63,185,80,0.3)' : 'var(--color-border-subtle)'}`, borderRadius: 'var(--radius-lg)' }}>
             <div style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 600, color: 'var(--color-ink-faint)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>{s.label}</div>
-            <div style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 600, color: 'var(--color-ink)', fontVariantNumeric: 'tabular-nums' }}>{s.value}</div>
+            <div style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 600, color: 'highlight' in s && s.highlight ? '#3fb950' : 'var(--color-ink)', fontVariantNumeric: 'tabular-nums' }}>{s.value}</div>
             <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)', marginTop: 4 }}>{s.sub}</div>
           </div>
         ))}
@@ -621,7 +637,7 @@ export default function DealsPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 750 }}>
             <thead>
               <tr>
-                {['Datum', 'Klant', 'Contractor', 'Niche', 'Deal waarde', 'Commissie', '%', ''].map(h => (
+                {['Datum', 'Klant', 'Contractor', 'Niche', 'Deal waarde', 'Commissie', '%', 'Ontvangen', ''].map(h => (
                   <th key={h} style={{ ...thStyle, textAlign: ['Deal waarde', 'Commissie', '%'].includes(h) ? 'right' : 'left' }}>{h}</th>
                 ))}
               </tr>
@@ -639,6 +655,24 @@ export default function DealsPage() {
                   <td style={{ ...tdStyle, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{fmtEur(Number(d.deal_value))}</td>
                   <td style={{ ...tdStyle, textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontWeight: 500, color: 'var(--color-success)' }}>{fmtEur(Number(d.commission_amount))}</td>
                   <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--color-ink-faint)', fontSize: 'var(--font-size-xs)' }}>{fmtPct(Number(d.commission_amount), Number(d.deal_value))}</td>
+                  <td style={{ ...tdStyle }}>
+                    <button
+                      onClick={() => toggleCommission(d.id, d.commission_received)}
+                      disabled={toggling === d.id}
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', gap: 4,
+                        padding: '3px 10px', borderRadius: 12, border: '1px solid',
+                        fontSize: 'var(--font-size-2xs)', fontWeight: 600, cursor: 'pointer',
+                        opacity: toggling === d.id ? 0.5 : 1,
+                        background: d.commission_received ? 'rgba(63,185,80,0.12)' : 'transparent',
+                        borderColor: d.commission_received ? '#3fb950' : 'var(--color-border)',
+                        color: d.commission_received ? '#3fb950' : 'var(--color-ink-muted)',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {d.commission_received ? '✓ Ontvangen' : 'Openstaand'}
+                    </button>
+                  </td>
                   <td style={{ ...tdStyle, width: 40, textAlign: 'center' }}>
                     <button onClick={ev => openMenu(ev, d.id, 'deal')}
                       style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-ink-faint)', fontSize: 16, padding: '2px 6px' }}>⋯</button>

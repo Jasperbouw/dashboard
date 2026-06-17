@@ -202,20 +202,14 @@ export default async function HomePage() {
           <div style={{ ...cardValue, fontSize: 36 }}>
             {omzetMaand > 0 ? fmtEur(omzetMaand) : '—'}
           </div>
-          <div style={{ ...cardSub, marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--color-border-subtle)', display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <div>
-              <span style={{ fontWeight: 600, color: 'var(--color-ink-muted)' }}>YTD {now.getFullYear()}</span>
-              {'  '}
-              <span style={{ fontWeight: 700, color: 'var(--color-ink)' }}>
-                {omzetYTD > 0 ? fmtEur(omzetYTD) : '—'}
-              </span>
+          <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--color-border-subtle)', display: 'flex', flexDirection: 'column', gap: 5 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--font-size-2xs)', color: 'var(--color-ink-faint)' }}>
+              <span>YTD {now.getFullYear()}</span>
+              <span style={{ color: 'var(--color-ink-muted)', fontVariantNumeric: 'tabular-nums' }}>{omzetYTD > 0 ? fmtEur(omzetYTD) : '—'}</span>
             </div>
-            <div>
-              <span style={{ fontWeight: 600, color: 'var(--color-ink-muted)' }}>Openstaande commissie</span>
-              {'  '}
-              <span style={{ fontWeight: 700, color: openstaandeComm > 0 ? '#3fb950' : 'var(--color-ink-faint)' }}>
-                {openstaandeComm > 0 ? fmtEur(openstaandeComm) : '—'}
-              </span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--font-size-2xs)', color: 'var(--color-ink-faint)' }}>
+              <span>Openstaande commissie</span>
+              <span style={{ color: openstaandeComm > 0 ? '#3fb950' : 'var(--color-ink-faint)', fontVariantNumeric: 'tabular-nums' }}>{openstaandeComm > 0 ? fmtEur(openstaandeComm) : '—'}</span>
             </div>
           </div>
         </div>
