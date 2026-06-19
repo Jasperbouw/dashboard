@@ -3,6 +3,7 @@ import {
   cachedNichePerformance,
   currentMonth,
 } from '../../../lib/metrics'
+import { serverClient } from '../../../lib/supabase-server'
 import { DateRangePicker } from '../../components/ui/DateRangePicker'
 import { PipelineView }    from '../../components/funnel/PipelineView'
 import { NicheBreakdown }  from '../../components/funnel/NicheBreakdown'
@@ -61,9 +62,13 @@ export default async function FunnelPage({ searchParams }: Props) {
   const fromISO = (params.from ? new Date(params.from) : def.from).toISOString()
   const toISO   = (params.to   ? new Date(params.to + 'T23:59:59.999Z') : def.to).toISOString()
 
-  const [distribution, niches] = await Promise.all([
+  const db = serverClient()
+  const [distribution, niches, { count: dealsWon }] = await Promise.all([
     cachedCurrentStageDistribution(fromISO, toISO),
     cachedNichePerformance(fromISO, toISO),
+    db.from('closed_deals').select('*', { count: 'exact', head: true })
+      .gte('closed_at', fromStr)
+      .lte('closed_at', toStr),
   ])
 
   const totalLeads = Object.values(distribution.counts).reduce((s, v) => s + v, 0)
@@ -88,7 +93,7 @@ export default async function FunnelPage({ searchParams }: Props) {
         <div style={{ marginBottom: 20 }}>
           <SectionTitle>Huidige verdeling</SectionTitle>
         </div>
-        <PipelineView distribution={distribution} />
+        <PipelineView distribution={distribution} wonFromDeals={dealsWon ?? 0} />
       </Card>
 
       {/* Niche breakdown */}

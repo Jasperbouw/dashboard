@@ -16,10 +16,11 @@ const NICHE_LABELS: Record<string, string> = {
 }
 
 interface Props {
-  distribution: StageDistribution
+  distribution:  StageDistribution
+  wonFromDeals?: number
 }
 
-export function PipelineView({ distribution }: Props) {
+export function PipelineView({ distribution, wonFromDeals = 0 }: Props) {
   const niches       = ['bouw', 'dakkapel', 'daken', 'extras'].filter(n => distribution.byNiche[n])
   const [activeNiche, setActiveNiche] = useState<string | null>(null)
 
@@ -55,7 +56,8 @@ export function PipelineView({ distribution }: Props) {
       {/* Stage bars */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {STAGES.map(stage => {
-          const count   = counts[stage.key] ?? 0
+          const rawCount = counts[stage.key] ?? 0
+        const count    = stage.key === 'won' ? Math.max(rawCount, wonFromDeals) : rawCount
           const barPct  = (count / maxCount) * 100
           const ofTotal = total > 0 ? Math.round((count / total) * 100) : 0
 
