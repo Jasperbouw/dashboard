@@ -94,7 +94,7 @@ export default async function FinancePage({ searchParams }: Props) {
       .gte('closed_at', trendStartDate)
       .lte('closed_at', monthEndDate),
     db.from('closed_deals')
-      .select('deal_value, commission_amount')
+      .select('deal_value, commission_amount, contractor_id')
       .gte('closed_at', ytdStart)
       .lte('closed_at', ytdEnd),
     db.from('closed_deals')
@@ -143,25 +143,40 @@ export default async function FinancePage({ searchParams }: Props) {
     amount,
   }))
 
-  // Top 5 contractors (commission)
-  const contCommMap: Record<string, number> = {}
+  // Top 5 contractors this month (commission + deal value)
+  const contCommMap:  Record<string, number> = {}
+  const contValueMap: Record<string, number> = {}
   for (const d of deals) {
     if (!d.contractor_id) continue
-    contCommMap[d.contractor_id] = (contCommMap[d.contractor_id] ?? 0) + Number(d.commission_amount)
+    contCommMap[d.contractor_id]  = (contCommMap[d.contractor_id]  ?? 0) + Number(d.commission_amount)
+    contValueMap[d.contractor_id] = (contValueMap[d.contractor_id] ?? 0) + Number(d.deal_value)
   }
   const top5 = contractors
-    .map(c => ({ id: c.id, name: c.name, niche: c.niche ?? '', model: c.commission_model ?? '', amount: contCommMap[c.id] ?? 0 }))
-    .sort((a, b) => b.amount - a.amount)
+    .map(c => ({ id: c.id, name: c.name, niche: c.niche ?? '', model: c.commission_model ?? '', amount: contCommMap[c.id] ?? 0, dealValue: contValueMap[c.id] ?? 0 }))
+    .sort((a, b) => b.dealValue - a.dealValue)
     .slice(0, 5)
 
-  // YTD stats
-  type YtdRow = { deal_value: number; commission_amount: number }
-  const ytdDeals         = (ytdDealsRaw ?? []) as YtdRow[]
-  const ytdCount         = ytdDeals.length
+  // YTD stats + per contractor
+  type YtdRow = { deal_value: number; commission_amount: number; contractor_id: string | null }
+  const ytdDeals          = (ytdDealsRaw ?? []) as YtdRow[]
+  const ytdCount          = ytdDeals.length
   const ytdTotalDealValue = ytdDeals.reduce((s, d) => s + Number(d.deal_value), 0)
   const ytdTotalComm      = ytdDeals.reduce((s, d) => s + Number(d.commission_amount), 0)
   const ytdAvgDealValue   = ytdCount > 0 ? Math.round(ytdTotalDealValue / ytdCount) : 0
   const ytdEmpty          = ytdCount === 0
+
+  const ytdContMap: Record<string, { dealValue: number; commission: number }> = {}
+  for (const d of ytdDeals) {
+    if (!d.contractor_id) continue
+    const e = ytdContMap[d.contractor_id] ?? { dealValue: 0, commission: 0 }
+    e.dealValue  += Number(d.deal_value)
+    e.commission += Number(d.commission_amount)
+    ytdContMap[d.contractor_id] = e
+  }
+  const ytdByContractor = contractors
+    .map(c => ({ id: c.id, name: c.name, niche: c.niche ?? '', ...(ytdContMap[c.id] ?? { dealValue: 0, commission: 0 }) }))
+    .filter(c => c.dealValue > 0)
+    .sort((a, b) => b.dealValue - a.dealValue)
 
   type ProgressInfo = { pct: number; target: number; color: string } | null
 
@@ -316,8 +331,10 @@ export default async function FinancePage({ searchParams }: Props) {
       <FinanceCharts
         trend={trend}
         top5={top5}
+        ytdByContractor={ytdByContractor}
         selectedMonth={selectedMonthKey}
         periodLabel={periodLabel}
+        currentYear={currentYear}
       />
     </div>
   )

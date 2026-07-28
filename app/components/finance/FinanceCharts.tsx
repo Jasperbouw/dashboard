@@ -4,11 +4,10 @@ import {
 } from 'recharts'
 
 function fmtEur(v: number) {
-  return `€${v.toLocaleString('nl-NL')}`
+  return `€${v.toLocaleString('nl-NL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
 }
 
-const ACCENT  = '#4f7df3'
-const SUCCESS = '#10b981'
+const ACCENT = '#4f7df3'
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
@@ -33,14 +32,24 @@ function Card({ children, style }: { children: React.ReactNode; style?: React.CS
   )
 }
 
-type TrendItem = { month: string; label: string; amount: number }
-type Top5Item  = { id: string; name: string; niche: string; model: string; amount: number }
+const th: React.CSSProperties = {
+  fontSize: 'var(--font-size-2xs)', fontWeight: 600,
+  color: 'var(--color-ink-faint)', textTransform: 'uppercase',
+  letterSpacing: '0.06em', paddingBottom: 10,
+  borderBottom: '1px solid var(--color-border-subtle)',
+}
+
+type TrendItem        = { month: string; label: string; amount: number }
+type Top5Item         = { id: string; name: string; niche: string; model: string; amount: number; dealValue: number }
+type YtdContractorRow = { id: string; name: string; niche: string; dealValue: number; commission: number }
 
 interface Props {
-  trend:         TrendItem[]
-  top5:          Top5Item[]
-  selectedMonth: string
-  periodLabel:   string
+  trend:             TrendItem[]
+  top5:              Top5Item[]
+  ytdByContractor:   YtdContractorRow[]
+  selectedMonth:     string
+  periodLabel:       string
+  currentYear:       number
 }
 
 function EurTooltip({ active, payload, label }: { active?: boolean; payload?: { value: number }[]; label?: string }) {
@@ -56,13 +65,13 @@ function EurTooltip({ active, payload, label }: { active?: boolean; payload?: { 
   )
 }
 
-export function FinanceCharts({ trend, top5, selectedMonth, periodLabel }: Props) {
+export function FinanceCharts({ trend, top5, ytdByContractor, selectedMonth, periodLabel, currentYear }: Props) {
   const hasData = trend.some(t => t.amount > 0)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
-      {/* Trend — last 6 months (commission) */}
+      {/* Trend — last 6 months */}
       <Card>
         <SectionTitle>Commissie laatste 6 maanden</SectionTitle>
         <ResponsiveContainer width="100%" height={180}>
@@ -84,32 +93,30 @@ export function FinanceCharts({ trend, top5, selectedMonth, periodLabel }: Props
         )}
       </Card>
 
-      {/* Top 5 contractors */}
+      {/* Top aannemers deze maand */}
       <Card>
         <SectionTitle>Top aannemers — {periodLabel}</SectionTitle>
-        {top5.every(r => r.amount === 0) ? (
+        {top5.every(r => r.dealValue === 0) ? (
           <p style={{ fontSize: 'var(--font-size-sm)', color: '#8b949e' }}>Geen data</p>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr>
-                {['Aannemer', 'Niche', 'Model', 'Commissie'].map(h => (
-                  <th key={h} style={{
-                    textAlign: h === 'Commissie' ? 'right' : 'left',
-                    fontSize: 'var(--font-size-2xs)', fontWeight: 600,
-                    color: 'var(--color-ink-faint)', textTransform: 'uppercase',
-                    letterSpacing: '0.06em', paddingBottom: 10, borderBottom: '1px solid var(--color-border-subtle)',
-                  }}>{h}</th>
+                {['Aannemer', 'Niche', 'Model', 'Omzet', 'Commissie'].map(h => (
+                  <th key={h} style={{ ...th, textAlign: ['Omzet', 'Commissie'].includes(h) ? 'right' : 'left' }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {top5.filter(r => r.amount > 0).map((row, i) => (
+              {top5.filter(r => r.dealValue > 0).map((row, i) => (
                 <tr key={row.id} style={{ borderTop: i > 0 ? '1px solid var(--color-border-subtle)' : undefined }}>
                   <td style={{ padding: '10px 0', fontSize: 'var(--font-size-sm)', color: 'var(--color-ink)', fontWeight: 500 }}>{row.name}</td>
                   <td style={{ padding: '10px 0 10px 16px', fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-muted)' }}>{row.niche}</td>
                   <td style={{ padding: '10px 0 10px 16px', fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-muted)' }}>
                     {row.model === 'percentage' ? '%' : row.model === 'flat_fee' ? 'Flat' : row.model === 'retainer' ? 'Ret.' : '—'}
+                  </td>
+                  <td style={{ padding: '10px 0 10px 16px', textAlign: 'right', fontSize: 'var(--font-size-sm)', fontWeight: 500, color: 'var(--color-ink)', fontVariantNumeric: 'tabular-nums' }}>
+                    {fmtEur(row.dealValue)}
                   </td>
                   <td style={{ padding: '10px 0', textAlign: 'right', fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-success)', fontVariantNumeric: 'tabular-nums' }}>
                     {fmtEur(row.amount)}
@@ -120,6 +127,39 @@ export function FinanceCharts({ trend, top5, selectedMonth, periodLabel }: Props
           </table>
         )}
       </Card>
+
+      {/* YTD per aannemer */}
+      <Card>
+        <SectionTitle>Aannemers YTD {currentYear}</SectionTitle>
+        {ytdByContractor.length === 0 ? (
+          <p style={{ fontSize: 'var(--font-size-sm)', color: '#8b949e' }}>Geen data dit jaar</p>
+        ) : (
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr>
+                {['Aannemer', 'Niche', 'Omzet YTD', 'Commissie YTD'].map(h => (
+                  <th key={h} style={{ ...th, textAlign: ['Omzet YTD', 'Commissie YTD'].includes(h) ? 'right' : 'left' }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {ytdByContractor.map((row, i) => (
+                <tr key={row.id} style={{ borderTop: i > 0 ? '1px solid var(--color-border-subtle)' : undefined }}>
+                  <td style={{ padding: '10px 0', fontSize: 'var(--font-size-sm)', color: 'var(--color-ink)', fontWeight: 500 }}>{row.name}</td>
+                  <td style={{ padding: '10px 0 10px 16px', fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-muted)' }}>{row.niche}</td>
+                  <td style={{ padding: '10px 0 10px 16px', textAlign: 'right', fontSize: 'var(--font-size-sm)', fontWeight: 500, color: 'var(--color-ink)', fontVariantNumeric: 'tabular-nums' }}>
+                    {fmtEur(row.dealValue)}
+                  </td>
+                  <td style={{ padding: '10px 0', textAlign: 'right', fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-success)', fontVariantNumeric: 'tabular-nums' }}>
+                    {fmtEur(row.commission)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </Card>
+
     </div>
   )
 }
