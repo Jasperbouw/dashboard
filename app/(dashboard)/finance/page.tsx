@@ -72,6 +72,9 @@ export default async function FinancePage({ searchParams }: Props) {
     { data: trendDealsRaw },
     { data: ytdDealsRaw },
     { data: openCommRaw },
+    { data: gtMonthRaw },
+    { data: gtTrendRaw },
+    { data: gtOpenCommRaw },
   ] = await Promise.all([
     db.from('closed_deals')
       .select('deal_value, commission_amount, contractor_id, niche, closed_at')
@@ -99,6 +102,21 @@ export default async function FinancePage({ searchParams }: Props) {
       .lte('closed_at', ytdEnd),
     db.from('closed_deals')
       .select('commission_amount, commission_received_amount'),
+    // GreenTeam — selected month (akkoord only)
+    db.from('greenteam_deals')
+      .select('deal_value, commission_amount')
+      .gte('closed_at', monthStartDate)
+      .lte('closed_at', monthEndDate)
+      .eq('status', 'akkoord'),
+    // GreenTeam — 6-month trend (akkoord only)
+    db.from('greenteam_deals')
+      .select('commission_amount, closed_at')
+      .gte('closed_at', trendStartDate)
+      .lte('closed_at', monthEndDate)
+      .eq('status', 'akkoord'),
+    // GreenTeam — openstaande commissie (all-time)
+    db.from('greenteam_deals')
+      .select('commission_amount, commission_received_amount'),
   ])
 
   type DealRow = { deal_value: number; commission_amount: number; contractor_id: string | null; niche: string | null; closed_at: string }
@@ -109,7 +127,32 @@ export default async function FinancePage({ searchParams }: Props) {
   const trendDeals = (trendDealsRaw ?? []) as { commission_amount: number; closed_at: string }[]
 
   // Openstaande commissie (all-time)
-  const openstaandeComm = (openCommRaw ?? []).reduce((s, d) => s + Math.max(0, Number(d.commission_amount) - Number(d.commission_received_amount ?? 0)), 0)
+  const openstaandeBouw = (openCommRaw ?? []).reduce((s, d) => s + Math.max(0, Number(d.commission_amount) - Number(d.commission_received_amount ?? 0)), 0)
+  const openstaandeGT   = (gtOpenCommRaw ?? []).reduce((s, d) => s + Math.max(0, Number(d.commission_amount) - Number(d.commission_received_amount ?? 0)), 0)
+  const openstaandeComm = openstaandeBouw + openstaandeGT
+
+  // GreenTeam — selected month stats
+  type GTRow = { deal_value: number; commission_amount: number }
+  const gtMonth      = (gtMonthRaw ?? []) as GTRow[]
+  const gtMonthValue = gtMonth.reduce((s, d) => s + Number(d.deal_value), 0)
+  const gtMonthComm  = gtMonth.reduce((s, d) => s + Number(d.commission_amount), 0)
+  const gtMonthCount = gtMonth.length
+
+  // GreenTeam — 6-month trend
+  const gtTrendMap: Record<string, number> = {}
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(selYear, selMonth - i, 1)
+    gtTrendMap[`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`] = 0
+  }
+  for (const d of (gtTrendRaw ?? []) as { commission_amount: number; closed_at: string }[]) {
+    const key = d.closed_at.slice(0, 7)
+    if (key in gtTrendMap) gtTrendMap[key] += Number(d.commission_amount)
+  }
+  const gtTrend = Object.entries(gtTrendMap).map(([mo, amount]) => ({
+    month: mo,
+    label: NL_MONTHS[parseInt(mo.split('-')[1]) - 1],
+    amount,
+  }))
 
   // Hero stats
   const totalDealValue  = deals.reduce((s, d) => s + Number(d.deal_value), 0)
@@ -268,17 +311,31 @@ export default async function FinancePage({ searchParams }: Props) {
         </div>
       </div>
 
-      {/* Openstaande commissie — all-time */}
+      {/* Openstaande commissie — all-time (bouw + greenteam) */}
       <div style={{ marginBottom: 20 }}>
-        <div style={{ padding: '18px 20px', background: 'var(--color-surface)', border: '1px solid rgba(63,185,80,0.3)', borderRadius: 'var(--radius-xl)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ padding: '18px 20px', background: 'var(--color-surface)', border: '1px solid rgba(63,185,80,0.3)', borderRadius: 'var(--radius-xl)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
           <div>
             <div style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 600, color: 'var(--color-ink-faint)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>
               Openstaande commissie
             </div>
             <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)' }}>All-time — nog niet ontvangen</div>
           </div>
-          <div style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 700, color: openstaandeComm > 0 ? '#3fb950' : 'var(--color-ink-faint)', fontVariantNumeric: 'tabular-nums' }}>
-            {openstaandeComm > 0 ? fmtEur(openstaandeComm) : '—'}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
+            {openstaandeBouw > 0 && (
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-ink-faint)', marginBottom: 2 }}>Bouwcheck</div>
+                <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: '#3fb950', fontVariantNumeric: 'tabular-nums' }}>{fmtEur(openstaandeBouw)}</div>
+              </div>
+            )}
+            {openstaandeGT > 0 && (
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-ink-faint)', marginBottom: 2 }}>GreenTeam</div>
+                <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, color: '#3fb950', fontVariantNumeric: 'tabular-nums' }}>{fmtEur(openstaandeGT)}</div>
+              </div>
+            )}
+            <div style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 700, color: openstaandeComm > 0 ? '#3fb950' : 'var(--color-ink-faint)', fontVariantNumeric: 'tabular-nums' }}>
+              {openstaandeComm > 0 ? fmtEur(openstaandeComm) : '—'}
+            </div>
           </div>
         </div>
       </div>
@@ -335,6 +392,13 @@ export default async function FinancePage({ searchParams }: Props) {
         selectedMonth={selectedMonthKey}
         periodLabel={periodLabel}
         currentYear={currentYear}
+        bwMonthValue={totalDealValue}
+        bwMonthComm={totalCommission}
+        bwMonthCount={dealCount}
+        gtMonthValue={gtMonthValue}
+        gtMonthComm={gtMonthComm}
+        gtMonthCount={gtMonthCount}
+        gtTrend={gtTrend}
       />
     </div>
   )

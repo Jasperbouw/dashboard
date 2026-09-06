@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, TrendingUp, Building2,
-  Wallet, Handshake, Users, FolderOpen,
+  Wallet, Handshake, Users, FolderOpen, Leaf,
 } from 'lucide-react'
 
 const NAV = [
@@ -13,6 +13,7 @@ const NAV = [
   { href: '/contractors',  label: 'Contractors', Icon: Building2       },
   { href: '/finance',      label: 'Finance',     Icon: Wallet          },
   { href: '/deals',        label: 'Deals',       Icon: Handshake       },
+  { href: '/greenteam',    label: 'GreenTeam',   Icon: Leaf            },
   { href: '/team',         label: 'Team',        Icon: Users           },
   { href: '/documenten',   label: 'Documenten',  Icon: FolderOpen      },
 ]
