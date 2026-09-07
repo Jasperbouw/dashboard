@@ -298,12 +298,6 @@ function GreenDealModal({
             </div>
           </div>
 
-          {/* Lead bron */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <label style={lbl}>Lead bron (optioneel)</label>
-            <input type="text" value={form.lead_source} onChange={e => setStr('lead_source', e.target.value)} placeholder="GreenTeam warm, eigen netwerk, referral, …" style={inp} />
-          </div>
-
           {/* Notities */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <label style={lbl}>Notities (optioneel)</label>
