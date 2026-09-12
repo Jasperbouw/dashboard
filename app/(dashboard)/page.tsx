@@ -12,6 +12,23 @@ const NICHE_LABEL: Record<string, string> = {
   bouw: 'Bouw', daken: 'Daken', dakkapel: 'Dakkapel', extras: 'Extras',
 }
 
+// Facturatie schema (dag van de maand)
+const FACTURATIE = [
+  { name: 'DCN',     day: 14 },
+  { name: 'HP',      day: 14 },
+  { name: 'Gemmink', day: 17 },
+  { name: 'BCK',     day: 27 },
+  { name: 'BCA',     day: 29 },
+]
+
+function daysUntil(day: number, today: Date): number {
+  const thisMonth = new Date(today.getFullYear(), today.getMonth(), day)
+  if (thisMonth.getDate() === today.getDate() && thisMonth.getMonth() === today.getMonth()) return 0
+  if (thisMonth > today) return Math.ceil((thisMonth.getTime() - today.getTime()) / 86_400_000)
+  const next = new Date(today.getFullYear(), today.getMonth() + 1, day)
+  return Math.ceil((next.getTime() - today.getTime()) / 86_400_000)
+}
+
 function fmtEur(v: number) {
   return `€${v.toLocaleString('nl-NL', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
 }
@@ -249,6 +266,39 @@ export default async function HomePage() {
         </div>
 
       </div>
+
+      {/* Facturatie schema */}
+      {(() => {
+        const entries = FACTURATIE
+          .map(f => ({ ...f, daysLeft: daysUntil(f.day, now) }))
+          .sort((a, b) => a.daysLeft - b.daysLeft)
+
+        return (
+          <div style={{ marginTop: 20, ...card }}>
+            <div style={{ ...cardLabel, marginBottom: 14 }}>Facturatie schema</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+              {entries.map(({ name, day, daysLeft }) => {
+                const isToday  = daysLeft === 0
+                const isSoon   = daysLeft <= 3 && !isToday
+                const isWeek   = daysLeft <= 7 && !isSoon && !isToday
+                const bg      = isToday ? 'rgba(248,81,73,0.12)' : isSoon ? 'rgba(240,136,62,0.12)' : isWeek ? 'rgba(88,166,255,0.10)' : 'var(--color-surface-raised)'
+                const border  = isToday ? '#f85149' : isSoon ? '#f0883e' : isWeek ? '#58a6ff' : 'var(--color-border)'
+                const color   = isToday ? '#f85149' : isSoon ? '#f0883e' : isWeek ? '#58a6ff' : 'var(--color-ink-muted)'
+                const label   = isToday ? 'vandaag' : daysLeft === 1 ? 'morgen' : `${daysLeft}d`
+
+                return (
+                  <div key={name} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', background: bg, border: `1px solid ${border}`, borderRadius: 'var(--radius-md)' }}>
+                    <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-ink)' }}>{name}</span>
+                    <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)' }}>{day}e</span>
+                    <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 600, color }}>{label}</span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )
+      })()}
+
     </div>
   )
 }
