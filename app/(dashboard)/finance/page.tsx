@@ -61,6 +61,7 @@ export default async function FinancePage({ searchParams }: Props) {
     { data: trendDealsRaw },
     { data: ytdDealsRaw },
     { data: openCommRaw },
+    { data: gtYtdRaw },
     { data: gtMonthRaw },
     { data: gtTrendRaw },
     { data: gtOpenCommRaw },
@@ -82,11 +83,16 @@ export default async function FinancePage({ searchParams }: Props) {
       .gte('closed_at', trendStartDate)
       .lte('closed_at', monthEndDate),
     db.from('closed_deals')
-      .select('deal_value, commission_amount, contractor_id')
+      .select('deal_value, commission_amount, contractor_id, niche')
       .gte('closed_at', ytdStart)
       .lte('closed_at', ytdEnd),
     db.from('closed_deals')
       .select('commission_amount, commission_received_amount'),
+    db.from('greenteam_deals')
+      .select('deal_value')
+      .gte('closed_at', ytdStart)
+      .lte('closed_at', ytdEnd)
+      .eq('status', 'akkoord'),
     db.from('greenteam_deals')
       .select('deal_value, commission_amount')
       .gte('closed_at', monthStartDate)
@@ -159,13 +165,25 @@ export default async function FinancePage({ searchParams }: Props) {
   }))
 
   // YTD — Bouwcheck
-  type YtdRow = { deal_value: number; commission_amount: number; contractor_id: string | null }
+  type YtdRow = { deal_value: number; commission_amount: number; contractor_id: string | null; niche: string | null }
   const ytdDeals          = (ytdDealsRaw ?? []) as YtdRow[]
   const ytdCount          = ytdDeals.length
   const ytdTotalDealValue = ytdDeals.reduce((s, d) => s + Number(d.deal_value), 0)
   const ytdTotalComm      = ytdDeals.reduce((s, d) => s + Number(d.commission_amount), 0)
-  const ytdAvgDealValue   = ytdCount > 0 ? Math.round(ytdTotalDealValue / ytdCount) : 0
   const ytdEmpty          = ytdCount === 0
+
+  // Per-niche averages
+  function nicheAvg(niche: string) {
+    const rows = ytdDeals.filter(d => d.niche === niche)
+    if (rows.length === 0) return null
+    return { avg: Math.round(rows.reduce((s, d) => s + Number(d.deal_value), 0) / rows.length), count: rows.length }
+  }
+  const bouwAvg  = nicheAvg('bouw')
+  const dakenAvg = nicheAvg('daken')
+  const gtYtdDeals  = (gtYtdRaw ?? []) as { deal_value: number }[]
+  const gtAvg = gtYtdDeals.length > 0
+    ? { avg: Math.round(gtYtdDeals.reduce((s, d) => s + Number(d.deal_value), 0) / gtYtdDeals.length), count: gtYtdDeals.length }
+    : null
 
   const ytdContMap: Record<string, { dealValue: number; commission: number }> = {}
   for (const d of ytdDeals) {
@@ -310,11 +328,32 @@ export default async function FinancePage({ searchParams }: Props) {
           </div>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+
+          {/* Gemiddelde deal value — uitgesplitst */}
+          <div style={card}>
+            <div style={lbl}>Gem. deal value YTD</div>
+            {[
+              { label: 'Bouw',      data: bouwAvg,  color: '#4f7df3' },
+              { label: 'Daken',     data: dakenAvg, color: '#a371f7' },
+              { label: 'GreenTeam', data: gtAvg,    color: '#3fb950' },
+            ].map(({ label, data, color }) => (
+              <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
+                <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-muted)' }}>{label}</span>
+                {data
+                  ? <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, color, fontVariantNumeric: 'tabular-nums' }}>
+                      {fmtEur(data.avg)}
+                      <span style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 400, color: 'var(--color-ink-faint)', marginLeft: 4 }}>×{data.count}</span>
+                    </span>
+                  : <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)' }}>—</span>
+                }
+              </div>
+            ))}
+          </div>
+
           {[
-            { label: 'Gemiddelde deal value', value: ytdEmpty ? '—' : fmtEur(ytdAvgDealValue),   sub: 'Gem. per deal' },
-            { label: 'Totale omzet',          value: ytdEmpty ? '—' : fmtEur(ytdTotalDealValue), sub: 'Deal waarde YTD' },
-            { label: 'Onze commissie',        value: ytdEmpty ? '—' : fmtEur(ytdTotalComm),      sub: 'Commissie YTD' },
-            { label: 'Aantal deals',          value: ytdEmpty ? '—' : String(ytdCount),           sub: 'Gesloten dit jaar' },
+            { label: 'Totale omzet',   value: ytdEmpty ? '—' : fmtEur(ytdTotalDealValue), sub: 'Deal waarde YTD' },
+            { label: 'Onze commissie', value: ytdEmpty ? '—' : fmtEur(ytdTotalComm),      sub: 'Commissie YTD' },
+            { label: 'Aantal deals',   value: ytdEmpty ? '—' : String(ytdCount),           sub: 'Gesloten dit jaar' },
           ].map(c => (
             <div key={c.label} style={card}>
               <div style={lbl}>{c.label}</div>
