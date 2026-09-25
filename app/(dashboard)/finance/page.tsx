@@ -2,6 +2,7 @@ import { serverClient } from '../../../lib/supabase-server'
 import { getActiveContractors } from '../../../lib/metrics'
 import { FinanceCharts } from '../../components/finance/FinanceCharts'
 import { MonthPicker } from '../../components/finance/MonthPicker'
+import { AvgDealValueCard } from '../../components/finance/AvgDealValueCard'
 
 export const dynamic = 'force-dynamic'
 
@@ -174,7 +175,7 @@ export default async function FinancePage({ searchParams }: Props) {
 
   // Per-niche averages
   function nicheAvg(niche: string) {
-    const rows = ytdDeals.filter(d => d.niche === niche)
+    const rows = ytdDeals.filter(d => d.niche?.toLowerCase() === niche.toLowerCase())
     if (rows.length === 0) return null
     return { avg: Math.round(rows.reduce((s, d) => s + Number(d.deal_value), 0) / rows.length), count: rows.length }
   }
@@ -329,26 +330,7 @@ export default async function FinancePage({ searchParams }: Props) {
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
 
-          {/* Gemiddelde deal value — uitgesplitst */}
-          <div style={card}>
-            <div style={lbl}>Gem. deal value YTD</div>
-            {[
-              { label: 'Bouw',      data: bouwAvg,  color: '#4f7df3' },
-              { label: 'Daken',     data: dakenAvg, color: '#a371f7' },
-              { label: 'GreenTeam', data: gtAvg,    color: '#3fb950' },
-            ].map(({ label, data, color }) => (
-              <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
-                <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-muted)' }}>{label}</span>
-                {data
-                  ? <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, color, fontVariantNumeric: 'tabular-nums' }}>
-                      {fmtEur(data.avg)}
-                      <span style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 400, color: 'var(--color-ink-faint)', marginLeft: 4 }}>×{data.count}</span>
-                    </span>
-                  : <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)' }}>—</span>
-                }
-              </div>
-            ))}
-          </div>
+          <AvgDealValueCard bouw={bouwAvg} daken={dakenAvg} gt={gtAvg} />
 
           {[
             { label: 'Totale omzet',   value: ytdEmpty ? '—' : fmtEur(ytdTotalDealValue), sub: 'Deal waarde YTD' },
