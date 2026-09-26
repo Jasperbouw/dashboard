@@ -90,7 +90,7 @@ export default async function FinancePage({ searchParams }: Props) {
     db.from('closed_deals')
       .select('commission_amount, commission_received_amount'),
     db.from('greenteam_deals')
-      .select('deal_value')
+      .select('deal_value, commission_amount')
       .gte('closed_at', ytdStart)
       .lte('closed_at', ytdEnd)
       .eq('status', 'akkoord'),
@@ -181,9 +181,13 @@ export default async function FinancePage({ searchParams }: Props) {
   }
   const bouwAvg  = nicheAvg('bouw')
   const dakenAvg = nicheAvg('daken')
-  const gtYtdDeals  = (gtYtdRaw ?? []) as { deal_value: number }[]
-  const gtAvg = gtYtdDeals.length > 0
-    ? { avg: Math.round(gtYtdDeals.reduce((s, d) => s + Number(d.deal_value), 0) / gtYtdDeals.length), count: gtYtdDeals.length }
+  type GtYtdRow = { deal_value: number; commission_amount: number }
+  const gtYtdDeals      = (gtYtdRaw ?? []) as GtYtdRow[]
+  const gtYtdCount      = gtYtdDeals.length
+  const gtYtdTotalValue = gtYtdDeals.reduce((s, d) => s + Number(d.deal_value), 0)
+  const gtYtdTotalComm  = gtYtdDeals.reduce((s, d) => s + Number(d.commission_amount), 0)
+  const gtAvg = gtYtdCount > 0
+    ? { avg: Math.round(gtYtdTotalValue / gtYtdCount), count: gtYtdCount }
     : null
 
   const ytdContMap: Record<string, { dealValue: number; commission: number }> = {}
@@ -333,9 +337,9 @@ export default async function FinancePage({ searchParams }: Props) {
           <AvgDealValueCard bouw={bouwAvg} daken={dakenAvg} gt={gtAvg} />
 
           {[
-            { label: 'Totale omzet',   value: ytdEmpty ? '—' : fmtEur(ytdTotalDealValue), sub: 'Deal waarde YTD' },
-            { label: 'Onze commissie', value: ytdEmpty ? '—' : fmtEur(ytdTotalComm),      sub: 'Commissie YTD' },
-            { label: 'Aantal deals',   value: ytdEmpty ? '—' : String(ytdCount),           sub: 'Gesloten dit jaar' },
+            { label: 'Totale omzet',   value: ytdEmpty && gtYtdCount === 0 ? '—' : fmtEur(ytdTotalDealValue + gtYtdTotalValue), sub: 'Bouwcheck + GreenTeam YTD' },
+            { label: 'Onze commissie', value: ytdEmpty && gtYtdCount === 0 ? '—' : fmtEur(ytdTotalComm + gtYtdTotalComm),      sub: 'Bouwcheck + GreenTeam YTD' },
+            { label: 'Aantal deals',   value: ytdEmpty && gtYtdCount === 0 ? '—' : String(ytdCount + gtYtdCount),               sub: 'Gesloten dit jaar' },
           ].map(c => (
             <div key={c.label} style={card}>
               <div style={lbl}>{c.label}</div>
@@ -344,7 +348,7 @@ export default async function FinancePage({ searchParams }: Props) {
             </div>
           ))}
         </div>
-        {ytdEmpty && (
+        {ytdEmpty && gtYtdCount === 0 && (
           <div style={{ marginTop: 10, fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)' }}>
             Nog geen deals dit jaar.
           </div>
