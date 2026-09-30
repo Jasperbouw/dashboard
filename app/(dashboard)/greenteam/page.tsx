@@ -42,6 +42,10 @@ function fmtDate(d: string) {
 
 function today() { return new Date().toISOString().slice(0, 10) }
 
+function localDate(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
 function periodRange(period: string): { from: string; to: string } {
   const now = new Date()
   const y   = now.getFullYear()
@@ -49,17 +53,17 @@ function periodRange(period: string): { from: string; to: string } {
   if (period === 'month') {
     return {
       from: `${y}-${String(m + 1).padStart(2, '0')}-01`,
-      to:   new Date(y, m + 1, 0).toISOString().slice(0, 10),
+      to:   localDate(new Date(y, m + 1, 0)),
     }
   }
   if (period === 'last') {
     const d = new Date(y, m - 1, 1)
     return {
       from: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`,
-      to:   new Date(y, m, 0).toISOString().slice(0, 10),
+      to:   localDate(new Date(y, m, 0)),
     }
   }
-  if (period === 'ytd') return { from: `${y}-01-01`, to: now.toISOString().slice(0, 10) }
+  if (period === 'ytd') return { from: `${y}-01-01`, to: localDate(now) }
   return { from: '2000-01-01', to: '2099-12-31' }
 }
 
