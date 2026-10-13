@@ -419,7 +419,7 @@ export default function DocumentenPage() {
   }
 
   return (
-    <div style={{ padding: '32px 36px', maxWidth: 900 }}>
+    <div className="page-wrap" style={{ maxWidth: 900 }}>
 
       {/* Header */}
       <div style={{ marginBottom: 28 }}>

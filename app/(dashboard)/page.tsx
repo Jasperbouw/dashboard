@@ -181,7 +181,7 @@ export default async function HomePage() {
   }
 
   return (
-    <div style={{ padding: '32px 36px', maxWidth: 900 }}>
+    <div className="page-wrap" style={{ maxWidth: 900 }}>
 
       {/* Header */}
       <div style={{ marginBottom: 36 }}>
@@ -194,7 +194,7 @@ export default async function HomePage() {
         </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+      <div className="cards-2">
 
         {/* Leads deze week */}
         <div style={card}>

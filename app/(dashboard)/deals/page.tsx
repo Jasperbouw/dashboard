@@ -590,7 +590,7 @@ export default function DealsPage() {
   const menuAB   = menuId && menuType.current === 'ab'   ? adBudgets.find(a => a.id === menuId) : null
 
   return (
-    <div style={{ padding: '32px 36px', maxWidth: 1200 }}>
+    <div className="page-wrap" style={{ maxWidth: 1200 }}>
 
       {/* Header */}
       <div style={{ marginBottom: 24 }}>
@@ -601,7 +601,7 @@ export default function DealsPage() {
       </div>
 
       {/* Stat cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 14, marginBottom: 24 }}>
+      <div className="cards-5" style={{ marginBottom: 24 }}>
         {[
           { label: 'Closed deals waarde',   value: fmtEur(totalDealValue),  sub: `${dealCount} deal${dealCount !== 1 ? 's' : ''} geland` },
           { label: 'Onze commissie',         value: fmtEur(totalCommission), sub: `Gem. ${avgCommPct.toFixed(1)}% commissie` },

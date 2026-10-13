@@ -209,7 +209,7 @@ const RITUALS = [
 
 export default function TeamPage() {
   return (
-    <div style={{ padding: '32px 36px', maxWidth: 1200 }}>
+    <div className="page-wrap" style={{ maxWidth: 1200 }}>
 
       {/* Header */}
       <div style={{ marginBottom: 36 }}>

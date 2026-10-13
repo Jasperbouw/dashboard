@@ -75,7 +75,7 @@ export default async function FunnelPage({ searchParams }: Props) {
   const label      = periodLabel(fromStr, toStr)
 
   return (
-    <div style={{ padding: '32px 36px', maxWidth: 900 }}>
+    <div className="page-wrap" style={{ maxWidth: 900 }}>
 
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 32, gap: 16, flexWrap: 'wrap' }}>

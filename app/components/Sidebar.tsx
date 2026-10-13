@@ -10,18 +10,7 @@ async function logout() {
 
 export function Sidebar() {
   return (
-    <aside style={{
-      width:         240,
-      flexShrink:    0,
-      height:        '100vh',
-      display:       'flex',
-      flexDirection: 'column',
-      background:    'var(--color-surface-raised)',
-      borderRight:   '1px solid var(--color-border)',
-      position:      'sticky',
-      top:           0,
-      overflow:      'hidden',
-    }}>
+    <aside className="sidebar-wrap">
       {/* Logo */}
       <div style={{
         padding:      '20px 18px 16px',

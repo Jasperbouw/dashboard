@@ -7,7 +7,7 @@ export default async function ContractorsPage() {
   const contractors = await contractorLeaderboard()
 
   return (
-    <div style={{ padding: '32px 36px', maxWidth: 1400 }}>
+    <div className="page-wrap" style={{ maxWidth: 1400 }}>
 
       {/* ── Header ── */}
       <div style={{ marginBottom: 28 }}>

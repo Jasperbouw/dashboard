@@ -33,7 +33,7 @@ const COL_WIDTHS = [160, 70, 52, 52, 70, 60, 70]
 
 export default function FunnelLoading() {
   return (
-    <div style={{ padding: '32px 36px', maxWidth: 1280 }}>
+    <div className="page-wrap" style={{ maxWidth: 1280 }}>
 
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div style={{

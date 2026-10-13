@@ -79,3 +79,41 @@ body {
 
 /* ── Animations ─────────────────────────────────────────────── */
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Sidebar layout ─────────────────────────────────────────── */
+.sidebar-wrap {
+  display: flex;
+  flex-direction: column;
+  width: 240px;
+  flex-shrink: 0;
+  height: 100vh;
+  background: var(--color-surface-raised);
+  border-right: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  overflow: hidden;
+}
+
+.mobile-nav-bar { display: none; }
+
+/* ── Page wrapper ───────────────────────────────────────────── */
+.page-wrap { padding: 32px 36px; }
+
+/* ── Responsive grids ───────────────────────────────────────── */
+.cards-2 { display: grid; gap: 20px; grid-template-columns: repeat(2, 1fr); }
+.cards-4 { display: grid; gap: 16px; grid-template-columns: repeat(4, 1fr); }
+.cards-5 { display: grid; gap: 14px; grid-template-columns: repeat(5, 1fr); }
+
+/* ── Table scroll on mobile ─────────────────────────────────── */
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* ── Mobile ─────────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  .sidebar-wrap   { display: none; }
+  .mobile-nav-bar { display: flex; }
+  .page-wrap      { padding: 20px 16px 88px; }
+
+  .cards-2 { grid-template-columns: 1fr; gap: 14px; }
+  .cards-4 { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .cards-5 { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+}

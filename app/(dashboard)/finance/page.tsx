@@ -220,7 +220,7 @@ export default async function FinancePage({ searchParams }: Props) {
   }
 
   return (
-    <div style={{ padding: '32px 36px', maxWidth: 1200 }}>
+    <div className="page-wrap" style={{ maxWidth: 1200 }}>
 
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 28, gap: 16 }}>
@@ -234,7 +234,7 @@ export default async function FinancePage({ searchParams }: Props) {
       </div>
 
       {/* Primaire vergelijking: Bouwcheck vs GreenTeam */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 16 }}>
+      <div className="cards-4" style={{ marginBottom: 16 }}>
 
         {/* Bouwcheck */}
         <div style={{ ...card, borderTop: '3px solid #4f7df3' }}>
@@ -332,7 +332,7 @@ export default async function FinancePage({ searchParams }: Props) {
             1 jan – vandaag · alle niches
           </div>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+        <div className="cards-4">
 
           <AvgDealValueCard bouw={bouwAvg} daken={dakenAvg} gt={gtAvg} />
 

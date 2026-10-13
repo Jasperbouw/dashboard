@@ -503,7 +503,7 @@ export default function GreenTeamPage() {
   }
 
   return (
-    <div style={{ padding: '32px 36px', maxWidth: 1300 }}>
+    <div className="page-wrap" style={{ maxWidth: 1300 }}>
 
       {/* Header */}
       <div style={{ marginBottom: 24 }}>
