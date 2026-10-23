@@ -475,7 +475,10 @@ export default function GreenTeamPage() {
   const totalCommission  = akkoordDeals.reduce((s, d) => s + Number(d.commission_amount), 0)
   const dealCount        = akkoordDeals.length
   const avgCommPct       = totalDealValue > 0 ? (totalCommission / totalDealValue * 100) : 0
-  const openstaandeComm  = deals.reduce((s, d) => s + Math.max(0, Number(d.commission_amount) - Number(d.commission_received_amount)), 0)
+  const openstaandeComm    = deals.reduce((s, d) => s + Math.max(0, Number(d.commission_amount) - Number(d.commission_received_amount)), 0)
+  const currentMonthOmzet  = deals
+    .filter(d => d.closed_at.slice(0, 7) === currentMonthKey && d.status === 'akkoord')
+    .reduce((s, d) => s + Number(d.deal_value), 0)
 
   // Group filtered deals by month (newest first)
   const monthGroups = (() => {
@@ -565,7 +568,7 @@ export default function GreenTeamPage() {
           { label: 'Commissie',                value: totalCommission > 0 ? fmtEur(totalCommission) : '—', sub: `Gem. ${avgCommPct.toFixed(1)}%` },
           { label: 'Openstaande commissie',    value: openstaandeComm > 0 ? fmtEur(openstaandeComm) : '—', sub: 'Nog niet ontvangen (all-time)', highlight: true },
           { label: 'Aantal deals',             value: String(dealCount), sub: 'Akkoord in periode' },
-          { label: 'Gem. commissie %',         value: avgCommPct > 0 ? `${avgCommPct.toFixed(1)}%` : '—', sub: 'Commissie / omzet' },
+          { label: 'Omzet deze maand',          value: currentMonthOmzet > 0 ? fmtEur(currentMonthOmzet) : '—', sub: monthLabel(currentMonthKey) },
         ].map(s => (
           <div key={s.label} style={{ padding: '16px', background: 'var(--color-surface)', border: `1px solid ${'highlight' in s && s.highlight ? 'rgba(63,185,80,0.3)' : 'var(--color-border-subtle)'}`, borderRadius: 'var(--radius-lg)' }}>
             <div style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 600, color: 'var(--color-ink-faint)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>{s.label}</div>
