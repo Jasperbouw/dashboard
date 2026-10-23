@@ -40,6 +40,13 @@ function fmtDate(d: string) {
   return new Date(d).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
+const NL_MONTHS_FULL = ['Januari','Februari','Maart','April','Mei','Juni','Juli','Augustus','September','Oktober','November','December']
+
+function monthLabel(key: string): string {
+  const [y, m] = key.split('-').map(Number)
+  return `${NL_MONTHS_FULL[m - 1]} ${y}`
+}
+
 function today() { return new Date().toISOString().slice(0, 10) }
 
 function localDate(d: Date): string {
@@ -414,7 +421,7 @@ export default function GreenTeamPage() {
   const { data: rawDeals, mutate } = useSWR<GreenDeal[]>('/api/greenteam', fetcher, SWR_OPTS)
   const deals = Array.isArray(rawDeals) ? rawDeals : []
 
-  const [filterPeriod, setFilterPeriod] = useState('month')
+  const [filterPeriod, setFilterPeriod] = useState('all')
   const [filterStatus, setFilterStatus] = useState('all')
   const [modal,        setModal]        = useState(false)
   const [editDeal,     setEditDeal]     = useState<GreenDeal | null>(null)
@@ -426,6 +433,18 @@ export default function GreenTeamPage() {
   const [editingCommId,  setEditingCommId]  = useState<string | null>(null)
   const [editingCommAmt, setEditingCommAmt] = useState('')
   const [savingComm,     setSavingComm]     = useState(false)
+  const [expandedMonths, setExpandedMonths] = useState<Set<string>>(new Set())
+
+  const currentMonthKey = (() => {
+    const n = new Date()
+    return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}`
+  })()
+
+  function isMonthOpen(key: string) { return key === currentMonthKey || expandedMonths.has(key) }
+  function toggleMonth(key: string) {
+    if (key === currentMonthKey) return
+    setExpandedMonths(prev => { const s = new Set(prev); s.has(key) ? s.delete(key) : s.add(key); return s })
+  }
 
   useEffect(() => {
     if (!menuId) return
@@ -457,6 +476,32 @@ export default function GreenTeamPage() {
   const dealCount        = akkoordDeals.length
   const avgCommPct       = totalDealValue > 0 ? (totalCommission / totalDealValue * 100) : 0
   const openstaandeComm  = deals.reduce((s, d) => s + Math.max(0, Number(d.commission_amount) - Number(d.commission_received_amount)), 0)
+
+  // Group filtered deals by month (newest first)
+  const monthGroups = (() => {
+    const map = new Map<string, GreenDeal[]>()
+    for (const d of filtered) {
+      const key = d.closed_at.slice(0, 7)
+      if (!map.has(key)) map.set(key, [])
+      map.get(key)!.push(d)
+    }
+    return Array.from(map.entries()).sort((a, b) => b[0].localeCompare(a[0]))
+  })()
+
+  async function quickSaveComm(id: string, amount: number) {
+    const deal = deals.find(d => d.id === id)
+    if (!deal) return
+    const total    = Number(deal.commission_amount)
+    const received = Math.min(amount, total)
+    mutate(prev => (prev ?? []).map(d => d.id === id
+      ? { ...d, commission_received_amount: received, commission_received: received >= total }
+      : d), false)
+    await fetch(`/api/greenteam/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ commission_received_amount: received, commission_received: received >= total }),
+    })
+  }
 
   async function saveReceivedAmount(id: string) {
     const amt = parseFloat(editingCommAmt.replace(',', '.'))
@@ -514,7 +559,7 @@ export default function GreenTeamPage() {
       </div>
 
       {/* Stat cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 14, marginBottom: 24 }}>
+      <div className="cards-5" style={{ marginBottom: 24 }}>
         {[
           { label: 'Omzet (akkoord)',          value: totalDealValue > 0 ? fmtEur(totalDealValue)  : '—', sub: `${dealCount} deal${dealCount !== 1 ? 's' : ''} akkoord` },
           { label: 'Commissie',                value: totalCommission > 0 ? fmtEur(totalCommission) : '—', sub: `Gem. ${avgCommPct.toFixed(1)}%` },
@@ -552,95 +597,152 @@ export default function GreenTeamPage() {
         </button>
       </div>
 
-      {/* Deals table */}
-      <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border-subtle)', borderRadius: 'var(--radius-lg)', overflow: 'auto' }}>
-        {filtered.length === 0 ? (
-          <div style={{ padding: '40px', textAlign: 'center', color: 'var(--color-ink-faint)', fontSize: 'var(--font-size-sm)' }}>
-            Geen deals in deze periode
-          </div>
-        ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 900 }}>
-            <thead>
-              <tr>
-                {['Datum', 'Klant', 'Stad', 'Producten', 'Financiering', 'Omzet', 'Comm.%', 'Commissie', 'Status', 'Ontvangen', ''].map(h => (
-                  <th key={h} style={{ ...thStyle, textAlign: ['Omzet', 'Commissie', 'Comm.%'].includes(h) ? 'right' : 'left' }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(d => {
-                const cancelled = d.status === 'geannuleerd'
-                const rowOpacity = cancelled ? 0.5 : 1
-                return (
-                  <tr key={d.id}
-                    onMouseEnter={e => (e.currentTarget as HTMLTableRowElement).style.background = 'var(--color-surface-raised)'}
-                    onMouseLeave={e => (e.currentTarget as HTMLTableRowElement).style.background = ''}
-                  >
-                    <td style={{ ...tdStyle, whiteSpace: 'nowrap', opacity: rowOpacity }}>{fmtDate(d.closed_at)}</td>
-                    <td style={{ ...tdStyle, fontWeight: 500, opacity: rowOpacity, textDecoration: cancelled ? 'line-through' : 'none' }}>{d.client_name}</td>
-                    <td style={{ ...tdStyle, color: 'var(--color-ink-muted)', opacity: rowOpacity }}>{d.location || '—'}</td>
-                    <td style={{ ...tdStyle, opacity: rowOpacity }}>
-                      <span style={{ fontSize: 'var(--font-size-xs)', fontFamily: 'monospace', color: 'var(--color-ink-muted)' }}>{productsLabel(d)}</span>
-                    </td>
-                    <td style={{ ...tdStyle, opacity: rowOpacity }}>
-                      <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-muted)' }}>{financingLabel(d)}</span>
-                    </td>
-                    <td style={{ ...tdStyle, textAlign: 'right', fontVariantNumeric: 'tabular-nums', opacity: rowOpacity }}>{fmtEur(Number(d.deal_value))}</td>
-                    <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--color-ink-faint)', fontSize: 'var(--font-size-xs)', opacity: rowOpacity }}>{Number(d.commission_pct).toFixed(1)}%</td>
-                    <td style={{ ...tdStyle, textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontWeight: 500, color: cancelled ? 'var(--color-ink-faint)' : 'var(--color-success)', opacity: rowOpacity }}>{fmtEur(Number(d.commission_amount))}</td>
-                    <td style={{ ...tdStyle }}>
-                      <span style={{
-                        display: 'inline-block', padding: '2px 8px', borderRadius: 10, fontSize: 'var(--font-size-2xs)', fontWeight: 600,
-                        background: cancelled ? 'rgba(248,81,73,0.1)' : 'rgba(63,185,80,0.12)',
-                        color:      cancelled ? '#f85149' : '#3fb950',
-                      }}>
-                        {cancelled ? 'Geannuleerd' : 'Akkoord'}
-                      </span>
-                    </td>
-                    <td style={{ ...tdStyle, whiteSpace: 'nowrap' }}>
-                      {!cancelled && (
-                        editingCommId === d.id ? (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }} onClick={e => e.stopPropagation()}>
-                            <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-ink-faint)' }}>€</span>
-                            <input
-                              autoFocus type="number" min="0" step="0.01"
-                              value={editingCommAmt}
-                              onChange={e => setEditingCommAmt(e.target.value)}
-                              onKeyDown={e => { if (e.key === 'Enter') saveReceivedAmount(d.id); if (e.key === 'Escape') setEditingCommId(null) }}
-                              style={{ width: 80, padding: '3px 6px', background: 'var(--color-surface-raised)', border: '1px solid var(--color-border)', borderRadius: 4, color: 'var(--color-ink)', fontSize: 'var(--font-size-xs)', outline: 'none' }}
-                            />
-                            <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-ink-faint)' }}>/ {fmtEur(Number(d.commission_amount))}</span>
-                            <button onClick={() => saveReceivedAmount(d.id)} disabled={savingComm} style={{ padding: '3px 8px', background: 'var(--color-accent)', color: '#fff', border: 'none', borderRadius: 4, fontSize: 'var(--font-size-2xs)', cursor: 'pointer' }}>✓</button>
-                            <button onClick={() => setEditingCommId(null)} style={{ padding: '3px 6px', background: 'none', border: '1px solid var(--color-border)', borderRadius: 4, fontSize: 'var(--font-size-2xs)', cursor: 'pointer', color: 'var(--color-ink-muted)' }}>✕</button>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => { setEditingCommId(d.id); setEditingCommAmt(String(Number(d.commission_received_amount) || '')) }}
-                            style={{
-                              display: 'inline-flex', alignItems: 'center', gap: 4,
-                              padding: '3px 10px', borderRadius: 12, border: '1px solid',
-                              fontSize: 'var(--font-size-2xs)', fontWeight: 600, cursor: 'pointer',
-                              background:   commStatus(d) === 'full' ? 'rgba(63,185,80,0.12)' : commStatus(d) === 'partial' ? 'rgba(240,136,62,0.10)' : 'transparent',
-                              borderColor:  commStatus(d) === 'full' ? '#3fb950' : commStatus(d) === 'partial' ? '#f0883e' : 'var(--color-border)',
-                              color:        commStatus(d) === 'full' ? '#3fb950' : commStatus(d) === 'partial' ? '#f0883e' : 'var(--color-ink-muted)',
-                            }}
-                          >
-                            {commStatus(d) === 'full' ? '✓ Volledig' : commStatus(d) === 'partial' ? `Deels ${fmtEur(Number(d.commission_received_amount))}` : 'Openstaand'}
-                          </button>
-                        )
-                      )}
-                    </td>
-                    <td style={{ ...tdStyle, width: 40, textAlign: 'center' }}>
-                      <button onClick={ev => openMenu(ev, d.id)}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-ink-faint)', fontSize: 16, padding: '2px 6px' }}>⋯</button>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        )}
-      </div>
+      {/* Deals — grouped by month */}
+      {filtered.length === 0 ? (
+        <div style={{ padding: '40px', textAlign: 'center', color: 'var(--color-ink-faint)', fontSize: 'var(--font-size-sm)', background: 'var(--color-surface)', border: '1px solid var(--color-border-subtle)', borderRadius: 'var(--radius-lg)' }}>
+          Geen deals gevonden
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {monthGroups.map(([key, groupDeals]) => {
+            const open       = isMonthOpen(key)
+            const isCurrent  = key === currentMonthKey
+            const groupAkk   = groupDeals.filter(d => d.status === 'akkoord')
+            const groupComm  = groupAkk.reduce((s, d) => s + Number(d.commission_amount), 0)
+            const groupOpen  = groupAkk.reduce((s, d) => s + Math.max(0, Number(d.commission_amount) - Number(d.commission_received_amount)), 0)
+
+            return (
+              <div key={key}>
+                {/* Month header */}
+                <div
+                  onClick={() => toggleMonth(key)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    padding: '10px 14px',
+                    background: 'var(--color-surface-raised)',
+                    border: '1px solid var(--color-border-subtle)',
+                    borderRadius: open ? 'var(--radius-lg) var(--radius-lg) 0 0' : 'var(--radius-lg)',
+                    cursor: isCurrent ? 'default' : 'pointer',
+                    userSelect: 'none',
+                  }}
+                >
+                  <span style={{ fontSize: 10, color: 'var(--color-ink-faint)', lineHeight: 1, width: 10, flexShrink: 0 }}>
+                    {isCurrent ? '▼' : open ? '▼' : '▶'}
+                  </span>
+                  <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-ink)' }}>
+                    {monthLabel(key)}
+                    {isCurrent && <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-quote)', marginLeft: 6, fontWeight: 500 }}>huidig</span>}
+                  </span>
+                  <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)' }}>
+                    {groupAkk.length} deal{groupAkk.length !== 1 ? 's' : ''}
+                  </span>
+                  {groupComm > 0 && (
+                    <span style={{ fontSize: 'var(--font-size-xs)', color: '#3fb950', fontVariantNumeric: 'tabular-nums' }}>
+                      · {fmtEur(groupComm)} commissie
+                    </span>
+                  )}
+                  {groupOpen > 0 && (
+                    <span style={{ fontSize: 'var(--font-size-xs)', color: '#f0883e', fontVariantNumeric: 'tabular-nums', marginLeft: 'auto' }}>
+                      {fmtEur(groupOpen)} openstaand
+                    </span>
+                  )}
+                </div>
+
+                {/* Table */}
+                {open && (
+                  <div style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border-subtle)', borderTop: 'none', borderRadius: '0 0 var(--radius-lg) var(--radius-lg)', overflow: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 860 }}>
+                      <thead>
+                        <tr>
+                          {['Datum', 'Klant', 'Stad', 'Producten', 'Fin.', 'Omzet', 'Comm.%', 'Commissie', 'Ontvangen', ''].map(h => (
+                            <th key={h} style={{ ...thStyle, textAlign: ['Omzet', 'Commissie', 'Comm.%'].includes(h) ? 'right' : 'left' }}>{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {groupDeals.map(d => {
+                          const cancelled  = d.status === 'geannuleerd'
+                          const rowOpacity = cancelled ? 0.5 : 1
+                          const cs         = commStatus(d)
+                          return (
+                            <tr key={d.id}
+                              onMouseEnter={e => (e.currentTarget as HTMLTableRowElement).style.background = 'var(--color-surface-raised)'}
+                              onMouseLeave={e => (e.currentTarget as HTMLTableRowElement).style.background = ''}
+                            >
+                              <td style={{ ...tdStyle, whiteSpace: 'nowrap', opacity: rowOpacity }}>{fmtDate(d.closed_at)}</td>
+                              <td style={{ ...tdStyle, fontWeight: 500, opacity: rowOpacity, textDecoration: cancelled ? 'line-through' : 'none' }}>{d.client_name}</td>
+                              <td style={{ ...tdStyle, color: 'var(--color-ink-muted)', opacity: rowOpacity }}>{d.location || '—'}</td>
+                              <td style={{ ...tdStyle, opacity: rowOpacity }}>
+                                <span style={{ fontSize: 'var(--font-size-xs)', fontFamily: 'monospace', color: 'var(--color-ink-muted)' }}>{productsLabel(d)}</span>
+                              </td>
+                              <td style={{ ...tdStyle, opacity: rowOpacity }}>
+                                <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-muted)' }}>{financingLabel(d)}</span>
+                              </td>
+                              <td style={{ ...tdStyle, textAlign: 'right', fontVariantNumeric: 'tabular-nums', opacity: rowOpacity }}>{fmtEur(Number(d.deal_value))}</td>
+                              <td style={{ ...tdStyle, textAlign: 'right', color: 'var(--color-ink-faint)', fontSize: 'var(--font-size-xs)', opacity: rowOpacity }}>{Number(d.commission_pct).toFixed(1)}%</td>
+                              <td style={{ ...tdStyle, textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontWeight: 500, color: cancelled ? 'var(--color-ink-faint)' : 'var(--color-success)', opacity: rowOpacity }}>{fmtEur(Number(d.commission_amount))}</td>
+
+                              {/* Ontvangen — 50% / Volledig knoppen */}
+                              <td style={{ ...tdStyle, whiteSpace: 'nowrap' }}>
+                                {!cancelled && (
+                                  editingCommId === d.id ? (
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 5 }} onClick={e => e.stopPropagation()}>
+                                      <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-ink-faint)' }}>€</span>
+                                      <input
+                                        autoFocus type="number" min="0" step="0.01"
+                                        value={editingCommAmt}
+                                        onChange={e => setEditingCommAmt(e.target.value)}
+                                        onKeyDown={e => { if (e.key === 'Enter') saveReceivedAmount(d.id); if (e.key === 'Escape') setEditingCommId(null) }}
+                                        style={{ width: 72, padding: '3px 5px', background: 'var(--color-surface-raised)', border: '1px solid var(--color-border)', borderRadius: 4, color: 'var(--color-ink)', fontSize: 'var(--font-size-xs)', outline: 'none' }}
+                                      />
+                                      <button onClick={() => saveReceivedAmount(d.id)} disabled={savingComm} style={{ padding: '3px 7px', background: 'var(--color-accent)', color: '#fff', border: 'none', borderRadius: 4, fontSize: 'var(--font-size-2xs)', cursor: 'pointer' }}>✓</button>
+                                      <button onClick={() => setEditingCommId(null)} style={{ padding: '3px 5px', background: 'none', border: '1px solid var(--color-border)', borderRadius: 4, fontSize: 'var(--font-size-2xs)', cursor: 'pointer', color: 'var(--color-ink-muted)' }}>✕</button>
+                                    </div>
+                                  ) : cs === 'full' ? (
+                                    <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 10, fontSize: 'var(--font-size-2xs)', fontWeight: 600, background: 'rgba(63,185,80,0.12)', color: '#3fb950' }}>✓ Volledig</span>
+                                  ) : (
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                      {cs === 'partial' && (
+                                        <button
+                                          onClick={() => { setEditingCommId(d.id); setEditingCommAmt(String(Number(d.commission_received_amount))) }}
+                                          style={{ padding: '2px 7px', borderRadius: 10, border: '1px solid #f0883e', fontSize: 'var(--font-size-2xs)', fontWeight: 600, cursor: 'pointer', background: 'rgba(240,136,62,0.10)', color: '#f0883e' }}
+                                        >
+                                          {fmtEur(Number(d.commission_received_amount))}
+                                        </button>
+                                      )}
+                                      <button
+                                        onClick={() => quickSaveComm(d.id, Number(d.commission_amount) / 2)}
+                                        style={{ padding: '2px 8px', borderRadius: 10, border: '1px solid var(--color-border)', fontSize: 'var(--font-size-2xs)', fontWeight: 600, cursor: 'pointer', background: 'transparent', color: 'var(--color-ink-muted)' }}
+                                      >
+                                        50%
+                                      </button>
+                                      <button
+                                        onClick={() => quickSaveComm(d.id, Number(d.commission_amount))}
+                                        style={{ padding: '2px 8px', borderRadius: 10, border: '1px solid #3fb950', fontSize: 'var(--font-size-2xs)', fontWeight: 600, cursor: 'pointer', background: 'rgba(63,185,80,0.10)', color: '#3fb950' }}
+                                      >
+                                        Volledig
+                                      </button>
+                                    </div>
+                                  )
+                                )}
+                              </td>
+
+                              <td style={{ ...tdStyle, width: 36, textAlign: 'center' }}>
+                                <button onClick={ev => openMenu(ev, d.id)}
+                                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-ink-faint)', fontSize: 16, padding: '2px 4px' }}>⋯</button>
+                              </td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
 
       {/* Context menu */}
       {menuId && menuPos && menuDeal && (
