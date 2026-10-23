@@ -23,7 +23,7 @@ export function Sidebar() {
           color:      'var(--color-ink)',
           lineHeight: 1.3,
         }}>
-          BOUW CHECK
+          BOLD Agency
         </div>
         <div style={{
           fontSize:   'var(--font-size-xs)',
