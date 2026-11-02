@@ -656,7 +656,7 @@ export default function GreenTeamPage() {
                     </span>
                   )}
                   {groupOpen > 0 && (
-                    <span style={{ fontSize: 'var(--font-size-xs)', color: '#f0883e', fontVariantNumeric: 'tabular-nums', marginLeft: 'auto' }}>
+                    <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)', fontVariantNumeric: 'tabular-nums', marginLeft: 'auto' }}>
                       {fmtEur(groupOpen)} openstaand
                     </span>
                   )}
