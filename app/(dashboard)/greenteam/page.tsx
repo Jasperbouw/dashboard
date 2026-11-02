@@ -28,6 +28,7 @@ interface GreenDeal {
   lead_source:                 string | null
   notes:                       string | null
   created_at:                  string
+  financing_done:              boolean
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -506,6 +507,16 @@ export default function GreenTeamPage() {
     })
   }
 
+  async function toggleFinancingDone(id: string, current: boolean) {
+    const next = !current
+    mutate(prev => (prev ?? []).map(d => d.id === id ? { ...d, financing_done: next } : d), false)
+    await fetch(`/api/greenteam/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ financing_done: next }),
+    })
+  }
+
   async function saveReceivedAmount(id: string) {
     const amt = parseFloat(editingCommAmt.replace(',', '.'))
     if (isNaN(amt) || amt < 0) return
@@ -657,7 +668,7 @@ export default function GreenTeamPage() {
                     <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 860 }}>
                       <thead>
                         <tr>
-                          {['Datum', 'Klant', 'Stad', 'Producten', 'Fin.', 'Omzet', 'Comm.%', 'Commissie', 'Ontvangen', ''].map(h => (
+                          {['Datum', 'Klant', 'Stad', 'Producten', 'Fin.', 'Omzet', 'Comm.%', 'Commissie', 'Ontvangen', 'Fin. status', ''].map(h => (
                             <th key={h} style={{ ...thStyle, textAlign: ['Omzet', 'Commissie', 'Comm.%'].includes(h) ? 'right' : 'left' }}>{h}</th>
                           ))}
                         </tr>
@@ -669,8 +680,9 @@ export default function GreenTeamPage() {
                           const cs         = commStatus(d)
                           return (
                             <tr key={d.id}
-                              onMouseEnter={e => (e.currentTarget as HTMLTableRowElement).style.background = 'var(--color-surface-raised)'}
-                              onMouseLeave={e => (e.currentTarget as HTMLTableRowElement).style.background = ''}
+                              onMouseEnter={e => { if (!d.financing_done) (e.currentTarget as HTMLTableRowElement).style.background = 'var(--color-surface-raised)' }}
+                              onMouseLeave={e => { if (!d.financing_done) (e.currentTarget as HTMLTableRowElement).style.background = '' }}
+                              style={{ background: d.financing_done ? 'rgba(63,185,80,0.07)' : '' }}
                             >
                               <td style={{ ...tdStyle, whiteSpace: 'nowrap', opacity: rowOpacity }}>{fmtDate(d.closed_at)}</td>
                               <td style={{ ...tdStyle, fontWeight: 500, opacity: rowOpacity, textDecoration: cancelled ? 'line-through' : 'none' }}>{d.client_name}</td>
@@ -727,6 +739,25 @@ export default function GreenTeamPage() {
                                       </button>
                                     </div>
                                   )
+                                )}
+                              </td>
+
+                              {/* Financiering status toggle */}
+                              <td style={{ ...tdStyle, whiteSpace: 'nowrap' }}>
+                                {!cancelled && (
+                                  <button
+                                    onClick={() => toggleFinancingDone(d.id, d.financing_done)}
+                                    style={{
+                                      display: 'inline-flex', alignItems: 'center', gap: 4,
+                                      padding: '3px 9px', borderRadius: 10, border: '1px solid',
+                                      fontSize: 'var(--font-size-2xs)', fontWeight: 600, cursor: 'pointer',
+                                      background:   d.financing_done ? 'rgba(63,185,80,0.15)' : 'transparent',
+                                      borderColor:  d.financing_done ? '#3fb950' : 'var(--color-border)',
+                                      color:        d.financing_done ? '#3fb950' : 'var(--color-ink-faint)',
+                                    }}
+                                  >
+                                    {d.financing_done ? '✓ Rond' : 'Openstaand'}
+                                  </button>
                                 )}
                               </td>
 
