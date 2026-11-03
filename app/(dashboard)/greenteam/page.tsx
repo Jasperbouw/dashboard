@@ -622,6 +622,7 @@ export default function GreenTeamPage() {
             const open       = isMonthOpen(key)
             const isCurrent  = key === currentMonthKey
             const groupAkk   = groupDeals.filter(d => d.status === 'akkoord')
+            const groupOmzet = groupAkk.reduce((s, d) => s + Number(d.deal_value), 0)
             const groupComm  = groupAkk.reduce((s, d) => s + Number(d.commission_amount), 0)
             const groupOpen  = groupAkk.reduce((s, d) => s + Math.max(0, Number(d.commission_amount) - Number(d.commission_received_amount)), 0)
 
@@ -650,6 +651,11 @@ export default function GreenTeamPage() {
                   <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-faint)' }}>
                     {groupAkk.length} deal{groupAkk.length !== 1 ? 's' : ''}
                   </span>
+                  {groupOmzet > 0 && (
+                    <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-ink-muted)', fontVariantNumeric: 'tabular-nums' }}>
+                      · {fmtEur(groupOmzet)}
+                    </span>
+                  )}
                   {groupComm > 0 && (
                     <span style={{ fontSize: 'var(--font-size-xs)', color: '#3fb950', fontVariantNumeric: 'tabular-nums' }}>
                       · {fmtEur(groupComm)} commissie
