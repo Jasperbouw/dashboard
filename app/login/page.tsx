@@ -60,7 +60,7 @@ function LoginForm() {
             letterSpacing: '0.1em',
             textTransform: 'uppercase',
           }}>
-            BOUW CHECK
+            BOLD Agency
           </div>
           <div style={{
             fontSize:  'var(--font-size-xs)',
